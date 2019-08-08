@@ -1,13 +1,22 @@
 /**
- * Provider list
+ * A map for provider information
+ *
+ * @interface Providers
  */
-const providers = {
-  ExchangeRatesAPI: { keyName: "", endpoint: "" },
-  OpenExchangeRates: { keyName: "", endpoint: "" },
-  Fixer: { keyName: "", endpoint: "" },
-  IBAN: { keyName: "", endpoint: "" },
-  CurrencyLayer: { keyName: "", endpoint: "" },
-  Happi: { keyName: "", endpoint: "" }
+interface Providers {
+  [name: string]: provider;
+}
+
+/**
+ * Provider map initialization
+ */
+const providers: Providers = {
+  ExchangeRatesAPI: { keyName: "", endpoint: "", keyNeeded: false },
+  OpenExchangeRates: { keyName: "", endpoint: "", keyNeeded: true },
+  Fixer: { keyName: "", endpoint: "", keyNeeded: true },
+  IBAN: { keyName: "", endpoint: "", keyNeeded: true },
+  CurrencyLayer: { keyName: "", endpoint: "", keyNeeded: true },
+  Happi: { keyName: "", endpoint: "", keyNeeded: true }
 };
 
 /**
@@ -17,7 +26,13 @@ const providers = {
  */
 interface config {
   key: any;
-  provider: object;
+  provider: provider;
+}
+
+export interface provider {
+  keyName: string;
+  keyNeeded: boolean;
+  endpoint: "";
 }
 
 /**
@@ -25,7 +40,7 @@ interface config {
  *
  * @interface initializationConfig
  */
-interface initializationConfig {
+export interface initializationConfig {
   key: any;
   provider: string;
 }
@@ -82,6 +97,13 @@ export function resolveConfig(
       key: undefined,
       provider: providers.ExchangeRatesAPI
     };
+  }
+
+  if (
+    typeof configuration !== "object" &&
+    typeof configuration !== "undefined"
+  ) {
+    throw "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)";
   }
 
   let resolvedConfig = {
