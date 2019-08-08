@@ -1,23 +1,4 @@
-/**
- * A map for provider information
- *
- * @interface Providers
- */
-interface Providers {
-  [name: string]: provider;
-}
-
-/**
- * Provider map initialization
- */
-const providers: Providers = {
-  ExchangeRatesAPI: { keyName: "", endpoint: "", keyNeeded: false },
-  OpenExchangeRates: { keyName: "", endpoint: "", keyNeeded: true },
-  Fixer: { keyName: "", endpoint: "", keyNeeded: true },
-  IBAN: { keyName: "", endpoint: "", keyNeeded: true },
-  CurrencyLayer: { keyName: "", endpoint: "", keyNeeded: true },
-  Happi: { keyName: "", endpoint: "", keyNeeded: true }
-};
+import { Provider, providers } from "./providers";
 
 /**
  * Normalized config.
@@ -26,13 +7,7 @@ const providers: Providers = {
  */
 interface config {
   key: any;
-  provider: provider;
-}
-
-export interface provider {
-  keyName: string;
-  keyNeeded: boolean;
-  endpoint: "";
+  provider: Provider;
 }
 
 /**

@@ -1,12 +1,23 @@
 import { Requester } from "./parts/requester";
-import { Config, initializationConfig } from "./parts/config";
+import { Provider } from "./parts/providers";
 
 export class Converter {
-  config: Config;
+  active: Provider[];
 
-  constructor(configuration: initializationConfig) {
-    this.config = new Config(configuration);
+  constructor(providers: Provider[]) {
+    this.active = providers;
   }
 
-  convert = (amount: number, from: string, to: string) => {};
+  // TODO: get all if caching is enabled
+  convert = async (amount: number, from: string, to: string) => {
+    let rates = await Requester.getRates(this.active[0], {
+      FROM: from,
+      TO: to,
+      multiple: false
+    });
+
+    console.log(rates);
+
+    return;
+  };
 }
