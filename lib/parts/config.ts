@@ -30,9 +30,37 @@ interface initializationConfig {
   provider: string;
 }
 
+/**
+ * Config object that initializes with configuration data
+ * passed in by the user.
+ *
+ * @export
+ * @class Config
+ */
 export class Config {
+  /**
+   * Internal config
+   *
+   * @type {config}
+   * @memberof Config
+   */
   __config: config;
 
+  /**
+   * Config getter
+   *
+   * @returns
+   * @memberof Config
+   */
+  get() {
+    return this.__config;
+  }
+
+  /**
+   * Creates an instance of Config.
+   * @param {(object | undefined)} config
+   * @memberof Config
+   */
   constructor(config: object | undefined) {
     this.__config = resolveConfig(<initializationConfig>config);
   }
@@ -48,6 +76,7 @@ export class Config {
 export function resolveConfig(
   configuration: initializationConfig | undefined
 ): config {
+  // resolve default if none provided.
   if (typeof configuration === "undefined") {
     return {
       key: undefined,
@@ -59,6 +88,10 @@ export function resolveConfig(
     key: configuration.key,
     provider: providers[configuration.provider]
   };
+
+  if (!resolvedConfig.provider) {
+    throw "No such provider. Please use a provider from the supported providers list.";
+  }
 
   return <config>resolvedConfig;
 }
