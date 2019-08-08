@@ -17,7 +17,7 @@ export interface Provider {
   keyNeeded: boolean;
   key: any;
   endpoint: { base: string; single: string; multiple: string };
-  handler: Function | undefined;
+  handler: Function;
 }
 
 /**

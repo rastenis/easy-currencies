@@ -10,14 +10,17 @@ export class Converter {
 
   // TODO: get all if caching is enabled
   convert = async (amount: number, from: string, to: string) => {
-    let rates = await Requester.getRates(this.active[0], {
+    const provider = this.active[0];
+
+    let rates = <any>await Requester.getRates(provider, {
       FROM: from,
       TO: to,
       multiple: false
     });
 
-    console.log(rates);
+    // handling response
+    rates = provider.handler(rates.data);
 
-    return;
+    return amount * rates[to];
   };
 }
