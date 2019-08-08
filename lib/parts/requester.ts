@@ -7,9 +7,8 @@ export interface Query {
   multiple: boolean;
 }
 
-export class Requester {
-  // TODO: get all if caching is enabled
-  getRates = async (provider: Provider, query: Query) => {
+export const Requester = {
+  getRates: async function getRates(provider: Provider, query: Query) {
     return new Promise(async (res, rej) => {
       try {
         let result = await axios.get(formatUrl(provider, query));
@@ -18,8 +17,8 @@ export class Requester {
         return rej(e);
       }
     });
-  };
-}
+  }
+};
 
 function formatUrl(provider: Provider, query: Query): string {
   if (query.multiple) {
