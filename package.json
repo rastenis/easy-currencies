@@ -1,0 +1,30 @@
+{
+  "name": "easy-currencies",
+  "version": "0.0.1",
+  "description": "A tool for easy conversion of currencies.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Scharkee/easy-currencies.git"
+  },
+  "keywords": [
+    "currency",
+    "currencies",
+    "conversion",
+    "exchange"
+  ],
+  "author": "Scharkee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Scharkee/easy-currencies/issues"
+  },
+  "homepage": "https://github.com/Scharkee/easy-currencies#readme",
+  "devDependencies": {
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.3"
+  }
+}
