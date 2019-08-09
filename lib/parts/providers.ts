@@ -19,7 +19,6 @@ export interface Provider {
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
 }
-
 /**
  * Provider map initialization
  */

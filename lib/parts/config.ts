@@ -1,13 +1,13 @@
 import { Provider, providers } from "./providers";
 
 /**
- * Normalized config.
+ * Main configuration object.
  *
  * @interface config
  */
 interface config {
-  key: any;
-  provider: Provider;
+  cache: boolean;
+  // other configuration options
 }
 
 /**
@@ -34,7 +34,15 @@ export class Config {
    * @type {config}
    * @memberof Config
    */
-  __config: config;
+  private _config: config | undefined;
+
+  /**
+   * Array of active curency API providers.
+   *
+   * @type {Provider[]}
+   * @memberof Config
+   */
+  active: Provider[];
 
   /**
    * Config getter
@@ -43,7 +51,11 @@ export class Config {
    * @memberof Config
    */
   get() {
-    return this.__config;
+    return this._config;
+  }
+
+  activeProvider() {
+    return this.active[0];
   }
 
   /**
@@ -51,8 +63,9 @@ export class Config {
    * @param {(object | undefined)} config
    * @memberof Config
    */
-  constructor(config: object | undefined) {
-    this.__config = resolveConfig(<initializationConfig>config);
+  constructor(config: initializationConfig | undefined) {
+    this._config = undefined;
+    this.active = resolveConfig(config);
   }
 }
 
@@ -65,13 +78,10 @@ export class Config {
  */
 export function resolveConfig(
   configuration: initializationConfig | undefined
-): config {
+): Provider[] {
   // resolve default if none provided.
   if (typeof configuration === "undefined") {
-    return {
-      key: undefined,
-      provider: providers.ExchangeRatesAPI
-    };
+    return [providers["ExchangeRatesAPI"]];
   }
 
   if (
@@ -80,6 +90,8 @@ export function resolveConfig(
   ) {
     throw "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)";
   }
+
+  //TODO: return one or more providers, depending on configuration options
 
   let resolvedConfig = {
     key: configuration.key,
@@ -90,5 +102,5 @@ export function resolveConfig(
     throw "No such provider. Please use a provider from the supported providers list.";
   }
 
-  return <config>resolvedConfig;
+  return [];
 }
