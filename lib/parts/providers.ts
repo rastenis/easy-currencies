@@ -19,6 +19,25 @@ export interface Provider {
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
 }
+
+/**
+ * A function that constructs provider based on raw input data.
+ *
+ * @export
+ * @param {*} provider object containing provider name and api key
+ * @returns {Provider} constructed provider
+ */
+export function resolveProvider(provider: any): Provider {
+  let p = providers[provider.name];
+  if (!p) {
+    throw "No provider with this name. Please use a provider from the supported providers list.";
+  }
+
+  // attaching key
+  p.key = provider.key;
+  return p;
+}
+
 /**
  * Provider map initialization
  */

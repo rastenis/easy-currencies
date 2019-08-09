@@ -1,14 +1,4 @@
-import { Provider, providers } from "./providers";
-
-/**
- * Main configuration object.
- *
- * @interface config
- */
-interface config {
-  cache: boolean;
-  // other configuration options
-}
+import { Provider, providers, resolveProvider } from "./providers";
 
 /**
  * Interface for the format of data passed in to the module initially.
@@ -29,33 +19,25 @@ export interface initializationConfig {
  */
 export class Config {
   /**
-   * Internal config
-   *
-   * @type {config}
-   * @memberof Config
-   */
-  private _config: config | undefined;
-
-  /**
    * Array of active curency API providers.
    *
    * @type {Provider[]}
    * @memberof Config
    */
-  active: Provider[];
+  private _active: Provider[];
 
   /**
-   * Config getter
+   * Provider getters
    *
-   * @returns
+   * @returns {Provider[]}
    * @memberof Config
    */
-  get() {
-    return this._config;
+  get providers(): Provider[] {
+    return this._active;
   }
 
   activeProvider() {
-    return this.active[0];
+    return this._active[0];
   }
 
   /**
@@ -63,9 +45,8 @@ export class Config {
    * @param {(object | undefined)} config
    * @memberof Config
    */
-  constructor(config: initializationConfig | undefined) {
-    this._config = undefined;
-    this.active = resolveConfig(config);
+  constructor(...config: initializationConfig[] | undefined[] | string[]) {
+    this._active = resolveProviders(...config);
   }
 }
 
@@ -76,8 +57,8 @@ export class Config {
  * @param {(object | undefined)} configuration - initial configuration
  * @returns {config} - normalized configuration object
  */
-export function resolveConfig(
-  configuration: initializationConfig | undefined
+export function resolveProviders(
+  ...configuration: initializationConfig[] | undefined[] | string[]
 ): Provider[] {
   // resolve default if none provided.
   if (typeof configuration === "undefined") {
@@ -85,21 +66,17 @@ export function resolveConfig(
   }
 
   if (
-    typeof configuration !== "object" &&
-    typeof configuration !== "undefined"
+    typeof configuration[0] !== "object" &&
+    typeof configuration[0] !== "undefined" &&
+    typeof configuration[0] !== "string"
   ) {
     throw "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)";
   }
 
-  //TODO: return one or more providers, depending on configuration options
-
-  let resolvedConfig = {
-    key: configuration.key,
-    provider: providers[configuration.provider]
-  };
-
-  if (!resolvedConfig.provider) {
-    throw "No such provider. Please use a provider from the supported providers list.";
+  // returning single provider
+  if (typeof configuration[0] === "string") {
+    // constructing in initializationConfig object from string values
+    return [resolveProvider({ name: configuration[0], key: configuration[1] })];
   }
 
   return [];

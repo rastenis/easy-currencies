@@ -1,4 +1,5 @@
 import { Requester } from "./parts/requester";
+import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 
@@ -16,11 +17,24 @@ export class Converter {
    * @param {initializationConfig} _config
    * @memberof Converter
    */
-  constructor(_config: initializationConfig | undefined) {
-    this.config = new Config(_config);
+  constructor(...config: initializationConfig[] | undefined[] | string[]) {
+    this.config = new Config(...config);
   }
 
-  // TODO: get all if caching is enabled
+  /**
+   * Getters for active providers
+   *
+   * @readonly
+   * @type {Provider[]}
+   * @memberof Converter
+   */
+  get providers(): Provider[] {
+    return this.config.providers;
+  }
+  get active(): Provider[] {
+    return this.config.providers;
+  }
+
   /**
    * Conversion function (non chainable).
    *
@@ -50,9 +64,5 @@ export class Converter {
 
     // Normalizing resulting rates data
     return amount * data[to];
-  };
-
-  get = (amount: number) => {
-    return this;
   };
 }

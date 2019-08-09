@@ -44,7 +44,7 @@ export function Chainer(amount: number) {
    * @param {string} to - final currency
    * @returns {number} - final converted amount
    */
-  async function to(to: string): number {
+  async function to(to: string) {
     _currentTo = to;
 
     // converting
