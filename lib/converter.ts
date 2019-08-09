@@ -23,26 +23,32 @@ export class Converter {
   // TODO: get all if caching is enabled
   /**
    * Conversion function (non chainable).
+   *
    * @example
    * let converter = new Converter()
    * let converted = await converter.convert(15,"USD","EUR")
    * console.log(converted);
    *
-   *
-   * @memberof Converter
+   * @param {number} amount - amount to be converted
+   * @param {string} from - base currency
+   * @param {string} to - conversion currency
+   * @returns
    */
   convert = async (amount: number, from: string, to: string) => {
+    //Getting the current active provider
     const provider = this.config.activeProvider();
 
-    let rates = <any>await Requester.getRates(provider, {
+    //Fetching conversion rates from the active provider
+    let data = <any>await Requester.getRates(provider, {
       FROM: from,
       TO: to,
       multiple: false
     });
 
-    // handling response
-    rates = provider.handler(rates.data);
+    //Normalizing resulting rates data
+    data = provider.handler(data);
 
-    return amount * rates[to];
+    // Normalizing resulting rates data
+    return amount * data[to];
   };
 }
