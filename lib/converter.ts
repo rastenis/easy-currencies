@@ -1,5 +1,4 @@
 import { Requester } from "./parts/requester";
-import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 
