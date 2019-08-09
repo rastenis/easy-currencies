@@ -1,6 +1,7 @@
 import { Requester } from "./parts/requester";
 import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
+export { Chainer as Convert } from "./parts/chainer";
 
 export class Converter {
   /**
@@ -16,7 +17,7 @@ export class Converter {
    * @param {initializationConfig} _config
    * @memberof Converter
    */
-  constructor(_config: initializationConfig) {
+  constructor(_config: initializationConfig | undefined) {
     this.config = new Config(_config);
   }
 
@@ -50,5 +51,9 @@ export class Converter {
 
     // Normalizing resulting rates data
     return amount * data[to];
+  };
+
+  get = (amount: number) => {
+    return this;
   };
 }
