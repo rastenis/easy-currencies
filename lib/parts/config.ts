@@ -61,8 +61,8 @@ export function resolveProviders(
   ...configuration: initializationConfig[] | undefined[] | string[]
 ): Provider[] {
   // resolve default if none provided.
-  if (typeof configuration === "undefined") {
-    return [providers["ExchangeRatesAPI"]];
+  if (typeof configuration === "undefined" || !configuration.length) {
+    return [providers.ExchangeRatesAPI];
   }
 
   if (
@@ -79,5 +79,12 @@ export function resolveProviders(
     return [resolveProvider({ name: configuration[0], key: configuration[1] })];
   }
 
-  return [];
+  // configuration is an array of providers
+  // casting
+  let c = <initializationConfig[]>configuration;
+
+  // resolving all providers
+  return c.map(provider => {
+    return resolveProvider(provider);
+  });
 }
