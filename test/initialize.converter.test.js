@@ -48,3 +48,31 @@ test("Initializes providers properly (multiple providers).", async () => {
   // second getter
   expect(converter.providers).toEqual(converter.active);
 });
+
+test("Fails to initialize properly (invalid provider).", async () => {
+  // default initialization
+  let error = null;
+  try {
+    let converter = new Converter("MyProvider");
+  } catch (e) {
+    error = e;
+  }
+
+  expect(error).toBe(
+    "No provider with this name. Please use a provider from the supported providers list."
+  );
+});
+
+test("Fails to initialize properly (invalid provider object).", async () => {
+  // default initialization
+  let error = null;
+  try {
+    let converter = new Converter(12);
+  } catch (e) {
+    error = e;
+  }
+
+  expect(error).toBe(
+    "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)"
+  );
+});

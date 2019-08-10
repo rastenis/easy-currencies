@@ -26,11 +26,11 @@ export const Requester = {
 };
 
 function formatUrl(provider: Provider, query: Query): string {
-  if (query.multiple) {
-    return (provider.endpoint.base + provider.endpoint.multiple)
-      .replace("%FROM%", query.FROM)
-      .replace("%KEY%", provider.key || "");
-  }
+  // if (query.multiple) {
+  //   return (provider.endpoint.base + provider.endpoint.multiple)
+  //     .replace("%FROM%", query.FROM)
+  //     .replace("%KEY%", provider.key || "");
+  // }
 
   return (provider.endpoint.base + provider.endpoint.single)
     .replace("%FROM%", query.FROM)
