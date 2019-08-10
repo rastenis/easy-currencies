@@ -8,14 +8,17 @@ export interface Query {
 }
 
 export const Requester = {
-  getRates: async function getRates(provider: Provider, query: Query) {
+  getRates: async function getRates(
+    provider: Provider,
+    query: Query
+  ): Promise<any> {
     return new Promise(async (res, rej) => {
       try {
         let result = await axios.get(formatUrl(provider, query));
 
         // error handling
-        if (provider.errors[result.status]) {
-          return rej(provider.errors[result.status]);
+        if (provider.errors[result.data.error.code]) {
+          return rej(provider.errors[result.data.error.code]);
         }
 
         return res(result.data);
