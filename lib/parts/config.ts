@@ -36,7 +36,13 @@ export class Config {
     return this._active;
   }
 
-  activeProvider() {
+  /**
+   * Returns the current provider
+   *
+   * @returns {Provider} - current provider
+   * @memberof Config
+   */
+  activeProvider(): Provider {
     return this._active[0];
   }
 
@@ -65,6 +71,7 @@ export function resolveProviders(
     return [providers.ExchangeRatesAPI];
   }
 
+  // checking for incorrect config types
   if (
     typeof configuration[0] !== "object" &&
     typeof configuration[0] !== "undefined" &&
