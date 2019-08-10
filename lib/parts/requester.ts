@@ -12,6 +12,11 @@ export const Requester = {
     return new Promise(async (res, rej) => {
       try {
         let result = await axios.get(formatUrl(provider, query));
+
+        // error handling
+        if (result.status) {
+        }
+
         return res(result.data);
       } catch (e) {
         return rej(e);
@@ -22,18 +27,13 @@ export const Requester = {
 
 function formatUrl(provider: Provider, query: Query): string {
   if (query.multiple) {
-    return (
-      provider.endpoint.base +
-      provider.endpoint.multiple
-        .replace("%FROM%", query.FROM)
-        .replace(provider.keyNeeded ? "%KEY%" : "", provider.key || "")
-    );
-  }
-  return (
-    provider.endpoint.base +
-    provider.endpoint.single
+    return (provider.endpoint.base + provider.endpoint.multiple)
       .replace("%FROM%", query.FROM)
-      .replace("%TO%", query.TO)
-      .replace(provider.keyNeeded ? "%KEY%" : "", provider.key || "")
-  );
+      .replace(provider.keyNeeded ? "%KEY%" : "", provider.key || "");
+  }
+
+  return (provider.endpoint.base + provider.endpoint.single)
+    .replace("%FROM%", query.FROM)
+    .replace("%TO%", query.TO)
+    .replace(provider.keyNeeded ? "%KEY%" : "", provider.key || "");
 }

@@ -48,7 +48,7 @@ export function Chainer(amount: number) {
     _currentTo = to;
 
     // converting
-    let c = new Converter(undefined);
+    let c = new Converter();
     let r = await c.convert(
       <number>_currentAmount,
       <string>_currentFrom,

@@ -18,6 +18,7 @@ export interface Provider {
   key: any;
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
+  errors: any;
 }
 
 /**
@@ -52,7 +53,8 @@ export const providers: Providers = {
     key: null,
     handler: function(data) {
       return data.rates;
-    }
+    },
+    errors: {}
   },
   CurrencyLayer: {
     endpoint: {
@@ -68,7 +70,8 @@ export const providers: Providers = {
         map[key.slice(3)] = data.quotes[key];
       });
       return map;
-    }
+    },
+    errors: {}
   },
   OpenExchangeRates: {
     endpoint: {
@@ -80,7 +83,25 @@ export const providers: Providers = {
     key: undefined,
     handler: function(data) {
       return data.rates;
-    }
+    },
+    errors: {}
+  },
+  AlphaVantage: {
+    endpoint: {
+      base:
+        "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE?apikey=%KEY%",
+      single: "&from_currency=%FROM%&to_currency=%TO%",
+      multiple: ""
+    },
+    keyNeeded: true,
+    key: undefined,
+    handler: function(data) {
+      let map = {};
+      let o = data[Object.keys(data)[0]];
+      map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
+      return map;
+    },
+    errors: {}
   },
   Fixer: {
     endpoint: {
@@ -92,6 +113,7 @@ export const providers: Providers = {
     key: undefined,
     handler: function(data) {
       return data.rates;
-    }
+    },
+    errors: {}
   }
 };
