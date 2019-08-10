@@ -16,15 +16,17 @@ export const Requester = {
       try {
         let result = await axios.get(formatUrl(provider, query));
 
-        console.log(result.data);
         // error handling
-        if (provider.errors[result.data.error.code]) {
-          return rej(provider.errors[result.data.error.code]);
+        let error = provider.errorHandler(result.data);
+        if (error) {
+          console.log(provider.errors[error]);
+          return rej(provider.errors[error]);
         }
 
         return res(result.data);
       } catch (e) {
-        return rej(e);
+        let error = provider.errorHandler(e.response);
+        return rej(provider.errors[error]);
       }
     });
   }

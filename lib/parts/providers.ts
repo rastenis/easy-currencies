@@ -19,6 +19,7 @@ export interface Provider {
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
   errors: any;
+  errorHandler: Function;
 }
 
 /**
@@ -54,7 +55,10 @@ export const providers: Providers = {
     handler: function(data) {
       return data.rates;
     },
-    errors: {}
+    errors: {},
+    errorHandler: function(data) {
+      return data;
+    }
   },
   CurrencyLayer: {
     endpoint: {
@@ -74,6 +78,9 @@ export const providers: Providers = {
     errors: {
       105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)",
       101: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.error.code;
     }
   },
   OpenExchangeRates: {
@@ -87,7 +94,12 @@ export const providers: Providers = {
     handler: function(data) {
       return data.rates;
     },
-    errors: {}
+    errors: {
+      401: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.status;
+    }
   },
   AlphaVantage: {
     endpoint: {
@@ -104,7 +116,13 @@ export const providers: Providers = {
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
       return map;
     },
-    errors: {}
+    errors: {
+      "the parameter apikey is invalid or missing. Please claim your free API key on (https://www.alphavantage.co/support/#api-key). It should take less than 20 seconds, and is free permanently.":
+        "Invalid API key."
+    },
+    errorHandler: function(data) {
+      return data["Error Message"];
+    }
   },
   Fixer: {
     endpoint: {
@@ -120,6 +138,9 @@ export const providers: Providers = {
     errors: {
       105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)",
       101: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.error.code;
     }
   }
 };
