@@ -1,4 +1,5 @@
 import { Converter } from "../converter";
+import _to from "await-to-js";
 
 /**
  * Chained converter.
@@ -48,12 +49,19 @@ export function Chainer(amount: number) {
     _currentTo = to;
 
     // converting
-    let c = new Converter(undefined);
-    let r = await c.convert(
-      <number>_currentAmount,
-      <string>_currentFrom,
-      <string>_currentTo
+    let c = new Converter();
+    let [err, r] = await _to(
+      c.convert(
+        <number>_currentAmount,
+        <string>_currentFrom,
+        <string>_currentTo
+      )
     );
+
+    if (err) {
+      throw err;
+    }
+
     return r;
   }
 }

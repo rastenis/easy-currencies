@@ -2,6 +2,7 @@ import { Requester } from "./parts/requester";
 import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
+import _to from "await-to-js";
 
 export class Converter {
   /**
@@ -53,11 +54,17 @@ export class Converter {
     const provider = this.config.activeProvider();
 
     //Fetching conversion rates from the active provider
-    let data = <any>await Requester.getRates(provider, {
-      FROM: from,
-      TO: to,
-      multiple: false
-    });
+    let [err, data] = await _to(
+      Requester.getRates(provider, {
+        FROM: from,
+        TO: to,
+        multiple: false
+      })
+    );
+
+    if (err) {
+      throw err;
+    }
 
     //Normalizing resulting rates data
     data = provider.handler(data);

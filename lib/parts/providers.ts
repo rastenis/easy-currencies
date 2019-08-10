@@ -18,6 +18,8 @@ export interface Provider {
   key: any;
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
+  errors: any;
+  errorHandler: Function;
 }
 
 /**
@@ -52,11 +54,15 @@ export const providers: Providers = {
     key: null,
     handler: function(data) {
       return data.rates;
+    },
+    errors: {},
+    errorHandler: function(data) {
+      return data.error;
     }
   },
   CurrencyLayer: {
     endpoint: {
-      base: "https://apilayer.net/api/live?access_key=%KEY%",
+      base: "http://apilayer.net/api/live?access_key=%KEY%",
       single: "&source=%FROM%",
       multiple: "&source=%FROM%&currencies=%TO%"
     },
@@ -68,6 +74,13 @@ export const providers: Providers = {
         map[key.slice(3)] = data.quotes[key];
       });
       return map;
+    },
+    errors: {
+      105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)",
+      101: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.error ? data.error.code : null;
     }
   },
   OpenExchangeRates: {
@@ -80,11 +93,39 @@ export const providers: Providers = {
     key: undefined,
     handler: function(data) {
       return data.rates;
+    },
+    errors: {
+      401: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.status;
+    }
+  },
+  AlphaVantage: {
+    endpoint: {
+      base:
+        "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
+      single: "&from_currency=%FROM%&to_currency=%TO%",
+      multiple: ""
+    },
+    keyNeeded: true,
+    key: undefined,
+    handler: function(data) {
+      let map = {};
+      let o = data[Object.keys(data)[0]];
+      map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
+      return map;
+    },
+    errors: {
+      503: "Invalid API key."
+    },
+    errorHandler: function(data) {
+      return data["Error Message"] ? 503 : false;
     }
   },
   Fixer: {
     endpoint: {
-      base: "https://data.fixer.io/api/latest?access_key=%KEY%",
+      base: "http://data.fixer.io/api/latest?access_key=%KEY%",
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
     },
@@ -92,6 +133,13 @@ export const providers: Providers = {
     key: undefined,
     handler: function(data) {
       return data.rates;
+    },
+    errors: {
+      105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)",
+      101: "Invalid API key!"
+    },
+    errorHandler: function(data) {
+      return data.error ? data.error.code : null;
     }
   }
 };
