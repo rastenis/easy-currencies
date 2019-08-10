@@ -1,7 +1,5 @@
 const { Converter } = require("../dist");
 const to = require("await-to-js").default;
-require("dotenv").config();
-
 /**
  * Invalid currencies
  */
