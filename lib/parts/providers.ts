@@ -71,7 +71,9 @@ export const providers: Providers = {
       });
       return map;
     },
-    errors: {}
+    errors: {
+      105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)"
+    }
   },
   OpenExchangeRates: {
     endpoint: {
@@ -114,6 +116,8 @@ export const providers: Providers = {
     handler: function(data) {
       return data.rates;
     },
-    errors: {}
+    errors: {
+      105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)"
+    }
   }
 };

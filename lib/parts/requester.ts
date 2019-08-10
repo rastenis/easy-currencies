@@ -14,7 +14,8 @@ export const Requester = {
         let result = await axios.get(formatUrl(provider, query));
 
         // error handling
-        if (result.status) {
+        if (provider.errors[result.status]) {
+          return rej(provider.errors[result.status]);
         }
 
         return res(result.data);
