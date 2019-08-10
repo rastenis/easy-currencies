@@ -14,7 +14,6 @@ export interface Providers {
  * @interface Provider
  */
 export interface Provider {
-  keyNeeded: boolean;
   key: any;
   endpoint: { base: string; single: string; multiple: string };
   handler: Function;
@@ -50,7 +49,6 @@ export const providers: Providers = {
       single: "?base=%FROM%&symbols=%TO%",
       multiple: "?base=%FROM%"
     },
-    keyNeeded: false,
     key: null,
     handler: function(data) {
       return data.rates;
@@ -66,7 +64,6 @@ export const providers: Providers = {
       single: "&source=%FROM%",
       multiple: "&source=%FROM%&currencies=%TO%"
     },
-    keyNeeded: true,
     key: undefined,
     handler: function(data) {
       let map = {};
@@ -89,7 +86,6 @@ export const providers: Providers = {
       single: "&base=%FROM%",
       multiple: "&base=%FROM%"
     },
-    keyNeeded: true,
     key: undefined,
     handler: function(data) {
       return data.rates;
@@ -108,7 +104,6 @@ export const providers: Providers = {
       single: "&from_currency=%FROM%&to_currency=%TO%",
       multiple: ""
     },
-    keyNeeded: true,
     key: undefined,
     handler: function(data) {
       let map = {};
@@ -129,7 +124,6 @@ export const providers: Providers = {
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
     },
-    keyNeeded: true,
     key: undefined,
     handler: function(data) {
       return data.rates;

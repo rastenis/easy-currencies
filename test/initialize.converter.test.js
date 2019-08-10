@@ -8,6 +8,8 @@ test("Initializes providers properly (no provider).", async () => {
 
   // expect default provider
   expect(value[0].endpoint.base).toBe("https://api.exchangeratesapi.io/latest");
+  // second getter
+  expect(converter.providers).toEqual(converter.active);
 });
 
 test("Initializes providers properly (single provider).", async () => {
@@ -21,6 +23,8 @@ test("Initializes providers properly (single provider).", async () => {
     "http://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
+  // second getter
+  expect(converter.providers).toEqual(converter.active);
 });
 
 test("Initializes providers properly (multiple providers).", async () => {
@@ -41,4 +45,6 @@ test("Initializes providers properly (multiple providers).", async () => {
     "https://openexchangerates.org/api/latest.json?app_id=%KEY%"
   );
   expect(value[1].key).toBe("key");
+  // second getter
+  expect(converter.providers).toEqual(converter.active);
 });
