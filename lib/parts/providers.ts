@@ -94,9 +94,9 @@ export const providers: Providers = {
     handler: function(data) {
       return data.rates;
     },
-    errors: {},
+    errors: { 400: "Malformed query." },
     errorHandler: function(data) {
-      return data.error;
+      return data.status;
     }
   },
   CurrencyLayer: {
@@ -115,7 +115,8 @@ export const providers: Providers = {
     },
     errors: {
       105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)",
-      101: "Invalid API key!"
+      101: "Invalid API key!",
+      201: "Invalid base currency."
     },
     errorHandler: function(data) {
       return data.error ? data.error.code : null;
@@ -153,7 +154,7 @@ export const providers: Providers = {
       return map;
     },
     errors: {
-      503: "Invalid API key."
+      503: "Invalid API key or Malformed query."
     },
     errorHandler: function(data) {
       return data["Error Message"] ? 503 : false;
@@ -171,7 +172,8 @@ export const providers: Providers = {
     },
     errors: {
       105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)",
-      101: "Invalid API key!"
+      101: "Invalid API key!",
+      201: "Invalid base currency."
     },
     errorHandler: function(data) {
       return data.error ? data.error.code : null;

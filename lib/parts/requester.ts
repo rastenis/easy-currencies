@@ -18,7 +18,7 @@ export const Requester = {
     // error handling
     let error = provider.errorHandler(err ? err.response : result.data);
     if (error) {
-      throw provider.errors[error];
+      throw provider.errors[error] || error;
     }
 
     return result.data;
