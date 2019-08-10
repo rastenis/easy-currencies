@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Provider } from "./providers";
+import to from "await-to-js";
 
 export interface Query {
   FROM: string;
@@ -12,20 +13,15 @@ export const Requester = {
     provider: Provider,
     query: Query
   ): Promise<any> {
-    try {
-      let result = await axios.get(formatUrl(provider, query));
+    let [err, result] = await to(axios.get(formatUrl(provider, query)));
 
-      // error handling
-      let error = provider.errorHandler(result.data);
-      if (error) {
-        return provider.errors[error];
-      }
-
-      return result.data;
-    } catch (e) {
-      let error = provider.errorHandler(e.response);
-      return provider.errors[error];
+    // error handling
+    let error = provider.errorHandler(err ? err.response : result.data);
+    if (error) {
+      throw provider.errors[error];
     }
+
+    return result.data;
   }
 };
 
