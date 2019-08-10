@@ -16,6 +16,7 @@ export const Requester = {
       try {
         let result = await axios.get(formatUrl(provider, query));
 
+        console.log(result.data);
         // error handling
         if (provider.errors[result.data.error.code]) {
           return rej(provider.errors[result.data.error.code]);

@@ -58,7 +58,7 @@ export const providers: Providers = {
   },
   CurrencyLayer: {
     endpoint: {
-      base: "https://apilayer.net/api/live?access_key=%KEY%",
+      base: "http://apilayer.net/api/live?access_key=%KEY%",
       single: "&source=%FROM%",
       multiple: "&source=%FROM%&currencies=%TO%"
     },
@@ -72,7 +72,8 @@ export const providers: Providers = {
       return map;
     },
     errors: {
-      105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)"
+      105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)",
+      101: "Invalid API key!"
     }
   },
   OpenExchangeRates: {
@@ -107,7 +108,7 @@ export const providers: Providers = {
   },
   Fixer: {
     endpoint: {
-      base: "https://data.fixer.io/api/latest?access_key=%KEY%",
+      base: "http://data.fixer.io/api/latest?access_key=%KEY%",
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
     },
@@ -117,7 +118,8 @@ export const providers: Providers = {
       return data.rates;
     },
     errors: {
-      105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)"
+      105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)",
+      101: "Invalid API key!"
     }
   }
 };
