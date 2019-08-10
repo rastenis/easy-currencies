@@ -104,27 +104,23 @@ export const providers: Providers = {
   AlphaVantage: {
     endpoint: {
       base:
-        "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE?apikey=%KEY%",
+        "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
       single: "&from_currency=%FROM%&to_currency=%TO%",
       multiple: ""
     },
     keyNeeded: true,
     key: undefined,
     handler: function(data) {
-      console.log(data);
       let map = {};
       let o = data[Object.keys(data)[0]];
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
-      console.log(map);
       return map;
     },
     errors: {
-      "the parameter apikey is invalid or missing. Please claim your free API key on (https://www.alphavantage.co/support/#api-key). It should take less than 20 seconds, and is free permanently.":
-        "Invalid API key."
+      503: "Invalid API key."
     },
     errorHandler: function(data) {
-      console.log(data);
-      return data["Error Message"];
+      return data["Error Message"] ? 503 : false;
     }
   },
   Fixer: {
