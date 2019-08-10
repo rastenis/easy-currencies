@@ -1,4 +1,4 @@
-import { Requester } from "./parts/requester";
+import { getRates } from "./parts/requester";
 import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
@@ -55,7 +55,7 @@ export class Converter {
 
     //Fetching conversion rates from the active provider
     let [err, data] = await _to(
-      Requester.getRates(provider, {
+      getRates(provider, {
         FROM: from,
         TO: to,
         multiple: false
