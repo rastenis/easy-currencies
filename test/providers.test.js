@@ -12,7 +12,7 @@ test("Converts an amount of given currency (ExchangeRatesAPI).", async () => {
   expect(value).toBeLessThan(30);
 });
 
-test("Converts an amount of given currency.", async () => {
+test("Converts an amount of given currency (OpenExchangeRates).", async () => {
   // default initialization
   let converter = new Converter(
     "OpenExchangeRates",
@@ -26,7 +26,7 @@ test("Converts an amount of given currency.", async () => {
   expect(value).toBeLessThan(30);
 });
 
-test("Converts an amount of given currency.", async () => {
+test("Converts an amount of given currency (AlphaVantage).", async () => {
   // default initialization
   let converter = new Converter("AlphaVantage", process.env.ALPHA_VANTAGE_KEY);
 

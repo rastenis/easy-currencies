@@ -12,23 +12,20 @@ export const Requester = {
     provider: Provider,
     query: Query
   ): Promise<any> {
-    return new Promise(async (res, rej) => {
-      try {
-        let result = await axios.get(formatUrl(provider, query));
+    try {
+      let result = await axios.get(formatUrl(provider, query));
 
-        // error handling
-        let error = provider.errorHandler(result.data);
-        if (error) {
-          console.log(provider.errors[error]);
-          return rej(provider.errors[error]);
-        }
-
-        return res(result.data);
-      } catch (e) {
-        let error = provider.errorHandler(e.response);
-        return rej(provider.errors[error]);
+      // error handling
+      let error = provider.errorHandler(result.data);
+      if (error) {
+        return provider.errors[error];
       }
-    });
+
+      return result.data;
+    } catch (e) {
+      let error = provider.errorHandler(e.response);
+      return provider.errors[error];
+    }
   }
 };
 

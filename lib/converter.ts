@@ -54,7 +54,7 @@ export class Converter {
     const provider = this.config.activeProvider();
 
     //Fetching conversion rates from the active provider
-    let [err, data] = await _to<any>(
+    let [err, data] = await _to(
       Requester.getRates(provider, {
         FROM: from,
         TO: to,

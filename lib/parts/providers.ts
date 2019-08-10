@@ -57,7 +57,7 @@ export const providers: Providers = {
     },
     errors: {},
     errorHandler: function(data) {
-      return data;
+      return data.error;
     }
   },
   CurrencyLayer: {
@@ -80,7 +80,7 @@ export const providers: Providers = {
       101: "Invalid API key!"
     },
     errorHandler: function(data) {
-      return data.error.code;
+      return data.error ? data.error.code : null;
     }
   },
   OpenExchangeRates: {
@@ -111,9 +111,11 @@ export const providers: Providers = {
     keyNeeded: true,
     key: undefined,
     handler: function(data) {
+      console.log(data);
       let map = {};
       let o = data[Object.keys(data)[0]];
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
+      console.log(map);
       return map;
     },
     errors: {
@@ -121,6 +123,7 @@ export const providers: Providers = {
         "Invalid API key."
     },
     errorHandler: function(data) {
+      console.log(data);
       return data["Error Message"];
     }
   },
@@ -140,7 +143,7 @@ export const providers: Providers = {
       101: "Invalid API key!"
     },
     errorHandler: function(data) {
-      return data.error.code;
+      return data.error ? data.error.code : null;
     }
   }
 };
