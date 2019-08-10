@@ -14,10 +14,51 @@ export interface Providers {
  * @interface Provider
  */
 export interface Provider {
+  /**
+   * An API key / Profile ID / Access key for a provider.
+   *
+   * @type {*}
+   * @memberof Provider
+   */
   key: any;
+  /**
+   * Endpoint configuration object for a provider:
+   * The base template is the root of the access URL, with a place for access key in the form of %KEY% (if needed)
+   * The single template is used for single currency conversions, requires a %FROM% and a %TO% to be present.
+   * The multiple template is currently unused.
+   * @type {{ base: string; single: string; multiple: string }}
+   * @memberof Provider
+   */
   endpoint: { base: string; single: string; multiple: string };
+  /**
+   * A function that returns a map of currencies from the data object returned by axios (response.data)
+   *
+   * @example
+   *  function(data) { //must return {currency1:rate1,curency2:rate2} in reference to the base currency.
+   *    return data.rates;
+   *  }
+   *
+   * @type {Function}
+   * @memberof Provider
+   */
   handler: Function;
+  /**
+   * A map of possible errors and their respective messages
+   *
+   * @type {*}
+   * @memberof Provider
+   */
   errors: any;
+  /**
+   * A unique method to resolve errors, if any.
+   * Some APIs return their errors via success responses, others via HTTP failures.
+   * These two modes are mutually exclusive; The data passed to the errorHandler is:
+   * the response.data object, in the case of 'success' failures
+   * the response object, in the case of Axios errors (HTTP failures)
+   *
+   * @type {Function}
+   * @memberof Provider
+   */
   errorHandler: Function;
 }
 
