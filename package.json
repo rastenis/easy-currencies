@@ -1,6 +1,6 @@
 {
   "name": "easy-currencies",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool for easy conversion of currencies.",
   "main": "dist/index.js",
   "scripts": {
@@ -33,6 +33,7 @@
     "dotenv": "^8.0.0",
     "jest": "^24.8.0",
     "ts-jest": "^24.0.2",
+    "typedoc": "^0.15.0",
     "typescript": "^3.5.3"
   },
   "dependencies": {

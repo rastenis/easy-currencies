@@ -33,7 +33,9 @@ const { Convert } = require("easy-currencies");
 // ES6
 import { Convert } from "easy-currencies";
 
-let value = await Convert(15).from("USD").to("EUR");
+let value = await Convert(15)
+  .from("USD")
+  .to("EUR");
 console.log(value); // converted value
 ```
 
@@ -84,6 +86,8 @@ The list of supoprted exchange rate providers is as follows:
 5. [Fixer](https://fixer.io/) (requires an api key with base currency supoprt)
 
 ## API
+
+Check out the [api reference docs.](docs/index.html)
 
 The list of configured (active) providers can be accessed like so:
 

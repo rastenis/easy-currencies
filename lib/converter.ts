@@ -4,6 +4,12 @@ import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
 
+/**
+ * Regular converter class definition.
+ *
+ * @export
+ * @class Converter
+ */
 export class Converter {
   /**
    * Converter's main config object.
