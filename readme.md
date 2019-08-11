@@ -87,7 +87,7 @@ The list of supoprted exchange rate providers is as follows:
 
 ## API
 
-Check out the [api reference docs.](docs/index.html)
+Check out the [api reference docs.](https://scharkee.github.io/easy-currencies/)
 
 The list of configured (active) providers can be accessed like so:
 

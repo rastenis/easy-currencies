@@ -99,7 +99,9 @@
 <span class="hljs-comment">// ES6</span>
 <span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
 
-<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> Convert(<span class="hljs-number">15</span>).from(<span class="hljs-string">"USD"</span>).to(<span class="hljs-string">"EUR"</span>);
+<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> Convert(<span class="hljs-number">15</span>)
+  .from(<span class="hljs-string">"USD"</span>)
+  .to(<span class="hljs-string">"EUR"</span>);
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<a href="#usage-custom-mode" id="usage-custom-mode" style="color: inherit; text-decoration: none;">
 					<h2>Usage (custom mode)</h2>
@@ -140,6 +142,7 @@
 				<a href="#api" id="api" style="color: inherit; text-decoration: none;">
 					<h2>API</h2>
 				</a>
+				<p>Check out the <a href="https://scharkee.github.io/easy-currencies/">api reference docs.</a></p>
 				<p>The list of configured (active) providers can be accessed like so:</p>
 				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
