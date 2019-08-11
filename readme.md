@@ -9,9 +9,12 @@ Convert currencies with ease! Five exchange rate providers to choose from, other
 
 ## Features
 
-- Generate similar coordinates within a distance of given coordinates
-- Location name based coordinate generation (geocoding), resolve coordinates by location name
-- Generate the coordinates of a random establishment near the given coordinates
+- Easily convert currencies using one of the five built-in API providers
+- Two modes of operation:
+  - Easy mode - no configuration or API keys required at all
+  - Custom mode - choose one or more providers, use key-gated providers.
+- [WIP] Add custom providers (private and public)
+- [WIP] Provider fallbacks - automatic switching of active providers in the case of failure
 
 ## Install
 
@@ -30,9 +33,7 @@ const { Convert } = require("easy-currencies");
 // ES6
 import { Convert } from "easy-currencies";
 
-let value = await Convert(15)
-  .from("USD")
-  .to("EUR");
+let value = await Convert(15).from("USD").to("EUR");
 console.log(value); // converted value
 ```
 
