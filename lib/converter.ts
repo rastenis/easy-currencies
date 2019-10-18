@@ -1,4 +1,4 @@
-import { getRates } from "./parts/requester";
+import { fetchRates } from "./parts/requester";
 import { Provider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
@@ -53,15 +53,26 @@ export class Converter {
    * @param {number} amount - amount to be converted
    * @param {string} from - base currency
    * @param {string} to - conversion currency
+   * @param {any} rates - conversion rates, if they were pre-fetched
    * @returns
    */
-  convert = async (amount: number, from: string, to: string) => {
+  convert = async (
+    amount: number,
+    from: string,
+    to: string,
+    rates: any = undefined
+  ) => {
+    // Returining conversion from provided rates
+    if (typeof rates !== "undefined") {
+      return amount * rates[to];
+    }
+
     //Getting the current active provider
     const provider = this.config.activeProvider();
 
     //Fetching conversion rates from the active provider
     let [err, data] = await _to(
-      getRates(provider, {
+      fetchRates(provider, {
         FROM: from,
         TO: to,
         multiple: false
@@ -77,5 +88,29 @@ export class Converter {
 
     // Normalizing resulting rates data
     return amount * data[to];
+  };
+
+  getRates = async (from: string) => {
+    //Getting the current active provider
+    const provider = this.config.activeProvider();
+
+    //Fetching conversion rates from the active provider
+    let [err, data] = await _to(
+      fetchRates(provider, {
+        FROM: from,
+        TO: "",
+        multiple: true
+      })
+    );
+
+    if (err) {
+      throw err;
+    }
+
+    //Normalizing resulting rates data
+    data = provider.handler(data);
+
+    // Normalizing resulting rates data
+    return data;
   };
 }

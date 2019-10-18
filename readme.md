@@ -18,8 +18,7 @@ Convert currencies with ease! Five exchange rate providers to choose from, other
 
 ## Install
 
-```console
-# install easy-currencies
+```bash
 $ npm install easy-currencies
 ```
 
