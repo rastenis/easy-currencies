@@ -35,6 +35,7 @@ import { Convert } from "easy-currencies";
 let value = await Convert(15)
   .from("USD")
   .to("EUR");
+
 console.log(value); // converted value
 ```
 
@@ -47,8 +48,43 @@ import { Converter } from "easy-currencies";
 
 let converter = new Converter();
 let value = await converter.convert(15, "USD", "EUR");
+
 console.log(value); // converted value
 ```
+
+## Usage (raw mode / cached mode)
+
+Use this to get a JSON of conversion rates from your current provider.
+
+```js
+import { Convert } from "easy-currencies";
+
+let convert = await Convert()
+  .from("USD")
+  .fetch();
+
+console.log(convert.rates); // fetched conversion rates for main currencies with regard to set base currency
+```
+
+This also allows for cached conversion:
+
+```js
+import { Convert } from "easy-currencies";
+
+let convert = await Convert()
+  .from("USD")
+  .fetch();
+
+// use the fetched rates: (does not use the current provider's API anymore)
+let value1 = await convert.amount(10).to("GBP");
+
+await convert.from("USD").fetch(); // refresh rates
+// or await convert.from("GBP").fetch() to switch base currency
+
+let value2 = await convert.amount(10).to("GBP");
+```
+
+## Custom providers
 
 Custom single provider initialization
 
@@ -57,6 +93,7 @@ import { Converter } from "easy-currencies";
 
 let converter = new Converter("OpenExchangeRates", "API_KEY");
 let value = await converter.convert(15, "USD", "EUR");
+
 console.log(value); // converted value
 ```
 
@@ -92,7 +129,9 @@ The list of configured (active) providers can be accessed like so:
 
 ```js
 import { Converter } from "easy-currencies";
+
 let converter = new Converter("OpenExchangeRates", "API_KEY");
+
 console.log(converter.providers);
 /**
  * [{
@@ -119,7 +158,9 @@ The current active provider can be retrieved like this:
 
 ```js
 import { Converter } from "easy-currencies";
+
 let converter = new Converter("OpenExchangeRates", "API_KEY");
+
 console.log(converter.activeProvider()); // ...provider data
 ```
 
