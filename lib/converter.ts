@@ -67,6 +67,18 @@ export class Converter {
       return amount * rates[to];
     }
 
+    //Fetching conversion rates from the active provider
+    let [err, data] = await _to(this.getRates(from, to, false));
+
+    if (err) {
+      throw err;
+    }
+
+    // Normalizing resulting rates data
+    return amount * data[to];
+  };
+
+  getRates = async (from: string, to: string, multiple: boolean = false) => {
     //Getting the current active provider
     const provider = this.config.activeProvider();
 
@@ -75,7 +87,7 @@ export class Converter {
       fetchRates(provider, {
         FROM: from,
         TO: to,
-        multiple: false
+        multiple: multiple
       })
     );
 
@@ -83,34 +95,7 @@ export class Converter {
       throw err;
     }
 
-    //Normalizing resulting rates data
-    data = provider.handler(data);
-
-    // Normalizing resulting rates data
-    return amount * data[to];
-  };
-
-  getRates = async (from: string) => {
-    //Getting the current active provider
-    const provider = this.config.activeProvider();
-
-    //Fetching conversion rates from the active provider
-    let [err, data] = await _to(
-      fetchRates(provider, {
-        FROM: from,
-        TO: "",
-        multiple: true
-      })
-    );
-
-    if (err) {
-      throw err;
-    }
-
-    //Normalizing resulting rates data
-    data = provider.handler(data);
-
-    // Normalizing resulting rates data
-    return data;
+    // Normalizing resulting rates data and returning rates
+    return provider.handler(data);
   };
 }

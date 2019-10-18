@@ -28,20 +28,22 @@ export function Chainer(amount: number | undefined) {
   let ob = {
     from: _from,
     to: _to,
-    rates: _rates,
-    fetch: _rates,
+    fetch: _fetch,
+    get rates() {
+      return _currentRates;
+    },
     amount: _amount
   };
 
   /**
-   * Fetch the raw rates for the given currency.
+   * Chain member that fetches and caches the rates for the given currency.
    *
    * @returns {Promise<any>}
    */
-  async function _rates(): Promise<any> {
+  async function _fetch(): Promise<any> {
     // fetching rates for the base currency
-    _currentRates = await __to(c.getRates(<string>_currentFrom));
-    return _currentRates;
+    _currentRates = await c.getRates(<string>_currentFrom, "", true);
+    return ob;
   }
 
   // returning chainable
