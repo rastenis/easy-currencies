@@ -54,14 +54,14 @@ export class Converter {
    * @param {string} from - base currency
    * @param {string} to - conversion currency
    * @param {any} rates - conversion rates, if they were pre-fetched
-   * @returns
+   * @returns {Promise<number>} - converted amount
    */
   convert = async (
     amount: number,
     from: string,
     to: string,
     rates: any = undefined
-  ) => {
+  ): Promise<number> => {
     // Returining conversion from provided rates
     if (typeof rates !== "undefined") {
       return amount * rates[to];
@@ -78,7 +78,18 @@ export class Converter {
     return amount * data[to];
   };
 
-  getRates = async (from: string, to: string, multiple: boolean = false) => {
+  /**
+   * Rate fetch function
+   * @param {string} from - base currency
+   * @param {string} to - conversion currency
+   * @param {boolean} multiple - determines conversion mode
+   * @returns
+   */
+  getRates = async (
+    from: string,
+    to: string,
+    multiple: boolean = false
+  ): Promise<any> => {
     //Getting the current active provider
     const provider = this.config.activeProvider();
 

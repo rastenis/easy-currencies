@@ -15,7 +15,7 @@ test("Get rates with respect to given currency (single).", async () => {
   // default initialization
   let converter = new Converter();
 
-  let rates = await converter.getRates("USD", "EUR", false);
+  let rates = await converter.getRates("USD", "EUR");
 
   expect(Object.keys(rates).length).toBe(1);
 });

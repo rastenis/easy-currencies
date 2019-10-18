@@ -33,7 +33,7 @@ export async function fetchRates(
 
   // returning either the meaning of the error (if registered in provider's definition), or the error itself.
   if (error) {
-    throw provider.errors[error] || error;
+    throw provider.errors[error];
   }
 
   return result.data;
