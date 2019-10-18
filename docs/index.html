@@ -88,8 +88,7 @@
 				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
 					<h2>Install</h2>
 				</a>
-				<pre><code class="language-console"><span class="hljs-meta">#</span><span class="bash"> install easy-currencies</span>
-<span class="hljs-meta">$</span><span class="bash"> npm install easy-currencies</span></code></pre>
+				<pre><code class="language-bash">$ npm install easy-currencies</code></pre>
 				<a href="#usage-easychain-mode" id="usage-easychain-mode" style="color: inherit; text-decoration: none;">
 					<h2>Usage (Easy/chain mode)</h2>
 				</a>
@@ -102,6 +101,7 @@
 <span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> Convert(<span class="hljs-number">15</span>)
   .from(<span class="hljs-string">"USD"</span>)
   .to(<span class="hljs-string">"EUR"</span>);
+
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<a href="#usage-custom-mode" id="usage-custom-mode" style="color: inherit; text-decoration: none;">
 					<h2>Usage (custom mode)</h2>
@@ -111,12 +111,42 @@
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter();
 <span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">"USD"</span>, <span class="hljs-string">"EUR"</span>);
+
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
+				<a href="#usage-raw-mode--cached-mode" id="usage-raw-mode--cached-mode" style="color: inherit; text-decoration: none;">
+					<h2>Usage (raw mode / cached mode)</h2>
+				</a>
+				<p>Use this to get a JSON of conversion rates from your current provider.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+
+<span class="hljs-keyword">let</span> convert = <span class="hljs-keyword">await</span> Convert()
+  .from(<span class="hljs-string">"USD"</span>)
+  .fetch();
+
+<span class="hljs-built_in">console</span>.log(convert.rates); <span class="hljs-comment">// fetched conversion rates for main currencies with regard to set base currency</span></code></pre>
+				<p>This also allows for cached conversion:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+
+<span class="hljs-keyword">let</span> convert = <span class="hljs-keyword">await</span> Convert()
+  .from(<span class="hljs-string">"USD"</span>)
+  .fetch();
+
+<span class="hljs-comment">// use the fetched rates: (does not use the current provider's API anymore)</span>
+<span class="hljs-keyword">let</span> value1 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">"GBP"</span>);
+
+<span class="hljs-keyword">await</span> convert.from(<span class="hljs-string">"USD"</span>).fetch(); <span class="hljs-comment">// refresh rates</span>
+<span class="hljs-comment">// or await convert.from("GBP").fetch() to switch base currency</span>
+
+<span class="hljs-keyword">let</span> value2 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">"GBP"</span>);</code></pre>
+				<a href="#custom-providers" id="custom-providers" style="color: inherit; text-decoration: none;">
+					<h2>Custom providers</h2>
+				</a>
 				<p>Custom single provider initialization</p>
 				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
 <span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">"USD"</span>, <span class="hljs-string">"EUR"</span>);
+
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<p>Custom multiple provider initialization</p>
 				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
@@ -145,7 +175,9 @@
 				<p>Check out the <a href="https://scharkee.github.io/easy-currencies/">api reference docs.</a></p>
 				<p>The list of configured (active) providers can be accessed like so:</p>
 				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
+
 <span class="hljs-built_in">console</span>.log(converter.providers);
 <span class="hljs-comment">/**
  * [{
@@ -168,7 +200,9 @@
  */</span></code></pre>
 				<p>The current active provider can be retrieved like this:</p>
 				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
+
 <span class="hljs-built_in">console</span>.log(converter.activeProvider()); <span class="hljs-comment">// ...provider data</span></code></pre>
 				<a href="#support" id="support" style="color: inherit; text-decoration: none;">
 					<h3>Support</h3>
