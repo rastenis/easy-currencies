@@ -79,8 +79,8 @@
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_parts_requester_.html#fetchrates" class="tsd-kind-icon">fetch<wbr>Rates</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_parts_requester_.html#formaturl" class="tsd-kind-icon">format<wbr>Url</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_parts_requester_.html#getrates" class="tsd-kind-icon">get<wbr>Rates</a></li>
 							</ul>
 						</section>
 					</div>
@@ -88,6 +88,50 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="fetchrates" class="tsd-anchor"></a>
+					<h3>fetch<wbr>Rates</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">fetch<wbr>Rates<span class="tsd-signature-symbol">(</span>provider<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a>, query<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_requester_.query.html" class="tsd-signature-type">Query</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/requester.ts#L25">parts/requester.ts:25</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>The fetchRates function, used for fetching currency conversion rates.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>export</dt>
+									<dd></dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>provider: <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>provider from which the quotes will be fetched</p>
+									</div>
+								</li>
+								<li>
+									<h5>query: <a href="../interfaces/_parts_requester_.query.html" class="tsd-signature-type">Query</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>the query</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<ul>
+								<li>a result promise</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
 					<a name="formaturl" class="tsd-anchor"></a>
 					<h3>format<wbr>Url</h3>
@@ -98,7 +142,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d97d34a/lib/parts/requester.ts#L46">parts/requester.ts:46</a></li>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/requester.ts#L49">parts/requester.ts:49</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -124,50 +168,6 @@
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 							<ul>
 								<li>formatted GET url string.</li>
-							</ul>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
-					<a name="getrates" class="tsd-anchor"></a>
-					<h3>get<wbr>Rates</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Rates<span class="tsd-signature-symbol">(</span>provider<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a>, query<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_requester_.query.html" class="tsd-signature-type">Query</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d97d34a/lib/parts/requester.ts#L25">parts/requester.ts:25</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>The getRates function, used for fetching currency conversion rates.</p>
-								</div>
-								<dl class="tsd-comment-tags">
-									<dt>export</dt>
-									<dd></dd>
-								</dl>
-							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>provider: <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>provider from which the quotes will be fetched</p>
-									</div>
-								</li>
-								<li>
-									<h5>query: <a href="../interfaces/_parts_requester_.query.html" class="tsd-signature-type">Query</a></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>the query</p>
-									</div>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
-							<ul>
-								<li>a result promise</li>
 							</ul>
 						</li>
 					</ul>
@@ -205,11 +205,11 @@
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
 						<a href="../interfaces/_parts_requester_.query.html" class="tsd-kind-icon">Query</a>
 					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_parts_requester_.html#fetchrates" class="tsd-kind-icon">fetch<wbr>Rates</a>
+					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
 						<a href="_parts_requester_.html#formaturl" class="tsd-kind-icon">format<wbr>Url</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="_parts_requester_.html#getrates" class="tsd-kind-icon">get<wbr>Rates</a>
 					</li>
 				</ul>
 			</nav>

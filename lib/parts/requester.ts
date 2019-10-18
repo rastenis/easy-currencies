@@ -15,14 +15,17 @@ export interface Query {
 }
 
 /**
- * The getRates function, used for fetching currency conversion rates.
+ * The fetchRates function, used for fetching currency conversion rates.
  *
  * @export
  * @param {Provider} provider - provider from which the quotes will be fetched
  * @param {Query} query - the query
  * @returns {Promise<any>} - a result promise
  */
-export async function getRates(provider: Provider, query: Query): Promise<any> {
+export async function fetchRates(
+  provider: Provider,
+  query: Query
+): Promise<any> {
   let [err, result] = await to(axios.get(formatUrl(provider, query)));
 
   // resolving error
@@ -30,7 +33,7 @@ export async function getRates(provider: Provider, query: Query): Promise<any> {
 
   // returning either the meaning of the error (if registered in provider's definition), or the error itself.
   if (error) {
-    throw provider.errors[error] || error;
+    throw provider.errors[error];
   }
 
   return result.data;

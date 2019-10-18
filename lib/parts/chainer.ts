@@ -1,5 +1,6 @@
 import { Converter } from "../converter";
-import _to from "await-to-js";
+
+import __to from "await-to-js";
 
 /**
  * Chained converter.
@@ -12,21 +13,52 @@ import _to from "await-to-js";
  * @param {number} amount - amount of currency to convert
  * @returns
  */
-export function Chainer(amount: number) {
+export function Chainer(amount: number | undefined) {
   let _currentAmount: number | undefined = amount;
   let _currentFrom: string | undefined = undefined;
   let _currentTo: string | undefined = undefined;
+  let _currentRates: any | undefined = undefined;
+
+  // local converter
+  let c = new Converter();
 
   /**
    *  Return object construction, prepared for chaining.
    */
   let ob = {
-    from: from,
-    to: to
+    from: _from,
+    to: _to,
+    fetch: _fetch,
+    get rates() {
+      return _currentRates;
+    },
+    amount: _amount
   };
+
+  /**
+   * Chain member that fetches and caches the rates for the given currency.
+   *
+   * @returns {Promise<any>}
+   */
+  async function _fetch(): Promise<any> {
+    // fetching rates for the base currency
+    _currentRates = await c.getRates(<string>_currentFrom, "", true);
+    return ob;
+  }
 
   // returning chainable
   return ob;
+
+  /**
+   * Chain member that sets the base currency
+   *
+   * @param {string} from
+   * @returns chainable object
+   */
+  function _amount(val: number) {
+    _currentAmount = val;
+    return ob;
+  }
 
   /**
    * Chain member that sets
@@ -34,7 +66,7 @@ export function Chainer(amount: number) {
    * @param {string} from
    * @returns chainable object
    */
-  function from(from: string) {
+  function _from(from: string) {
     _currentFrom = from;
     return ob;
   }
@@ -45,16 +77,17 @@ export function Chainer(amount: number) {
    * @param {string} to - final currency
    * @returns {number} - final converted amount
    */
-  async function to(to: string) {
+  async function _to(to: string) {
     _currentTo = to;
 
     // converting
     let c = new Converter();
-    let [err, r] = await _to(
+    let [err, r] = await __to(
       c.convert(
         <number>_currentAmount,
         <string>_currentFrom,
-        <string>_currentTo
+        <string>_currentTo,
+        _currentRates
       )
     );
 
