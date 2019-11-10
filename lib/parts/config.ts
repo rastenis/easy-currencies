@@ -5,6 +5,8 @@ import {
   UserDefinedProvider
 } from "./providers";
 
+import { checkIfUserDefinedProvider } from "./utils";
+
 /**
  * Interface for the format of data passed in to the module initially.
  *
@@ -87,6 +89,10 @@ export class Config {
   ): void => {
     // Duplicate check
     newProviders.forEach(p => {
+      if (!checkIfUserDefinedProvider(p)) {
+        throw "Invalid provider format!";
+      }
+
       if (providers[p.name]) {
         throw "A provider by this name is already registered!";
       }
