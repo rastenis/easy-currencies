@@ -118,6 +118,9 @@
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_parts_config_.config.html#activeprovider" class="tsd-kind-icon">active<wbr>Provider</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_parts_config_.config.html#add" class="tsd-kind-icon">add</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_parts_config_.config.html#addmultiple" class="tsd-kind-icon">add<wbr>Multiple</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><a href="_parts_config_.config.html#addproviders" class="tsd-kind-icon">add<wbr>Providers</a></li>
 							</ul>
 						</section>
 					</div>
@@ -135,7 +138,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/config.ts#L47">parts/config.ts:47</a></li>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L119">parts/config.ts:119</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -167,7 +170,7 @@
 					<div class="tsd-signature tsd-kind-icon">_active<span class="tsd-signature-symbol">:</span> <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/config.ts#L27">parts/config.ts:27</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L34">parts/config.ts:34</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -197,12 +200,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/config.ts#L35">parts/config.ts:35</a></li>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L42">parts/config.ts:42</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Provider getters</p>
+									<p>Provider getter</p>
 								</div>
 								<dl class="tsd-comment-tags">
 									<dt>memberof</dt>
@@ -227,7 +230,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/d9c718d/lib/parts/config.ts#L45">parts/config.ts:45</a></li>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L117">parts/config.ts:117</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -244,6 +247,120 @@
 							<ul>
 								<li>current provider</li>
 							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="add" class="tsd-anchor"></a>
+					<h3>add</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">add<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, provider<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a>, setActive<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L71">parts/config.ts:71</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds a single new, user-defined provider to the list of providers.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>the new provider name</p>
+										</div>
+									</div>
+								</li>
+								<li>
+									<h5>provider: <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>the new provider object</p>
+										</div>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> setActive: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="addmultiple" class="tsd-anchor"></a>
+					<h3>add<wbr>Multiple</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Multiple<span class="tsd-signature-symbol">(</span>newProviders<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.userdefinedprovider.html" class="tsd-signature-type">UserDefinedProvider</a><span class="tsd-signature-symbol">[]</span>, setActive<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L86">parts/config.ts:86</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Adds multiple new, user-defined provider to the list of providers.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>newProviders: <a href="../interfaces/_parts_providers_.userdefinedprovider.html" class="tsd-signature-type">UserDefinedProvider</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> setActive: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;false</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-private">
+					<a name="addproviders" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagPrivate">Private</span> add<wbr>Providers</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-private">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Providers<span class="tsd-signature-symbol">(</span>providers<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol">[]</span>, setActive<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L54">parts/config.ts:54</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Provider setter (adder)</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>memberof</dt>
+									<dd><p>Config</p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>providers: <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>providers to be added</p>
+									</div>
+								</li>
+								<li>
+									<h5>setActive: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -273,6 +390,9 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_parts_requester_.html">"parts/requester"</a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_parts_utils_.html">"parts/utils"</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
@@ -293,6 +413,15 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_parts_config_.config.html#activeprovider" class="tsd-kind-icon">active<wbr>Provider</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_parts_config_.config.html#add" class="tsd-kind-icon">add</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_parts_config_.config.html#addmultiple" class="tsd-kind-icon">add<wbr>Multiple</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-private">
+								<a href="_parts_config_.config.html#addproviders" class="tsd-kind-icon">add<wbr>Providers</a>
 							</li>
 						</ul>
 					</li>

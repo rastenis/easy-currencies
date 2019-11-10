@@ -1,5 +1,12 @@
 import { UserDefinedProvider, Provider } from "./providers";
 
+/**
+ * Utility for typechecking UserDefinedProvider objects
+ *
+ * @export
+ * @param {(UserDefinedProvider | any)} u - The UserDefinedProvider object to be checked
+ * @returns {u is UserDefinedProvider}
+ */
 export function checkIfUserDefinedProvider(
   u: UserDefinedProvider | any
 ): u is UserDefinedProvider {
@@ -9,6 +16,13 @@ export function checkIfUserDefinedProvider(
   );
 }
 
+/**
+ * Utility for typechecking Provider objects
+ *
+ * @export
+ * @param {(Provider | any)} p - The Provider object to be checked
+ * @returns {p is Provider}
+ */
 export function checkIfProvider(p: Provider | any): p is Provider {
   return (
     (p as Provider).endpoint !== undefined &&

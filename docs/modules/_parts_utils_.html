@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;parts/config&quot; | easy-currencies</title>
+	<title>&quot;parts/utils&quot; | easy-currencies</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,10 +56,10 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_parts_config_.html">&quot;parts/config&quot;</a>
+					<a href="_parts_utils_.html">&quot;parts/utils&quot;</a>
 				</li>
 			</ul>
-			<h1>External module &quot;parts/config&quot;</h1>
+			<h1>External module &quot;parts/utils&quot;</h1>
 		</div>
 	</div>
 </header>
@@ -71,21 +71,10 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Classes</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module"><a href="../classes/_parts_config_.config.html" class="tsd-kind-icon">Config</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Interfaces</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-external-module"><a href="../interfaces/_parts_config_.initializationconfig.html" class="tsd-kind-icon">initialization<wbr>Config</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_parts_config_.html#resolveproviders" class="tsd-kind-icon">resolve<wbr>Providers</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_parts_utils_.html#checkifprovider" class="tsd-kind-icon">check<wbr>IfProvider</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_parts_utils_.html#checkifuserdefinedprovider" class="tsd-kind-icon">check<wbr>IfUser<wbr>Defined<wbr>Provider</a></li>
 							</ul>
 						</section>
 					</div>
@@ -94,21 +83,21 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
-					<a name="resolveproviders" class="tsd-anchor"></a>
-					<h3>resolve<wbr>Providers</h3>
+					<a name="checkifprovider" class="tsd-anchor"></a>
+					<h3>check<wbr>IfProvider</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
-						<li class="tsd-signature tsd-kind-icon">resolve<wbr>Providers<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>configuration<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_config_.initializationconfig.html" class="tsd-signature-type">initializationConfig</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol">[]</span></li>
+						<li class="tsd-signature tsd-kind-icon">check<wbr>IfProvider<span class="tsd-signature-symbol">(</span>p<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/config.ts#L138">parts/config.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/utils.ts#L26">parts/utils.ts:26</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Config resolver that normalizes configuration input into the config interface</p>
+									<p>Utility for typechecking Provider objects</p>
 								</div>
 								<dl class="tsd-comment-tags">
 									<dt>export</dt>
@@ -118,16 +107,48 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>configuration: <a href="../interfaces/_parts_config_.initializationconfig.html" class="tsd-signature-type">initializationConfig</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+									<h5>p: <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>initial configuration</p>
+										<p>The Provider object to be checked</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/_parts_providers_.provider.html" class="tsd-signature-type">Provider</a><span class="tsd-signature-symbol">[]</span></h4>
-							<ul>
-								<li>normalized configuration object</li>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="checkifuserdefinedprovider" class="tsd-anchor"></a>
+					<h3>check<wbr>IfUser<wbr>Defined<wbr>Provider</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">check<wbr>IfUser<wbr>Defined<wbr>Provider<span class="tsd-signature-symbol">(</span>u<span class="tsd-signature-symbol">: </span><a href="../interfaces/_parts_providers_.userdefinedprovider.html" class="tsd-signature-type">UserDefinedProvider</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/utils.ts#L10">parts/utils.ts:10</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Utility for typechecking UserDefinedProvider objects</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>export</dt>
+									<dd></dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>u: <a href="../interfaces/_parts_providers_.userdefinedprovider.html" class="tsd-signature-type">UserDefinedProvider</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The UserDefinedProvider object to be checked</p>
+									</div>
+								</li>
 							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -148,7 +169,7 @@
 					<li class=" tsd-kind-external-module">
 						<a href="_parts_chainer_.html">"parts/chainer"</a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class=" tsd-kind-external-module">
 						<a href="_parts_config_.html">"parts/config"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -157,21 +178,18 @@
 					<li class=" tsd-kind-external-module">
 						<a href="_parts_requester_.html">"parts/requester"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="_parts_utils_.html">"parts/utils"</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/_parts_config_.config.html" class="tsd-kind-icon">Config</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="../interfaces/_parts_config_.initializationconfig.html" class="tsd-kind-icon">initialization<wbr>Config</a>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_parts_utils_.html#checkifprovider" class="tsd-kind-icon">check<wbr>IfProvider</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="_parts_config_.html#resolveproviders" class="tsd-kind-icon">resolve<wbr>Providers</a>
+						<a href="_parts_utils_.html#checkifuserdefinedprovider" class="tsd-kind-icon">check<wbr>IfUser<wbr>Defined<wbr>Provider</a>
 					</li>
 				</ul>
 			</nav>

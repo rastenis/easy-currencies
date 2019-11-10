@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Provider | easy-currencies</title>
+	<title>UserDefinedProvider | easy-currencies</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -59,10 +59,10 @@
 					<a href="../modules/_parts_providers_.html">&quot;parts/providers&quot;</a>
 				</li>
 				<li>
-					<a href="_parts_providers_.provider.html">Provider</a>
+					<a href="_parts_providers_.userdefinedprovider.html">UserDefinedProvider</a>
 				</li>
 			</ul>
-			<h1>Interface Provider</h1>
+			<h1>Interface UserDefinedProvider</h1>
 		</div>
 	</div>
 </header>
@@ -72,14 +72,13 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Single provider interface.
-						Used to store pre-constructed query templates for various currency rate providers.</p>
+						<p>Object that describes a user-defined provider.</p>
 					</div>
 					<dl class="tsd-comment-tags">
 						<dt>export</dt>
 						<dd></dd>
 						<dt>interface</dt>
-						<dd><p>Provider</p>
+						<dd><p>UserDefinedProvider</p>
 						</dd>
 					</dl>
 				</div>
@@ -88,7 +87,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Provider</span>
+						<span class="target">UserDefinedProvider</span>
 					</li>
 				</ul>
 			</section>
@@ -99,11 +98,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.provider.html#endpoint" class="tsd-kind-icon">endpoint</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.provider.html#errorhandler" class="tsd-kind-icon">error<wbr>Handler</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.provider.html#errors" class="tsd-kind-icon">errors</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.provider.html#handler" class="tsd-kind-icon">handler</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.provider.html#key" class="tsd-kind-icon">key</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.userdefinedprovider.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.userdefinedprovider.html#provider" class="tsd-kind-icon">provider</a></li>
 							</ul>
 						</section>
 					</div>
@@ -112,145 +108,24 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="endpoint" class="tsd-anchor"></a>
-					<h3>endpoint</h3>
-					<div class="tsd-signature tsd-kind-icon">endpoint<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<a name="name" class="tsd-anchor"></a>
+					<h3>name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L43">parts/providers.ts:43</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L17">parts/providers.ts:17</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Endpoint configuration object for a provider:
-								The base template is the root of the access URL, with a place for access key in the form of %KEY% (if needed)
-								The single template is used for single currency conversions, requires a %FROM% and a %TO% to be present.
-							The multiple template is currently unused.</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{{ base: string; single: string; multiple: string }}</p>
-							</dd>
-							<dt>memberof</dt>
-							<dd><p>Provider</p>
-							</dd>
-						</dl>
-					</div>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5>base<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>multiple<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5>single<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-						</ul>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="errorhandler" class="tsd-anchor"></a>
-					<h3>error<wbr>Handler</h3>
-					<div class="tsd-signature tsd-kind-icon">error<wbr>Handler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
+					<a name="provider" class="tsd-anchor"></a>
+					<h3>provider</h3>
+					<div class="tsd-signature tsd-kind-icon">provider<span class="tsd-signature-symbol">:</span> <a href="_parts_providers_.provider.html" class="tsd-signature-type">Provider</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L73">parts/providers.ts:73</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L18">parts/providers.ts:18</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A unique method to resolve errors, if any.
-								Some APIs return their errors via success responses, others via HTTP failures.
-								These two modes are mutually exclusive; The data passed to the errorHandler is:
-								the response.data object, in the case of &#39;success&#39; failures
-							the response object, in the case of Axios errors (HTTP failures)</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{Function}</p>
-							</dd>
-							<dt>memberof</dt>
-							<dd><p>Provider</p>
-							</dd>
-						</dl>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="errors" class="tsd-anchor"></a>
-					<h3>errors</h3>
-					<div class="tsd-signature tsd-kind-icon">errors<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L62">parts/providers.ts:62</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A map of possible errors and their respective messages</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{*}</p>
-							</dd>
-							<dt>memberof</dt>
-							<dd><p>Provider</p>
-							</dd>
-						</dl>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="handler" class="tsd-anchor"></a>
-					<h3>handler</h3>
-					<div class="tsd-signature tsd-kind-icon">handler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L55">parts/providers.ts:55</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A function that returns a map of currencies from the data object returned by axios (response.data)</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>example</dt>
-							<dd><p> function(data) { //must return {currency1:rate1,curency2:rate2} in reference to the base currency.
-									return data.rates;
-								}</p>
-							</dd>
-							<dt>type</dt>
-							<dd><p>{Function}</p>
-							</dd>
-							<dt>memberof</dt>
-							<dd><p>Provider</p>
-							</dd>
-						</dl>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="key" class="tsd-anchor"></a>
-					<h3>key</h3>
-					<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/47f0e82/lib/parts/providers.ts#L34">parts/providers.ts:34</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An API key / Profile ID / Access key for a provider.</p>
-						</div>
-						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{*}</p>
-							</dd>
-							<dt>memberof</dt>
-							<dd><p>Provider</p>
-							</dd>
-						</dl>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -285,36 +160,27 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_parts_providers_.provider.html" class="tsd-kind-icon">Provider</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_parts_providers_.providers.html" class="tsd-kind-icon">Providers</a>
+					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_parts_providers_.provider.html" class="tsd-kind-icon">Provider</a>
+						<a href="_parts_providers_.userdefinedprovider.html" class="tsd-kind-icon">User<wbr>Defined<wbr>Provider</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_providers_.provider.html#endpoint" class="tsd-kind-icon">endpoint</a>
+								<a href="_parts_providers_.userdefinedprovider.html#name" class="tsd-kind-icon">name</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_providers_.provider.html#errorhandler" class="tsd-kind-icon">error<wbr>Handler</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_providers_.provider.html#errors" class="tsd-kind-icon">errors</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_providers_.provider.html#handler" class="tsd-kind-icon">handler</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_providers_.provider.html#key" class="tsd-kind-icon">key</a>
+								<a href="_parts_providers_.userdefinedprovider.html#provider" class="tsd-kind-icon">provider</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_parts_providers_.providers.html" class="tsd-kind-icon">Providers</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="_parts_providers_.userdefinedprovider.html" class="tsd-kind-icon">User<wbr>Defined<wbr>Provider</a>
-					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="../modules/_parts_providers_.html#resolveprovider" class="tsd-kind-icon">resolve<wbr>Provider</a>
 					</li>

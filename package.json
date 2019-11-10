@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
-    "docs": "typedoc",
+    "docs": "typedoc && cp ./_config.yml docs/_config.yml",
     "prepublishOnly": "npm test",
     "test": "jest --config jest.config.js --setupFiles dotenv/config",
     "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
