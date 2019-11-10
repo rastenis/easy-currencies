@@ -26,6 +26,10 @@ export class Converter {
    */
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this.config = new Config(...config);
+
+    // Forwarding config adder fucntion
+    this.add = this.config.add;
+    this.addMultiple = this.config.addMultiple;
   }
 
   /**
@@ -42,8 +46,9 @@ export class Converter {
     return this.config.providers;
   }
 
-  // Forwarding config adder fucntion
-  add = this.config.add;
+  // Proxy function definitions
+  add: Function;
+  addMultiple: Function;
 
   /**
    * Conversion function (non chainable).
