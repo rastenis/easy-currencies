@@ -64,6 +64,7 @@ export class Converter {
    * @param {any} rates - conversion rates, if they were pre-fetched
    * @returns {Promise<number>} - converted amount
    */
+
   convert = async (
     amount: number,
     from: string,

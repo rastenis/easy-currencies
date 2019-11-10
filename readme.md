@@ -13,7 +13,7 @@ Convert currencies with ease! Five exchange rate providers to choose from, other
 - Two modes of operation:
   - Easy mode - no configuration or API keys required at all
   - Custom mode - choose one or more providers, use key-gated providers.
-- [WIP] Add custom providers (private and public)
+- Add custom providers (private or public)
 - [WIP] Provider fallbacks - automatic switching of active providers in the case of failure
 
 ## Install
@@ -84,7 +84,7 @@ await convert.from("USD").fetch(); // refresh rates
 let value2 = await convert.amount(10).to("GBP");
 ```
 
-## Custom providers
+## Using custom providers
 
 Custom single provider initialization
 
@@ -164,8 +164,53 @@ let converter = new Converter("OpenExchangeRates", "API_KEY");
 console.log(converter.activeProvider()); // ...provider data
 ```
 
+### Adding custom providers
+
+Custom provider definitions can be added as such:
+
+```js
+import { Converter } from "easy-currencies";
+
+let converter = new Converter();
+
+converter.add("MyProvider", {
+  // the name of the custom provider
+  endpoint: {
+    base: "http://myprovider.net/api/live?access_key=%KEY%", // the base endpoint of the conversion API, with %KEY% being the api key's slot
+    single: "&source=%FROM%", // the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation
+    multiple: "&source=%FROM%&currencies=%TO%" // the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by ','
+  },
+  key: "API_KEY", // your api key
+  handler: function(data) {
+    // the function that takes the JSON data returned by the API and returns the rate key-value object
+    return data.rates;
+  },
+  errors: {
+    // key-value object of common errors and their text representations
+    401: "Invalid API key!"
+  },
+  errorHandler: function(data) {
+    // the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)
+    return data.status;
+  }
+});
+```
+
+Multiple providers can be added with addMultiple:
+
+```js
+import { Converter } from "easy-currencies";
+
+let converter = new Converter();
+
+converter.add([
+  { name: "Name1", provider: provider1 },
+  { name: "Name2", provider: provider2 }
+]);
+```
+
 ### Support
 
-Submit bugs and requests through the project's issue tracker:
+Submit bugs and feature requests through the project's issue tracker:
 
 [![Issues](http://img.shields.io/github/issues/Scharkee/easy-currencies.svg)](https://github.com/Scharkee/easy-currencies/issues)
