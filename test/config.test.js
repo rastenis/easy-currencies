@@ -19,7 +19,7 @@ test("Provider operations: Getting active.", async () => {
   expect(converter.providers).toEqual(converter.active);
 });
 
-test("Provider operations: Adding provider.", async () => {
+test("Provider operations: Adding provider - active.", async () => {
   // default initialization
   let converter = new Converter("CurrencyLayer", "key");
 
@@ -52,6 +52,41 @@ test("Provider operations: Adding provider.", async () => {
   // expect the provider to be registered in the register map
   expect(providers["MyProvider"]).toBeDefined();
   expect(providers["MyProvider"]).toEqual(newProvider);
+});
+
+test("Provider operations: Adding provider - inactive.", async () => {
+  // default initialization
+  let converter = new Converter("CurrencyLayer", "key");
+
+  let newProvider = {
+    endpoint: {
+      base: "base",
+      single: "single",
+      multiple: "multiple"
+    },
+    key: null,
+    handler: function(data) {
+      return data.rates;
+    },
+    errors: { 400: "Malformed query." },
+    errorHandler: function(data) {
+      return data.status;
+    }
+  };
+
+  converter.add("MyProvider5", newProvider);
+
+  let value = converter.providers;
+
+  // expect only one active provider
+  expect(value.length).toEqual(2);
+
+  // expect given provider (with SetActive)
+  expect(value[1]).toEqual(newProvider);
+
+  // expect the provider to be registered in the register map
+  expect(providers["MyProvider5"]).toBeDefined();
+  expect(providers["MyProvider5"]).toEqual(newProvider);
 });
 
 test("Provider operations: Adding multiple providers.", async () => {
@@ -89,13 +124,10 @@ test("Provider operations: Adding multiple providers.", async () => {
       }
     };
 
-  converter.addMultiple(
-    [
-      { name: "MyProvider1", provider: newProvider1 },
-      { name: "MyProvider2", provider: newProvider2 }
-    ],
-    true
-  );
+  converter.addMultiple([
+    { name: "MyProvider1", provider: newProvider1 },
+    { name: "MyProvider2", provider: newProvider2 }
+  ]);
 
   let value = converter.providers;
 
@@ -103,8 +135,8 @@ test("Provider operations: Adding multiple providers.", async () => {
   expect(value.length).toEqual(3);
 
   // expect given provider (with SetActive)
-  expect(value[0]).toEqual(newProvider1);
-  expect(value[1]).toEqual(newProvider2);
+  expect(value[1]).toEqual(newProvider1);
+  expect(value[2]).toEqual(newProvider2);
 
   // expect the provider to be registered in the register map
   expect(providers["MyProvider1"]).toBeDefined();

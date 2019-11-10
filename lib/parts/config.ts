@@ -49,10 +49,7 @@ export class Config {
    * @returns {void}
    * @memberof Config
    */
-  private addProviders(
-    providers: Provider[],
-    setActive: boolean = false
-  ): void {
+  private addProviders(providers: Provider[], setActive: boolean): void {
     if (setActive) {
       this._active.unshift(...providers);
       return;
