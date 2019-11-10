@@ -1,5 +1,5 @@
 import { fetchRates } from "./parts/requester";
-import { Provider } from "./parts/providers";
+import { Provider, providers, UserDefinedProvider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
@@ -20,12 +20,16 @@ export class Converter {
   config: Config;
 
   /**
-   *Creates an instance of Converter and initialized the config.
-   * @param {initializationConfig} _config
+   * Creates an instance of Converter and initializes the config.
+   * @param {initializationConfig} config - base config
    * @memberof Converter
    */
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this.config = new Config(...config);
+
+    // Forwarding config adder fucntion
+    this.add = this.config.add;
+    this.addMultiple = this.config.addMultiple;
   }
 
   /**
@@ -41,6 +45,10 @@ export class Converter {
   get active(): Provider[] {
     return this.config.providers;
   }
+
+  // Proxy function definitions
+  add: Function;
+  addMultiple: Function;
 
   /**
    * Conversion function (non chainable).

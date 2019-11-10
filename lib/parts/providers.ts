@@ -8,6 +8,17 @@ export interface Providers {
 }
 
 /**
+ * Object that describes a user-defined provider.
+ *
+ * @export
+ * @interface UserDefinedProvider
+ */
+export interface UserDefinedProvider {
+  name: string;
+  provider: Provider;
+}
+
+/**
  * Single provider interface.
  * Used to store pre-constructed query templates for various currency rate providers.
  * @export
@@ -83,7 +94,7 @@ export function resolveProvider(provider: any): Provider {
 /**
  * Provider map initialization
  */
-export const providers: Providers = {
+export let providers: Providers = {
   ExchangeRatesAPI: {
     endpoint: {
       base: "https://api.exchangeratesapi.io/latest",

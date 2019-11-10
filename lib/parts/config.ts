@@ -1,4 +1,11 @@
-import { Provider, providers, resolveProvider } from "./providers";
+import {
+  Provider,
+  providers,
+  resolveProvider,
+  UserDefinedProvider
+} from "./providers";
+
+import { checkIfUserDefinedProvider } from "./utils";
 
 /**
  * Interface for the format of data passed in to the module initially.
@@ -27,7 +34,7 @@ export class Config {
   private _active: Provider[];
 
   /**
-   * Provider getters
+   * Provider getter
    *
    * @returns {Provider[]}
    * @memberof Config
@@ -35,6 +42,71 @@ export class Config {
   get providers(): Provider[] {
     return this._active;
   }
+
+  /**
+   * Provider setter (adder)
+   *
+   * @param {Provider[]} providers - providers to be added
+   * @param {boolean} [setActive=false] - should the new provider(s) be prioritized
+   * @returns {void}
+   * @memberof Config
+   */
+  private addProviders(providers: Provider[], setActive: boolean): void {
+    if (setActive) {
+      this._active.unshift(...providers);
+      return;
+    }
+    this._active.push(...providers);
+    return;
+  }
+
+  /**
+   * Adds a single new, user-defined provider to the list of providers.
+   *
+   * @param {string} name - the new provider name
+   * @param {Provider} provider - the new provider object
+   * @param {boolean} [setActive=false] - should the new provider(s) be prioritized
+   * @memberof Config
+   */
+  add = (
+    name: string,
+    provider: Provider,
+    setActive: boolean = false
+  ): void => {
+    this.addMultiple([{ name, provider }], setActive);
+  };
+
+  /**
+   * Adds multiple new, user-defined provider to the list of providers.
+   *
+   * @param {UserDefinedProvider[]} providers - providers to be added
+   * @param {boolean} [setActive=false] - should the new provider(s) be prioritized
+   * @memberof Config
+   */
+  addMultiple = (
+    newProviders: UserDefinedProvider[],
+    setActive: boolean = false
+  ): void => {
+    // Duplicate check
+    newProviders.forEach(p => {
+      if (!checkIfUserDefinedProvider(p)) {
+        throw "Invalid provider format!";
+      }
+
+      if (providers[p.name]) {
+        throw "A provider by this name is already registered!";
+      }
+      providers[p.name] = p.provider;
+    });
+
+    // Adding provider to active providers
+    this.addProviders(
+      newProviders.map(p => {
+        return p.provider;
+      }),
+      setActive
+    );
+  };
 
   /**
    * Returns the current provider
