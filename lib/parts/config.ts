@@ -109,6 +109,17 @@ export class Config {
   };
 
   /**
+   * Removes a specific provider
+   * @param {Provider} provider - provider to be removed
+   * @memberof Config
+   */
+  remove = (provider: Provider): void => {
+    this._active = this._active.filter(p => {
+      p != provider;
+    });
+  };
+
+  /**
    * Returns the current provider
    *
    * @returns {Provider} - current provider
@@ -125,6 +136,9 @@ export class Config {
    */
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this._active = resolveProviders(...config);
+
+    // adding default fallback
+    this.addProviders([providers["ExchangeRatesAPI"]], false);
   }
 }
 

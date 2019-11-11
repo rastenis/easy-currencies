@@ -3,6 +3,7 @@ import { Provider, providers, UserDefinedProvider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
+import { Certificate } from "crypto";
 
 /**
  * Regular converter class definition.
@@ -111,11 +112,31 @@ export class Converter {
       })
     );
 
-    if (err) {
+    // error handling:
+    // if the error is not in the registered list of errors (is undefined), then throw.
+    // if the error is in the list, but there are no backup providers, then throw.
+    // if the error is in the list and there is a backup, log the error and continue.
+    if (err === undefined) {
+      return provider.handler(data);
+    }
+
+    // unrecognized error
+    if (err === null) {
       throw err;
     }
 
-    // Normalizing resulting rates data and returning rates
-    return provider.handler(data);
+    // logging existing error
+    console.error(err);
+
+    if (this.config.providers.length <= 1) {
+      console.error("No backup providers to fall back on.");
+      throw err;
+    }
+
+    // removing current provider from active list
+    this.config.remove(provider);
+
+    // Retrying...
+    return this.getRates(from, to, multiple);
   };
 }

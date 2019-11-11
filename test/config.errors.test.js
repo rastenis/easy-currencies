@@ -43,7 +43,6 @@ test("Provider error operations: Adding non provider.", async () => {
   try {
     converter.add("P", newProvider, true);
   } catch (e) {
-    console.error(e);
     error = true;
   }
   expect(error).toBeTruthy();
