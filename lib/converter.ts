@@ -31,6 +31,7 @@ export class Converter {
     // Forwarding config adder fucntion
     this.add = this.config.add;
     this.addMultiple = this.config.addMultiple;
+    this.remove = this.config.remove;
   }
 
   /**
@@ -50,6 +51,7 @@ export class Converter {
   // Proxy function definitions
   add: Function;
   addMultiple: Function;
+  remove: Function;
 
   /**
    * Conversion function (non chainable).
@@ -129,7 +131,6 @@ export class Converter {
     console.error(err);
 
     if (this.config.providers.length <= 1) {
-      console.error("No backup providers to fall back on.");
       throw err;
     }
 

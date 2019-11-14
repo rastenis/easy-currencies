@@ -4,6 +4,9 @@ test("Provider error operations: Adding duplicate provider.", async () => {
   // default initialization
   let converter = new Converter("CurrencyLayer", "key");
 
+  // removing default fallback provider
+  converter.remove(converter.active[1]);
+
   let newProvider = {
     endpoint: {
       base: "base",
@@ -33,6 +36,9 @@ test("Provider error operations: Adding duplicate provider.", async () => {
 test("Provider error operations: Adding non provider.", async () => {
   // default initialization
   let converter = new Converter("CurrencyLayer", "key");
+
+  // removing default fallback provider
+  converter.remove(converter.active[1]);
 
   let newProvider = {
     errors: { 400: "Malformed query." }

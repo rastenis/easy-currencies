@@ -6,8 +6,8 @@ test("Provider operations: Getting active.", async () => {
 
   let value = converter.providers;
 
-  // expect only one active provider
-  expect(value.length).toEqual(1);
+  // expect only one active provider + the base fallback provider
+  expect(value.length).toEqual(2);
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
@@ -43,8 +43,7 @@ test("Provider operations: Adding provider - active.", async () => {
 
   let value = converter.providers;
 
-  // expect only one active provider
-  expect(value.length).toEqual(2);
+  expect(value.length).toEqual(3);
 
   // expect given provider (with SetActive)
   expect(value[0]).toEqual(newProvider);
@@ -78,8 +77,7 @@ test("Provider operations: Adding provider - inactive.", async () => {
 
   let value = converter.providers;
 
-  // expect only one active provider
-  expect(value.length).toEqual(2);
+  expect(value.length).toEqual(3);
 
   // expect given provider (with SetActive)
   expect(value[1]).toEqual(newProvider);
@@ -131,8 +129,7 @@ test("Provider operations: Adding multiple providers.", async () => {
 
   let value = converter.providers;
 
-  // expect only one active provider
-  expect(value.length).toEqual(3);
+  expect(value.length).toEqual(4);
 
   // expect given provider (with SetActive)
   expect(value[1]).toEqual(newProvider1);

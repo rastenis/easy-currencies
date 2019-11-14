@@ -8,14 +8,16 @@ test("Fails because of invalid base currency (CurrencyLayer)", async () => {
     "CurrencyLayer",
     process.env.CURRENCY_LAYER_KEY
   );
-
+  // removing default fallback provider
+  converter.remove(converter.active[1]);
   let [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
   expect(err).toBe("Invalid base currency.");
 });
 
 test("Fails because of invalid base currency (Fixer)", async () => {
   let converter = new Converter("Fixer", process.env.FIXER_KEY);
-
+  // removing default fallback provider
+  converter.remove(converter.active[1]);
   let [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
   expect(err).toBe("Invalid base currency.");
@@ -23,6 +25,8 @@ test("Fails because of invalid base currency (Fixer)", async () => {
 
 test("Fails because of invalid base currency (AlphaVantage)", async () => {
   let converter = new Converter("AlphaVantage", process.env.ALPHA_VANTAGE_KEY);
+  // removing default fallback provider
+  converter.remove(converter.active[1]);
 
   let [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
@@ -31,7 +35,7 @@ test("Fails because of invalid base currency (AlphaVantage)", async () => {
 
 test("Fails because of invalid base currency (ExchangeRatesAPI)", async () => {
   let converter = new Converter("ExchangeRatesAPI");
-
+  // removing default fallback provider
   let [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
   expect(err).toBe("Malformed query.");
