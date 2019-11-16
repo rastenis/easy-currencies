@@ -128,7 +128,7 @@ export class Converter {
     }
 
     // logging existing error
-    console.error(err);
+    console.error(err.error);
 
     if (this.config.providers.length <= 1) {
       throw err.error;
