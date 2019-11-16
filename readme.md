@@ -14,7 +14,7 @@ Convert currencies with ease! Five exchange rate providers to choose from, other
   - Easy mode - no configuration or API keys required at all
   - Custom mode - choose one or more providers, use key-gated providers.
 - Add custom providers (private or public)
-- [WIP] Provider fallbacks - automatic switching of active providers in the case of failure
+- Provider fallbacks - automatic switching of active providers in the case of failure
 
 ## Install
 
@@ -164,6 +164,14 @@ let converter = new Converter("OpenExchangeRates", "API_KEY");
 console.log(converter.activeProvider()); // ...provider data
 ```
 
+### Automatic provider fallbacks
+
+Upon creation of a converter, a default provider that does not require any API keys is automatically inserted into the list of active providers as a primary fallback. It always has lower priority than the providers the converter was initialized with.
+
+If a provider is well defined(all possible errors are registered properly), a conversion error will log the mapped error, and remove the provider from the active providers list. The conversion flow will attempt to resume by repeating the conversion using a different active provider.
+
+If there are no more providers to fall back on, the converter throws the error. Moreover, if the error is not registered (unhandled error), it will be thrown as well.
+
 ### Adding custom providers
 
 Custom provider definitions can be added as such:
@@ -187,11 +195,12 @@ converter.add("MyProvider", {
   },
   errors: {
     // key-value object of common errors and their text representations
-    401: "Invalid API key!"
+    101: "Invalid API key!"
+    201: "Invalid base currency!"
   },
   errorHandler: function(data) {
     // the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)
-    return data.status;
+    return data.error.code;
   }
 });
 ```
