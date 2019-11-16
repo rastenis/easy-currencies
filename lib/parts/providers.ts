@@ -8,6 +8,16 @@ export interface Providers {
 }
 
 /**
+ * Provider error entry
+ *
+ * @export
+ * @interface ProviderErrors
+ */
+export interface ProviderErrors {
+  [code: string]: string;
+}
+
+/**
  * Object that describes a user-defined provider.
  *
  * @export
@@ -59,7 +69,7 @@ export interface Provider {
    * @type {*}
    * @memberof Provider
    */
-  errors: any;
+  errors: ProviderErrors;
   /**
    * A unique method to resolve errors, if any.
    * Some APIs return their errors via success responses, others via HTTP failures.

@@ -3,6 +3,7 @@ import { Provider, providers, UserDefinedProvider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
+import { Certificate } from "crypto";
 
 /**
  * Regular converter class definition.
@@ -30,6 +31,7 @@ export class Converter {
     // Forwarding config adder fucntion
     this.add = this.config.add;
     this.addMultiple = this.config.addMultiple;
+    this.remove = this.config.remove;
   }
 
   /**
@@ -49,6 +51,7 @@ export class Converter {
   // Proxy function definitions
   add: Function;
   addMultiple: Function;
+  remove: Function;
 
   /**
    * Conversion function (non chainable).
@@ -111,11 +114,30 @@ export class Converter {
       })
     );
 
-    if (err) {
-      throw err;
+    // error handling:
+    // if the error is not in the registered list of errors (is undefined), then throw.
+    // if the error is in the list, but there are no backup providers, then throw.
+    // if the error is in the list and there is a backup, log the error and continue.
+    if (!err) {
+      return provider.handler(data);
     }
 
-    // Normalizing resulting rates data and returning rates
-    return provider.handler(data);
+    // unrecognized error
+    if (!err.handled) {
+      throw err.error;
+    }
+
+    // logging existing error
+    console.error(err.error);
+
+    if (this.config.providers.length <= 1) {
+      throw err.error;
+    }
+
+    // removing current provider from active list
+    this.config.remove(provider);
+
+    // Retrying...
+    return this.getRates(from, to, multiple);
   };
 }

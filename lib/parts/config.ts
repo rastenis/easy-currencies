@@ -52,6 +52,10 @@ export class Config {
    * @memberof Config
    */
   private addProviders(providers: Provider[], setActive: boolean): void {
+    providers = providers.filter(p => {
+      return !this._active.find(a => a == p);
+    });
+
     if (setActive) {
       this._active.unshift(...providers);
       return;
@@ -101,11 +105,18 @@ export class Config {
 
     // Adding provider to active providers
     this.addProviders(
-      newProviders.map(p => {
-        return p.provider;
-      }),
+      newProviders.map(p => p.provider),
       setActive
     );
+  };
+
+  /**
+   * Removes a specific provider
+   * @param {Provider} provider - provider to be removed
+   * @memberof Config
+   */
+  remove = (provider: Provider): void => {
+    this._active = this._active.filter(p => p != provider);
   };
 
   /**
@@ -125,6 +136,9 @@ export class Config {
    */
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this._active = resolveProviders(...config);
+
+    // adding default fallback
+    this.addProviders([providers["ExchangeRatesAPI"]], false);
   }
 }
 
@@ -163,7 +177,5 @@ export function resolveProviders(
   let c = <initializationConfig[]>configuration;
 
   // resolving all providers
-  return c.map(provider => {
-    return resolveProvider(provider);
-  });
+  return c.map(provider => resolveProvider(provider));
 }
