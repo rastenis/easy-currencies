@@ -118,20 +118,20 @@ export class Converter {
     // if the error is not in the registered list of errors (is undefined), then throw.
     // if the error is in the list, but there are no backup providers, then throw.
     // if the error is in the list and there is a backup, log the error and continue.
-    if (err === undefined) {
+    if (!err) {
       return provider.handler(data);
     }
 
     // unrecognized error
-    if (err === null) {
-      throw err;
+    if (!err.handled) {
+      throw err.error;
     }
 
     // logging existing error
     console.error(err);
 
     if (this.config.providers.length <= 1) {
-      throw err;
+      throw err.error;
     }
 
     // removing current provider from active list

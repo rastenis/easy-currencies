@@ -80,7 +80,7 @@ test("Provider operations: Adding provider - inactive.", async () => {
   expect(value.length).toEqual(3);
 
   // expect given provider (with SetActive)
-  expect(value[1]).toEqual(newProvider);
+  expect(value[2]).toEqual(newProvider);
 
   // expect the provider to be registered in the register map
   expect(providers["MyProvider5"]).toBeDefined();
@@ -132,8 +132,8 @@ test("Provider operations: Adding multiple providers.", async () => {
   expect(value.length).toEqual(4);
 
   // expect given provider (with SetActive)
-  expect(value[1]).toEqual(newProvider1);
-  expect(value[2]).toEqual(newProvider2);
+  expect(value[2]).toEqual(newProvider1);
+  expect(value[3]).toEqual(newProvider2);
 
   // expect the provider to be registered in the register map
   expect(providers["MyProvider1"]).toBeDefined();

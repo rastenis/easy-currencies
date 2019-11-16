@@ -1,9 +1,6 @@
 const { Converter } = require("../dist");
 const to = require("await-to-js").default;
 
-// LEFTOFF: simulate failures for all error tests (providers.errors.test.js)
-// and check for proper fallbacking
-
 /**
  * Invalid api key failures
  */
