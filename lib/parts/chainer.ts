@@ -13,7 +13,7 @@ import __to from "await-to-js";
  * @param {number} amount - amount of currency to convert
  * @returns
  */
-export function Chainer(amount: number | undefined) {
+export function Chainer(amount: number | undefined = undefined) {
   let _currentAmount: number | undefined = amount;
   let _currentFrom: string | undefined = undefined;
   let _currentTo: string | undefined = undefined;
