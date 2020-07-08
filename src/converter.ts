@@ -37,9 +37,14 @@ export class Converter {
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this.config = new Config(...config);
 
-    // Forwarding config adder fucntion
+    // Forwarding config adder function (with the alternative handle)
     this.add = this.config.add;
+    this.addProvider = this.config.add;
+
+    // Forwarding config multiple adder function (with the alternative handle)
     this.addMultiple = this.config.addMultiple;
+    this.addMultipleProviders = this.config.addMultiple;
+
     this.remove = this.config.remove;
   }
 
@@ -57,10 +62,14 @@ export class Converter {
     return this.config.providers;
   }
 
-  // Proxy function definitions
-  add: Function;
-  addMultiple: Function;
-  remove: Function;
+  /*
+   Proxy function definitions
+   */
+  add: Config["add"];
+  addProvider: Config["add"];
+  addMultiple: Config["addMultiple"];
+  addMultipleProviders: Config["addMultiple"];
+  remove: Config["remove"];
 
   /**
    * Conversion function (non chainable).
@@ -76,7 +85,6 @@ export class Converter {
    * @param {any} rates - conversion rates, if they were pre-fetched
    * @returns {Promise<number>} - converted amount
    */
-
   convert = async (
     amount: number,
     from: string,
