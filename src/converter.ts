@@ -95,7 +95,7 @@ export class Converter {
       throw err;
     }
 
-    if (!data) {
+    if (!data || Object.keys(data).length == 0) {
       throw new Error("No data returned for rate fetch.");
     }
 
