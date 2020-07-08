@@ -3,7 +3,16 @@ import { Provider, providers, UserDefinedProvider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
-import { Certificate } from "crypto";
+
+/**
+ * A simple map object for rates
+ *
+ * @export
+ * @interface rateObject
+ */
+export interface rateObject {
+  [currencyName: string]: number;
+}
 
 /**
  * Regular converter class definition.
@@ -28,9 +37,14 @@ export class Converter {
   constructor(...config: initializationConfig[] | undefined[] | string[]) {
     this.config = new Config(...config);
 
-    // Forwarding config adder fucntion
+    // Forwarding config adder function (with the alternative handle)
     this.add = this.config.add;
+    this.addProvider = this.config.add;
+
+    // Forwarding config multiple adder function (with the alternative handle)
     this.addMultiple = this.config.addMultiple;
+    this.addMultipleProviders = this.config.addMultiple;
+
     this.remove = this.config.remove;
   }
 
@@ -48,17 +62,21 @@ export class Converter {
     return this.config.providers;
   }
 
-  // Proxy function definitions
-  add: Function;
-  addMultiple: Function;
-  remove: Function;
+  /*
+   Proxy function definitions
+   */
+  add: Config["add"];
+  addProvider: Config["add"];
+  addMultiple: Config["addMultiple"];
+  addMultipleProviders: Config["addMultiple"];
+  remove: Config["remove"];
 
   /**
    * Conversion function (non chainable).
    *
    * @example
-   * let converter = new Converter()
-   * let converted = await converter.convert(15,"USD","EUR")
+   * const converter = new Converter()
+   * const converted = await converter.convert(15,"USD","EUR")
    * console.log(converted);
    *
    * @param {number} amount - amount to be converted
@@ -67,7 +85,6 @@ export class Converter {
    * @param {any} rates - conversion rates, if they were pre-fetched
    * @returns {Promise<number>} - converted amount
    */
-
   convert = async (
     amount: number,
     from: string,
@@ -80,10 +97,14 @@ export class Converter {
     }
 
     //Fetching conversion rates from the active provider
-    let [err, data] = await _to(this.getRates(from, to, false));
+    const [err, data] = await _to(this.getRates(from, to, false));
 
     if (err) {
       throw err;
+    }
+
+    if (!data || Object.keys(data).length == 0) {
+      throw new Error("No data returned for rate fetch.");
     }
 
     // Normalizing resulting rates data
@@ -101,18 +122,18 @@ export class Converter {
     from: string,
     to: string,
     multiple: boolean = false
-  ): Promise<any> => {
-    //Getting the current active provider
+  ): Promise<rateObject> => {
+    // Getting the current active provider
     const provider = this.config.activeProvider();
 
-    //Fetching conversion rates from the active provider
-    let [err, data] = await _to(
+    // Fetching conversion rates from the active provider.
+    const [err, data] = await (<any>_to(
       fetchRates(provider, {
         FROM: from,
         TO: to,
         multiple: multiple
       })
-    );
+    ));
 
     // error handling:
     // if the error is not in the registered list of errors (is undefined), then throw.

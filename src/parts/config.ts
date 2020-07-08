@@ -52,8 +52,8 @@ export class Config {
    * @memberof Config
    */
   private addProviders(providers: Provider[], setActive: boolean): void {
-    providers = providers.filter(p => {
-      return !this._active.find(a => a == p);
+    providers = providers.filter((p) => {
+      return !this._active.find((a) => a == p);
     });
 
     if (setActive) {
@@ -92,7 +92,7 @@ export class Config {
     setActive: boolean = false
   ): void => {
     // Duplicate check
-    newProviders.forEach(p => {
+    newProviders.forEach((p) => {
       if (!checkIfUserDefinedProvider(p)) {
         throw "Invalid provider format!";
       }
@@ -105,7 +105,7 @@ export class Config {
 
     // Adding provider to active providers
     this.addProviders(
-      newProviders.map(p => p.provider),
+      newProviders.map((p) => p.provider),
       setActive
     );
   };
@@ -116,7 +116,7 @@ export class Config {
    * @memberof Config
    */
   remove = (provider: Provider): void => {
-    this._active = this._active.filter(p => p != provider);
+    this._active = this._active.filter((p) => p != provider);
   };
 
   /**
@@ -174,8 +174,8 @@ export function resolveProviders(
 
   // configuration is an array of providers
   // casting
-  let c = <initializationConfig[]>configuration;
+  const initializationConfig = <initializationConfig[]>configuration;
 
   // resolving all providers
-  return c.map(provider => resolveProvider(provider));
+  return initializationConfig.map((provider) => resolveProvider(provider));
 }

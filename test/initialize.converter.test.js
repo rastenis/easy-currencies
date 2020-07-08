@@ -2,9 +2,9 @@ const { Converter } = require("../dist");
 
 test("Initializes providers properly (no provider).", async () => {
   // default initialization
-  let converter = new Converter();
+  const converter = new Converter();
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   // expect default provider
   expect(value[0].endpoint.base).toBe("https://api.exchangeratesapi.io/latest");
@@ -14,9 +14,9 @@ test("Initializes providers properly (no provider).", async () => {
 
 test("Initializes providers properly (single provider).", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
@@ -29,12 +29,12 @@ test("Initializes providers properly (single provider).", async () => {
 
 test("Initializes providers properly (multiple providers).", async () => {
   // default initialization
-  let converter = new Converter(
+  const converter = new Converter(
     { name: "CurrencyLayer", key: "key" },
     { name: "OpenExchangeRates", key: "key" }
   );
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   // expect multiple providers
   expect(value[0].endpoint.base).toBe(
@@ -53,7 +53,7 @@ test("Fails to initialize properly (invalid provider).", async () => {
   // default initialization
   let error = null;
   try {
-    let converter = new Converter("MyProvider");
+    const converter = new Converter("MyProvider");
   } catch (e) {
     error = e;
   }
@@ -67,7 +67,7 @@ test("Fails to initialize properly (invalid provider object).", async () => {
   // default initialization
   let error = null;
   try {
-    let converter = new Converter(12);
+    const converter = new Converter(12);
   } catch (e) {
     error = e;
   }

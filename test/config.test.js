@@ -2,9 +2,9 @@ const { providers, Converter } = require("../dist");
 
 test("Provider operations: Getting active.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   // expect only one active provider + the base fallback provider
   expect(value.length).toEqual(2);
@@ -21,27 +21,27 @@ test("Provider operations: Getting active.", async () => {
 
 test("Provider operations: Adding provider - active.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
-  let newProvider = {
+  const newProvider = {
     endpoint: {
       base: "base",
       single: "single",
       multiple: "multiple"
     },
     key: null,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: { 400: "Malformed query." },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.status;
     }
   };
 
   converter.add("MyProvider", newProvider, true);
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   expect(value.length).toEqual(3);
 
@@ -55,27 +55,27 @@ test("Provider operations: Adding provider - active.", async () => {
 
 test("Provider operations: Adding provider - inactive.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
-  let newProvider = {
+  const newProvider = {
     endpoint: {
       base: "base",
       single: "single",
       multiple: "multiple"
     },
     key: null,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: { 400: "Malformed query." },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.status;
     }
   };
 
   converter.add("MyProvider5", newProvider);
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   expect(value.length).toEqual(3);
 
@@ -89,20 +89,20 @@ test("Provider operations: Adding provider - inactive.", async () => {
 
 test("Provider operations: Adding multiple providers.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
-  let newProvider1 = {
+  const newProvider1 = {
       endpoint: {
         base: "base1",
         single: "single1",
         multiple: "multiple1"
       },
       key: null,
-      handler: function(data) {
+      handler: function (data) {
         return data.rates;
       },
       errors: { 400: "Malformed query." },
-      errorHandler: function(data) {
+      errorHandler: function (data) {
         return data.status;
       }
     },
@@ -113,11 +113,11 @@ test("Provider operations: Adding multiple providers.", async () => {
         multiple: "multiple2"
       },
       key: null,
-      handler: function(data) {
+      handler: function (data) {
         return data.rates;
       },
       errors: { 400: "Malformed query." },
-      errorHandler: function(data) {
+      errorHandler: function (data) {
         return data.status;
       }
     };
@@ -127,7 +127,7 @@ test("Provider operations: Adding multiple providers.", async () => {
     { name: "MyProvider2", provider: newProvider2 }
   ]);
 
-  let value = converter.providers;
+  const value = converter.providers;
 
   expect(value.length).toEqual(4);
 

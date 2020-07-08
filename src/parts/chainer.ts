@@ -1,6 +1,19 @@
-import { Converter } from "../converter";
+import { Converter, rateObject } from "../converter";
 
 import __to from "await-to-js";
+
+/**
+ * The chainable object interface.
+ *
+ * @interface chainableConverter
+ */
+interface chainableConverter {
+  from: (from: string) => chainableConverter;
+  to: (to: string) => Promise<number>;
+  fetch: (to: string) => Promise<chainableConverter>;
+  rates: rateObject;
+  amount: (val: number) => chainableConverter;
+}
 
 /**
  * Chained converter.
@@ -20,12 +33,12 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentRates: any | undefined = undefined;
 
   // local converter
-  let c = new Converter();
+  const _converter = new Converter();
 
   /**
    *  Return object construction, prepared for chaining.
    */
-  let ob = {
+  const chainable: chainableConverter = {
     from: _from,
     to: _to,
     fetch: _fetch,
@@ -38,16 +51,16 @@ export function Chainer(amount: number | undefined = undefined) {
   /**
    * Chain member that fetches and caches the rates for the given currency.
    *
-   * @returns {Promise<any>}
+   * @returns chainable object
    */
-  async function _fetch(): Promise<any> {
+  async function _fetch() {
     // fetching rates for the base currency
-    _currentRates = await c.getRates(<string>_currentFrom, "", true);
-    return ob;
+    _currentRates = await _converter.getRates(<string>_currentFrom, "", true);
+    return chainable;
   }
 
   // returning chainable
-  return ob;
+  return chainable;
 
   /**
    * Chain member that sets the base currency
@@ -57,7 +70,7 @@ export function Chainer(amount: number | undefined = undefined) {
    */
   function _amount(val: number) {
     _currentAmount = val;
-    return ob;
+    return chainable;
   }
 
   /**
@@ -68,7 +81,7 @@ export function Chainer(amount: number | undefined = undefined) {
    */
   function _from(from: string) {
     _currentFrom = from;
-    return ob;
+    return chainable;
   }
 
   /**
@@ -81,19 +94,13 @@ export function Chainer(amount: number | undefined = undefined) {
     _currentTo = to;
 
     // converting
-    let [err, r] = await __to(
-      c.convert(
-        <number>_currentAmount,
-        <string>_currentFrom,
-        <string>_currentTo,
-        _currentRates
-      )
+    const result = await _converter.convert(
+      <number>_currentAmount,
+      <string>_currentFrom,
+      <string>_currentTo,
+      _currentRates
     );
 
-    if (err) {
-      throw err;
-    }
-
-    return r;
+    return result;
   }
 }

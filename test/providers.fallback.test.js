@@ -3,11 +3,11 @@ const to = require("await-to-js").default;
 
 test("Fallback conversion", async () => {
   // invalid API key provider initialization
-  let converter = new Converter("CurrencyLayer", "no key");
+  const converter = new Converter("CurrencyLayer", "no key");
 
   expect(converter.config.providers.length).toBe(2);
 
-  let [err, value] = await to(converter.convert(15, "USD", "EUR"));
+  const [err, value] = await to(converter.convert(15, "USD", "EUR"));
 
   expect(converter.config.providers.length).toBe(1); // removed invalid provider
   expect(err).toBe(null); // no error
