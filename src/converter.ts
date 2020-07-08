@@ -3,7 +3,16 @@ import { Provider, providers, UserDefinedProvider } from "./parts/providers";
 import { Config, initializationConfig } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
-import { Certificate } from "crypto";
+
+/**
+ * A simple map object for rates
+ *
+ * @export
+ * @interface rateObject
+ */
+export interface rateObject {
+  [currencyName: string]: number;
+}
 
 /**
  * Regular converter class definition.
@@ -86,6 +95,10 @@ export class Converter {
       throw err;
     }
 
+    if (!data) {
+      throw new Error("No data returned for rate fetch.");
+    }
+
     // Normalizing resulting rates data
     return amount * data[to];
   };
@@ -101,18 +114,18 @@ export class Converter {
     from: string,
     to: string,
     multiple: boolean = false
-  ): Promise<any> => {
-    //Getting the current active provider
+  ): Promise<rateObject> => {
+    // Getting the current active provider
     const provider = this.config.activeProvider();
 
-    //Fetching conversion rates from the active provider
-    let [err, data] = await _to(
+    // Fetching conversion rates from the active provider.
+    const [err, data] = await (<any>_to(
       fetchRates(provider, {
         FROM: from,
         TO: to,
         multiple: multiple
       })
-    );
+    ));
 
     // error handling:
     // if the error is not in the registered list of errors (is undefined), then throw.

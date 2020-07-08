@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Provider } from "./providers";
 import to from "await-to-js";
 
@@ -26,7 +26,10 @@ export async function fetchRates(
   provider: Provider,
   query: Query
 ): Promise<any> {
-  let [err, result] = await to(axios.get(formatUrl(provider, query)));
+  let [err, result] = (await to(axios.get(formatUrl(provider, query)))) as [
+    AxiosError,
+    any
+  ];
 
   // resolving error
   let error = provider.errorHandler(err ? err.response : result.data);
