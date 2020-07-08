@@ -1,6 +1,19 @@
-import { Converter } from "../converter";
+import { Converter, rateObject } from "../converter";
 
 import __to from "await-to-js";
+
+/**
+ * The chainable object interface.
+ *
+ * @interface chainableConverter
+ */
+interface chainableConverter {
+  from: (from: string) => chainableConverter;
+  to: (to: string) => Promise<number>;
+  fetch: (to: string) => Promise<chainableConverter>;
+  rates: rateObject;
+  amount: (val: number) => chainableConverter;
+}
 
 /**
  * Chained converter.
@@ -25,7 +38,7 @@ export function Chainer(amount: number | undefined = undefined) {
   /**
    *  Return object construction, prepared for chaining.
    */
-  const ob = {
+  const ob: chainableConverter = {
     from: _from,
     to: _to,
     fetch: _fetch,
@@ -38,9 +51,9 @@ export function Chainer(amount: number | undefined = undefined) {
   /**
    * Chain member that fetches and caches the rates for the given currency.
    *
-   * @returns {Promise<any>}
+   * @returns chainable object
    */
-  async function _fetch(): Promise<any> {
+  async function _fetch() {
     // fetching rates for the base currency
     _currentRates = await c.getRates(<string>_currentFrom, "", true);
     return ob;
@@ -81,19 +94,13 @@ export function Chainer(amount: number | undefined = undefined) {
     _currentTo = to;
 
     // converting
-    const [err, r] = await __to(
-      c.convert(
-        <number>_currentAmount,
-        <string>_currentFrom,
-        <string>_currentTo,
-        _currentRates
-      )
+    const result = await c.convert(
+      <number>_currentAmount,
+      <string>_currentFrom,
+      <string>_currentTo,
+      _currentRates
     );
 
-    if (err) {
-      throw err;
-    }
-
-    return r;
+    return result;
   }
 }
