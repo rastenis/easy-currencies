@@ -35,7 +35,7 @@ test("Throws on empty rate object.", async () => {
   const converter = new Converter();
 
   // Setting up a scenario where provider returns empty data object:
-  let newProvider = {
+  const newProvider = {
     endpoint: {
       base: "https://api.exchangeratesapi.io/latest",
       single: "?base=%FROM%&symbols=%TO%",

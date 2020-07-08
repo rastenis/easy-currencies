@@ -2,23 +2,23 @@ const { providers, Converter } = require("../dist");
 
 test("Provider error operations: Adding duplicate provider.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
   // removing default fallback provider
   converter.remove(converter.active[1]);
 
-  let newProvider = {
+  const newProvider = {
     endpoint: {
       base: "base",
       single: "single",
       multiple: "multiple"
     },
     key: null,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: { 400: "Malformed query." },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.status;
     }
   };
@@ -35,12 +35,12 @@ test("Provider error operations: Adding duplicate provider.", async () => {
 
 test("Provider error operations: Adding non provider.", async () => {
   // default initialization
-  let converter = new Converter("CurrencyLayer", "key");
+  const converter = new Converter("CurrencyLayer", "key");
 
   // removing default fallback provider
   converter.remove(converter.active[1]);
 
-  let newProvider = {
+  const newProvider = {
     errors: { 400: "Malformed query." }
   };
 

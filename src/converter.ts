@@ -66,8 +66,8 @@ export class Converter {
    * Conversion function (non chainable).
    *
    * @example
-   * let converter = new Converter()
-   * let converted = await converter.convert(15,"USD","EUR")
+   * const converter = new Converter()
+   * const converted = await converter.convert(15,"USD","EUR")
    * console.log(converted);
    *
    * @param {number} amount - amount to be converted
@@ -89,7 +89,7 @@ export class Converter {
     }
 
     //Fetching conversion rates from the active provider
-    let [err, data] = await _to(this.getRates(from, to, false));
+    const [err, data] = await _to(this.getRates(from, to, false));
 
     if (err) {
       throw err;

@@ -26,13 +26,13 @@ export async function fetchRates(
   provider: Provider,
   query: Query
 ): Promise<any> {
-  let [err, result] = (await to(axios.get(formatUrl(provider, query)))) as [
+  const [err, result] = (await to(axios.get(formatUrl(provider, query)))) as [
     AxiosError,
     any
   ];
 
   // resolving error
-  let error = provider.errorHandler(err ? err.response : result.data);
+  const error = provider.errorHandler(err ? err.response : result.data);
 
   // returning either the meaning of the error (if registered in provider's definition), or the error itself.
   if (error) {

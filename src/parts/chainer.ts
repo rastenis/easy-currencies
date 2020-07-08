@@ -20,12 +20,12 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentRates: any | undefined = undefined;
 
   // local converter
-  let c = new Converter();
+  const c = new Converter();
 
   /**
    *  Return object construction, prepared for chaining.
    */
-  let ob = {
+  const ob = {
     from: _from,
     to: _to,
     fetch: _fetch,
@@ -81,7 +81,7 @@ export function Chainer(amount: number | undefined = undefined) {
     _currentTo = to;
 
     // converting
-    let [err, r] = await __to(
+    const [err, r] = await __to(
       c.convert(
         <number>_currentAmount,
         <string>_currentFrom,

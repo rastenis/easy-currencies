@@ -91,7 +91,7 @@ export interface Provider {
  * @returns {Provider} constructed provider
  */
 export function resolveProvider(provider: any): Provider {
-  let p = providers[provider.name];
+  const p = providers[provider.name];
   if (!p) {
     throw "No provider with this name. Please use a provider from the supported providers list.";
   }
@@ -104,7 +104,7 @@ export function resolveProvider(provider: any): Provider {
 /**
  * Provider map initialization
  */
-export let providers: Providers = {
+export const providers: Providers = {
   ExchangeRatesAPI: {
     endpoint: {
       base: "https://api.exchangeratesapi.io/latest",
@@ -112,11 +112,11 @@ export let providers: Providers = {
       multiple: "?base=%FROM%"
     },
     key: null,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: { 400: "Malformed query." },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.status;
     }
   },
@@ -127,9 +127,9 @@ export let providers: Providers = {
       multiple: "&source=%FROM%&currencies=%TO%"
     },
     key: undefined,
-    handler: function(data) {
-      let map = {};
-      Object.keys(data.quotes).map(key => {
+    handler: function (data) {
+      const map = {};
+      Object.keys(data.quotes).map((key) => {
         map[key.slice(3)] = data.quotes[key];
       });
       return map;
@@ -139,7 +139,7 @@ export let providers: Providers = {
       101: "Invalid API key!",
       201: "Invalid base currency."
     },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.error ? data.error.code : null;
     }
   },
@@ -150,13 +150,13 @@ export let providers: Providers = {
       multiple: "&base=%FROM%"
     },
     key: undefined,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: {
       401: "Invalid API key!"
     },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.status;
     }
   },
@@ -168,16 +168,16 @@ export let providers: Providers = {
       multiple: ""
     },
     key: undefined,
-    handler: function(data) {
-      let map = {};
-      let o = data[Object.keys(data)[0]];
+    handler: function (data) {
+      const map = {};
+      const o = data[Object.keys(data)[0]];
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
       return map;
     },
     errors: {
       503: "Invalid API key or Malformed query."
     },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data["Error Message"] ? 503 : false;
     }
   },
@@ -188,7 +188,7 @@ export let providers: Providers = {
       multiple: "&base=%FROM%"
     },
     key: undefined,
-    handler: function(data) {
+    handler: function (data) {
       return data.rates;
     },
     errors: {
@@ -196,7 +196,7 @@ export let providers: Providers = {
       101: "Invalid API key!",
       201: "Invalid base currency."
     },
-    errorHandler: function(data) {
+    errorHandler: function (data) {
       return data.error ? data.error.code : null;
     }
   }

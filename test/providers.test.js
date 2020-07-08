@@ -1,9 +1,9 @@
 const { Converter } = require("../dist");
 
 test("Converts an amount of given currency (ExchangeRatesAPI).", async () => {
-  let converter = new Converter("ExchangeRatesAPI");
+  const converter = new Converter("ExchangeRatesAPI");
 
-  let value = await converter.convert(15, "USD", "EUR");
+  const value = await converter.convert(15, "USD", "EUR");
 
   expect(typeof value).toBe("number");
   expect(value).toBeGreaterThan(0);
@@ -11,12 +11,12 @@ test("Converts an amount of given currency (ExchangeRatesAPI).", async () => {
 });
 
 test("Converts an amount of given currency (OpenExchangeRates).", async () => {
-  let converter = new Converter(
+  const converter = new Converter(
     "OpenExchangeRates",
     process.env.OPEN_EXCHANGE_RATES_KEY
   );
 
-  let value = await converter.convert(15, "USD", "EUR");
+  const value = await converter.convert(15, "USD", "EUR");
 
   expect(typeof value).toBe("number");
   expect(value).toBeGreaterThan(0);
@@ -24,9 +24,12 @@ test("Converts an amount of given currency (OpenExchangeRates).", async () => {
 });
 
 test("Converts an amount of given currency (AlphaVantage).", async () => {
-  let converter = new Converter("AlphaVantage", process.env.ALPHA_VANTAGE_KEY);
+  const converter = new Converter(
+    "AlphaVantage",
+    process.env.ALPHA_VANTAGE_KEY
+  );
 
-  let value = await converter.convert(15, "USD", "EUR");
+  const value = await converter.convert(15, "USD", "EUR");
 
   expect(typeof value).toBe("number");
   expect(value).toBeGreaterThan(0);
@@ -38,9 +41,9 @@ test("Converts an amount of given currency (AlphaVantage).", async () => {
  */
 // test("Converts an amount of given currency (CurrencyLayer)", async () => {
 //   // default initialization
-//   let converter = new Converter("CurrencyLayer", process.env.CURRENCY_LAYER_KEY);
+//   const converter = new Converter("CurrencyLayer", process.env.CURRENCY_LAYER_KEY);
 
-//   let value = await converter.convert(15, "USD", "EUR");
+//   const value = await converter.convert(15, "USD", "EUR");
 
 //   expect(typeof value).toBe("number");
 //   expect(value).toBeGreaterThan(0);
@@ -49,9 +52,9 @@ test("Converts an amount of given currency (AlphaVantage).", async () => {
 
 // test("Converts an amount of given currency (Fixer)", async () => {
 //   // default initialization
-//   let converter = new Converter("Fixer", process.env.FIXER_KEY);
+//   const converter = new Converter("Fixer", process.env.FIXER_KEY);
 
-//   let value = await converter.convert(15, "USD", "EUR");
+//   const value = await converter.convert(15, "USD", "EUR");
 
 //   expect(typeof value).toBe("number");
 //   expect(value).toBeGreaterThan(0);
