@@ -114,10 +114,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="endpoint" class="tsd-anchor"></a>
 					<h3>endpoint</h3>
-					<div class="tsd-signature tsd-kind-icon">endpoint<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<div class="tsd-signature tsd-kind-icon">endpoint<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>base<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>multiple<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>single<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/e1a981a/lib/parts/providers.ts#L53">parts/providers.ts:53</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/219d54d/src/parts/providers.ts#L53">parts/providers.ts:53</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -128,9 +128,6 @@
 							The multiple template is currently unused.</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{{ base: string; single: string; multiple: string }}</p>
-							</dd>
 							<dt>memberof</dt>
 							<dd><p>Provider</p>
 							</dd>
@@ -157,7 +154,7 @@
 					<div class="tsd-signature tsd-kind-icon">error<wbr>Handler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/e1a981a/lib/parts/providers.ts#L83">parts/providers.ts:83</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/219d54d/src/parts/providers.ts#L83">parts/providers.ts:83</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -169,9 +166,6 @@
 							the response object, in the case of Axios errors (HTTP failures)</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{Function}</p>
-							</dd>
 							<dt>memberof</dt>
 							<dd><p>Provider</p>
 							</dd>
@@ -184,7 +178,7 @@
 					<div class="tsd-signature tsd-kind-icon">errors<span class="tsd-signature-symbol">:</span> <a href="_parts_providers_.providererrors.html" class="tsd-signature-type">ProviderErrors</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/e1a981a/lib/parts/providers.ts#L72">parts/providers.ts:72</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/219d54d/src/parts/providers.ts#L72">parts/providers.ts:72</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -192,9 +186,6 @@
 							<p>A map of possible errors and their respective messages</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{*}</p>
-							</dd>
 							<dt>memberof</dt>
 							<dd><p>Provider</p>
 							</dd>
@@ -207,7 +198,7 @@
 					<div class="tsd-signature tsd-kind-icon">handler<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/e1a981a/lib/parts/providers.ts#L65">parts/providers.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/219d54d/src/parts/providers.ts#L65">parts/providers.ts:65</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -219,9 +210,6 @@
 							<dd><p> function(data) { //must return {currency1:rate1,curency2:rate2} in reference to the base currency.
 									return data.rates;
 								}</p>
-							</dd>
-							<dt>type</dt>
-							<dd><p>{Function}</p>
 							</dd>
 							<dt>memberof</dt>
 							<dd><p>Provider</p>
@@ -235,7 +223,7 @@
 					<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/e1a981a/lib/parts/providers.ts#L44">parts/providers.ts:44</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/219d54d/src/parts/providers.ts#L44">parts/providers.ts:44</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -243,9 +231,6 @@
 							<p>An API key / Profile ID / Access key for a provider.</p>
 						</div>
 						<dl class="tsd-comment-tags">
-							<dt>type</dt>
-							<dd><p>{*}</p>
-							</dd>
 							<dt>memberof</dt>
 							<dd><p>Provider</p>
 							</dd>
@@ -261,25 +246,25 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_converter_.html">"converter"</a>
+						<a href="../modules/_converter_.html">&quot;converter&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_index_.html">"index"</a>
+						<a href="../modules/_index_.html">&quot;index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_parts_chainer_.html">"parts/chainer"</a>
+						<a href="../modules/_parts_chainer_.html">&quot;parts/chainer&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_parts_config_.html">"parts/config"</a>
+						<a href="../modules/_parts_config_.html">&quot;parts/config&quot;</a>
 					</li>
 					<li class="current tsd-kind-external-module">
-						<a href="../modules/_parts_providers_.html">"parts/providers"</a>
+						<a href="../modules/_parts_providers_.html">&quot;parts/providers&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_parts_requester_.html">"parts/requester"</a>
+						<a href="../modules/_parts_requester_.html">&quot;parts/requester&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="../modules/_parts_utils_.html">"parts/utils"</a>
+						<a href="../modules/_parts_utils_.html">&quot;parts/utils&quot;</a>
 					</li>
 				</ul>
 			</nav>
