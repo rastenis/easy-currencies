@@ -112,11 +112,11 @@ export const providers: Providers = {
       multiple: "?base=%FROM%"
     },
     key: null,
-    handler: function (data) {
+    handler: function (data: any) {
       return data.rates;
     },
     errors: { 400: "Malformed query." },
-    errorHandler: function (data) {
+    errorHandler: function (data: any) {
       return data.status;
     }
   },
@@ -127,8 +127,8 @@ export const providers: Providers = {
       multiple: "&source=%FROM%&currencies=%TO%"
     },
     key: undefined,
-    handler: function (data) {
-      const map = {};
+    handler: function (data: any) {
+      const map = {} as any;
       Object.keys(data.quotes).map((key) => {
         map[key.slice(3)] = data.quotes[key];
       });
@@ -139,7 +139,7 @@ export const providers: Providers = {
       101: "Invalid API key!",
       201: "Invalid base currency."
     },
-    errorHandler: function (data) {
+    errorHandler: function (data: any) {
       return data.error ? data.error.code : null;
     }
   },
@@ -150,13 +150,13 @@ export const providers: Providers = {
       multiple: "&base=%FROM%"
     },
     key: undefined,
-    handler: function (data) {
+    handler: function (data: any) {
       return data.rates;
     },
     errors: {
       401: "Invalid API key!"
     },
-    errorHandler: function (data) {
+    errorHandler: function (data: any) {
       return data.status;
     }
   },
@@ -168,8 +168,8 @@ export const providers: Providers = {
       multiple: ""
     },
     key: undefined,
-    handler: function (data) {
-      const map = {};
+    handler: function (data: any) {
+      const map = {} as any;
       const o = data[Object.keys(data)[0]];
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
       return map;
@@ -177,7 +177,7 @@ export const providers: Providers = {
     errors: {
       503: "Invalid API key or Malformed query."
     },
-    errorHandler: function (data) {
+    errorHandler: function (data: any) {
       return data["Error Message"] ? 503 : false;
     }
   },
@@ -188,7 +188,7 @@ export const providers: Providers = {
       multiple: "&base=%FROM%"
     },
     key: undefined,
-    handler: function (data) {
+    handler: function (data: any) {
       return data.rates;
     },
     errors: {
@@ -196,7 +196,7 @@ export const providers: Providers = {
       101: "Invalid API key!",
       201: "Invalid base currency."
     },
-    errorHandler: function (data) {
+    errorHandler: function (data: any) {
       return data.error ? data.error.code : null;
     }
   }

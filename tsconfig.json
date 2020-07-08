@@ -6,7 +6,6 @@
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "noImplicitAny": false,
     "inlineSourceMap": true,
     "noEmitOnError": true
   },
