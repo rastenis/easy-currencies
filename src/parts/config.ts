@@ -174,8 +174,8 @@ export function resolveProviders(
 
   // configuration is an array of providers
   // casting
-  const c = <initializationConfig[]>configuration;
+  const initializationConfig = <initializationConfig[]>configuration;
 
   // resolving all providers
-  return c.map((provider) => resolveProvider(provider));
+  return initializationConfig.map((provider) => resolveProvider(provider));
 }

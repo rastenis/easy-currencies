@@ -33,12 +33,12 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentRates: any | undefined = undefined;
 
   // local converter
-  const c = new Converter();
+  const _converter = new Converter();
 
   /**
    *  Return object construction, prepared for chaining.
    */
-  const ob: chainableConverter = {
+  const chainable: chainableConverter = {
     from: _from,
     to: _to,
     fetch: _fetch,
@@ -55,12 +55,12 @@ export function Chainer(amount: number | undefined = undefined) {
    */
   async function _fetch() {
     // fetching rates for the base currency
-    _currentRates = await c.getRates(<string>_currentFrom, "", true);
-    return ob;
+    _currentRates = await _converter.getRates(<string>_currentFrom, "", true);
+    return chainable;
   }
 
   // returning chainable
-  return ob;
+  return chainable;
 
   /**
    * Chain member that sets the base currency
@@ -70,7 +70,7 @@ export function Chainer(amount: number | undefined = undefined) {
    */
   function _amount(val: number) {
     _currentAmount = val;
-    return ob;
+    return chainable;
   }
 
   /**
@@ -81,7 +81,7 @@ export function Chainer(amount: number | undefined = undefined) {
    */
   function _from(from: string) {
     _currentFrom = from;
-    return ob;
+    return chainable;
   }
 
   /**
@@ -94,7 +94,7 @@ export function Chainer(amount: number | undefined = undefined) {
     _currentTo = to;
 
     // converting
-    const result = await c.convert(
+    const result = await _converter.convert(
       <number>_currentAmount,
       <string>_currentFrom,
       <string>_currentTo,

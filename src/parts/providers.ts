@@ -91,14 +91,14 @@ export interface Provider {
  * @returns {Provider} constructed provider
  */
 export function resolveProvider(provider: any): Provider {
-  const p = providers[provider.name];
-  if (!p) {
+  const existentProvider = providers[provider.name];
+  if (!existentProvider) {
     throw "No provider with this name. Please use a provider from the supported providers list.";
   }
 
   // attaching key
-  p.key = provider.key;
-  return p;
+  existentProvider.key = provider.key;
+  return existentProvider;
 }
 
 /**
