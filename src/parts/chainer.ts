@@ -10,7 +10,7 @@ import __to from "await-to-js";
 interface chainableConverter {
   from: (from: string) => chainableConverter;
   to: (to: string) => Promise<number>;
-  fetch: (to: string) => Promise<chainableConverter>;
+  fetch: () => Promise<chainableConverter>;
   rates: rateObject;
   amount: (val: number) => chainableConverter;
 }
