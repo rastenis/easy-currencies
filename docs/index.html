@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>easy-currencies</title>
-	<meta name="description" content="">
+	<meta name="description" content="Documentation for easy-currencies">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -13,7 +13,7 @@
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -94,69 +94,80 @@
 				</a>
 				<p>Easy/chain mode does not require initialization, and thus uses the default, no API key-required provider (exchangeratesapi.io)</p>
 				<pre><code class="language-js"><span class="hljs-comment">// CommonJS</span>
-<span class="hljs-keyword">const</span> { Convert } = <span class="hljs-built_in">require</span>(<span class="hljs-string">"easy-currencies"</span>);
+<span class="hljs-keyword">const</span> { Convert } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&quot;easy-currencies&quot;</span>);
 <span class="hljs-comment">// ES6</span>
-<span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+<span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> Convert(<span class="hljs-number">15</span>)
-  .from(<span class="hljs-string">"USD"</span>)
-  .to(<span class="hljs-string">"EUR"</span>);
+  .from(<span class="hljs-string">&quot;USD&quot;</span>)
+  .to(<span class="hljs-string">&quot;EUR&quot;</span>);
 
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<a href="#usage-custom-mode" id="usage-custom-mode" style="color: inherit; text-decoration: none;">
 					<h2>Usage (custom mode)</h2>
 				</a>
 				<p>Default provider initialization, no key needed</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter();
-<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">"USD"</span>, <span class="hljs-string">"EUR"</span>);
+<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">&quot;USD&quot;</span>, <span class="hljs-string">&quot;EUR&quot;</span>);
 
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<a href="#usage-raw-mode--cached-mode" id="usage-raw-mode--cached-mode" style="color: inherit; text-decoration: none;">
 					<h2>Usage (raw mode / cached mode)</h2>
 				</a>
 				<p>Use this to get a JSON of conversion rates from your current provider.</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> convert = <span class="hljs-keyword">await</span> Convert()
-  .from(<span class="hljs-string">"USD"</span>)
+  .from(<span class="hljs-string">&quot;USD&quot;</span>)
   .fetch();
 
-<span class="hljs-built_in">console</span>.log(convert.rates); <span class="hljs-comment">// fetched conversion rates for main currencies with regard to set base currency</span></code></pre>
+<span class="hljs-built_in">console</span>.log(convert.rates);
+<span class="hljs-comment">// {</span>
+<span class="hljs-comment">//   CAD: 1.3590288853,</span>
+<span class="hljs-comment">//   HKD: 7.750132908,</span>
+<span class="hljs-comment">//   ISK: 139.4648236754,</span>
+<span class="hljs-comment">//   PHP: 49.5286195286,</span>
+<span class="hljs-comment">//   DKK: 6.6004784689,</span>
+<span class="hljs-comment">//   HUF: 314.9831649832,</span>
+<span class="hljs-comment">//   USD: 1,</span>
+<span class="hljs-comment">//   ...</span>
+<span class="hljs-comment">// }</span>
+</code></pre>
 				<p>This also allows for cached conversion:</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Convert } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> convert = <span class="hljs-keyword">await</span> Convert()
-  .from(<span class="hljs-string">"USD"</span>)
+  .from(<span class="hljs-string">&quot;USD&quot;</span>)
   .fetch();
 
-<span class="hljs-comment">// use the fetched rates: (does not use the current provider's API anymore)</span>
-<span class="hljs-keyword">let</span> value1 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">"GBP"</span>);
+<span class="hljs-comment">// use the fetched rates: (does not use the current provider&#x27;s API anymore)</span>
+<span class="hljs-keyword">let</span> value1 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">&quot;GBP&quot;</span>);
 
-<span class="hljs-keyword">await</span> convert.from(<span class="hljs-string">"USD"</span>).fetch(); <span class="hljs-comment">// refresh rates</span>
-<span class="hljs-comment">// or await convert.from("GBP").fetch() to switch base currency</span>
+<span class="hljs-keyword">await</span> convert.from(<span class="hljs-string">&quot;USD&quot;</span>).fetch(); <span class="hljs-comment">// refresh rates</span>
+<span class="hljs-comment">// or await convert.from(&quot;GBP&quot;).fetch() to switch base currency</span>
 
-<span class="hljs-keyword">let</span> value2 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">"GBP"</span>);</code></pre>
+<span class="hljs-keyword">let</span> value2 = <span class="hljs-keyword">await</span> convert.amount(<span class="hljs-number">10</span>).to(<span class="hljs-string">&quot;GBP&quot;</span>);</code></pre>
 				<a href="#using-custom-providers" id="using-custom-providers" style="color: inherit; text-decoration: none;">
 					<h2>Using custom providers</h2>
 				</a>
 				<p>Custom single provider initialization</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
-<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
-<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">"USD"</span>, <span class="hljs-string">"EUR"</span>);
+<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">&quot;OpenExchangeRates&quot;</span>, <span class="hljs-string">&quot;API_KEY&quot;</span>);
+<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">&quot;USD&quot;</span>, <span class="hljs-string">&quot;EUR&quot;</span>);
 
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<p>Custom multiple provider initialization</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(
-  { <span class="hljs-attr">name</span>: <span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">"API_KEY"</span> },
-  { <span class="hljs-attr">name</span>: <span class="hljs-string">"AlphaVantage"</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">"API_KEY"</span> }
-  { <span class="hljs-attr">name</span>: <span class="hljs-string">"Fixer"</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">"API_KEY"</span> }
+  { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;OpenExchangeRates&quot;</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">&quot;API_KEY&quot;</span> },
+  { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;AlphaVantage&quot;</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">&quot;API_KEY&quot;</span> }
+  { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Fixer&quot;</span>, <span class="hljs-attr">key</span>: <span class="hljs-string">&quot;API_KEY&quot;</span> }
 );
-<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">"USD"</span>, <span class="hljs-string">"EUR"</span>);
+<span class="hljs-keyword">let</span> value = <span class="hljs-keyword">await</span> converter.convert(<span class="hljs-number">15</span>, <span class="hljs-string">&quot;USD&quot;</span>, <span class="hljs-string">&quot;EUR&quot;</span>);
 <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// converted value</span></code></pre>
 				<a href="#supported-providers-and-api-keys" id="supported-providers-and-api-keys" style="color: inherit; text-decoration: none;">
 					<h2>Supported providers and API keys</h2>
@@ -174,24 +185,24 @@
 				</a>
 				<p>Check out the <a href="https://scharkee.github.io/easy-currencies/">api reference docs.</a></p>
 				<p>The list of configured (active) providers can be accessed like so:</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
-<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
+<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">&quot;OpenExchangeRates&quot;</span>, <span class="hljs-string">&quot;API_KEY&quot;</span>);
 
 <span class="hljs-built_in">console</span>.log(converter.providers);
 <span class="hljs-comment">/**
  * [{
  *  endpoint: {
- *    base: "https://openexchangerates.org/api/latest.json?app_id=%KEY%",
- *    single: "&amp;base=%FROM%",
- *    multiple: "&amp;base=%FROM%"
+ *    base: &quot;https://openexchangerates.org/api/latest.json?app_id=%KEY%&quot;,
+ *    single: &quot;&amp;base=%FROM%&quot;,
+ *    multiple: &quot;&amp;base=%FROM%&quot;
  *  },
- *  key: "API_KEY",
+ *  key: &quot;API_KEY&quot;,
  *  handler: function(data) {
  *    return data.rates;
  *  },
  *  errors: {
- *    401: "Invalid API key!"
+ *    401: &quot;Invalid API key!&quot;
  *  },
  *  errorHandler: function(data) {
  *    return data.status;
@@ -199,9 +210,9 @@
  * }]
  */</span></code></pre>
 				<p>The current active provider can be retrieved like this:</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
-<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">"OpenExchangeRates"</span>, <span class="hljs-string">"API_KEY"</span>);
+<span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter(<span class="hljs-string">&quot;OpenExchangeRates&quot;</span>, <span class="hljs-string">&quot;API_KEY&quot;</span>);
 
 <span class="hljs-built_in">console</span>.log(converter.activeProvider()); <span class="hljs-comment">// ...provider data</span></code></pre>
 				<a href="#automatic-provider-fallbacks" id="automatic-provider-fallbacks" style="color: inherit; text-decoration: none;">
@@ -214,26 +225,26 @@
 					<h3>Adding custom providers</h3>
 				</a>
 				<p>Custom provider definitions can be added as such:</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter();
 
-converter.add(<span class="hljs-string">"MyProvider"</span>, {
+converter.add(<span class="hljs-string">&quot;MyProvider&quot;</span>, {
   <span class="hljs-comment">// the name of the custom provider</span>
   <span class="hljs-attr">endpoint</span>: {
-    <span class="hljs-attr">base</span>: <span class="hljs-string">"http://myprovider.net/api/live?access_key=%KEY%"</span>, <span class="hljs-comment">// the base endpoint of the conversion API, with %KEY% being the api key's slot</span>
-    <span class="hljs-attr">single</span>: <span class="hljs-string">"&amp;source=%FROM%"</span>, <span class="hljs-comment">// the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation</span>
-    <span class="hljs-attr">multiple</span>: <span class="hljs-string">"&amp;source=%FROM%&amp;currencies=%TO%"</span> <span class="hljs-comment">// the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by ','</span>
+    <span class="hljs-attr">base</span>: <span class="hljs-string">&quot;http://myprovider.net/api/live?access_key=%KEY%&quot;</span>, <span class="hljs-comment">// the base endpoint of the conversion API, with %KEY% being the api key&#x27;s slot</span>
+    <span class="hljs-attr">single</span>: <span class="hljs-string">&quot;&amp;source=%FROM%&quot;</span>, <span class="hljs-comment">// the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation</span>
+    <span class="hljs-attr">multiple</span>: <span class="hljs-string">&quot;&amp;source=%FROM%&amp;currencies=%TO%&quot;</span> <span class="hljs-comment">// the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by &#x27;,&#x27;</span>
   },
-  <span class="hljs-attr">key</span>: <span class="hljs-string">"API_KEY"</span>, <span class="hljs-comment">// your api key</span>
+  <span class="hljs-attr">key</span>: <span class="hljs-string">&quot;API_KEY&quot;</span>, <span class="hljs-comment">// your api key</span>
   <span class="hljs-attr">handler</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
     <span class="hljs-comment">// the function that takes the JSON data returned by the API and returns the rate key-value object</span>
     <span class="hljs-keyword">return</span> data.rates;
   },
   <span class="hljs-attr">errors</span>: {
     <span class="hljs-comment">// key-value object of common errors and their text representations</span>
-    <span class="hljs-number">101</span>: <span class="hljs-string">"Invalid API key!"</span>
-    <span class="hljs-number">201</span>: <span class="hljs-string">"Invalid base currency!"</span>
+    <span class="hljs-number">101</span>: <span class="hljs-string">&quot;Invalid API key!&quot;</span>
+    <span class="hljs-number">201</span>: <span class="hljs-string">&quot;Invalid base currency!&quot;</span>
   },
   <span class="hljs-attr">errorHandler</span>: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data</span>) </span>{
     <span class="hljs-comment">// the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)</span>
@@ -241,13 +252,13 @@ converter.add(<span class="hljs-string">"MyProvider"</span>, {
   }
 });</code></pre>
 				<p>Multiple providers can be added with addMultiple:</p>
-				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">"easy-currencies"</span>;
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> { Converter } <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;easy-currencies&quot;</span>;
 
 <span class="hljs-keyword">let</span> converter = <span class="hljs-keyword">new</span> Converter();
 
 converter.add([
-  { <span class="hljs-attr">name</span>: <span class="hljs-string">"Name1"</span>, <span class="hljs-attr">provider</span>: provider1 },
-  { <span class="hljs-attr">name</span>: <span class="hljs-string">"Name2"</span>, <span class="hljs-attr">provider</span>: provider2 }
+  { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Name1&quot;</span>, <span class="hljs-attr">provider</span>: provider1 },
+  { <span class="hljs-attr">name</span>: <span class="hljs-string">&quot;Name2&quot;</span>, <span class="hljs-attr">provider</span>: provider2 }
 ]);</code></pre>
 				<a href="#support" id="support" style="color: inherit; text-decoration: none;">
 					<h3>Support</h3>
@@ -262,25 +273,25 @@ converter.add([
 					<li class="globals  ">
 						<a href="globals.html"><em>Globals</em></a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_converter_.html">&quot;converter&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_index_.html">&quot;index&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_parts_chainer_.html">&quot;parts/chainer&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_parts_config_.html">&quot;parts/config&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_parts_providers_.html">&quot;parts/providers&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_parts_requester_.html">&quot;parts/requester&quot;</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class=" tsd-kind-module">
 						<a href="modules/_parts_utils_.html">&quot;parts/utils&quot;</a>
 					</li>
 				</ul>
@@ -297,57 +308,14 @@ converter.add([
 		<h2>Legend</h2>
 		<div class="tsd-legend-group">
 			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
 				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
 			</ul>
 		</div>
 	</div>
@@ -357,6 +325,5 @@ converter.add([
 </div>
 <div class="overlay"></div>
 <script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
