@@ -63,7 +63,18 @@ let convert = await Convert()
   .from("USD")
   .fetch();
 
-console.log(convert.rates); // fetched conversion rates for main currencies with regard to set base currency
+console.log(convert.rates);
+// {
+//   CAD: 1.3590288853,
+//   HKD: 7.750132908,
+//   ISK: 139.4648236754,
+//   PHP: 49.5286195286,
+//   DKK: 6.6004784689,
+//   HUF: 314.9831649832,
+//   USD: 1,
+//   ...
+// }
+
 ```
 
 This also allows for cached conversion:
