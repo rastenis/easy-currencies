@@ -3,3 +3,5 @@ docs/
 
 # Ignoring tests for the published package
 test/
+
+coverage/
