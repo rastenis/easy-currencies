@@ -1,6 +1,6 @@
 {
   "name": "easy-currencies",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "A tool for easy conversion of currencies.",
   "main": "dist/index.js",
   "scripts": {
