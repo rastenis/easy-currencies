@@ -83,6 +83,11 @@ export interface Provider {
   errorHandler: Function;
 }
 
+export interface ProviderReference {
+  name: string;
+  key: any;
+}
+
 /**
  * A function that constructs provider based on raw input data.
  *
@@ -90,7 +95,7 @@ export interface Provider {
  * @param {*} provider object containing provider name and api key
  * @returns {Provider} constructed provider
  */
-export function resolveProvider(provider: any): Provider {
+export function resolveProvider(provider: ProviderReference): Provider {
   const existentProvider = providers[provider.name];
   if (!existentProvider) {
     throw "No provider with this name. Please use a provider from the supported providers list.";

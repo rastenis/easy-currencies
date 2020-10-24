@@ -2,20 +2,11 @@ import {
   Provider,
   providers,
   resolveProvider,
-  UserDefinedProvider
+  UserDefinedProvider,
+  ProviderReference
 } from "./providers";
 
 import { checkIfUserDefinedProvider } from "./utils";
-
-/**
- * Interface for the format of data passed in to the module initially.
- *
- * @interface initializationConfig
- */
-export interface initializationConfig {
-  key: any;
-  provider: string;
-}
 
 /**
  * Config object that initializes with configuration data
@@ -134,7 +125,7 @@ export class Config {
    * @param {(object | undefined)} config
    * @memberof Config
    */
-  constructor(...config: initializationConfig[] | undefined[] | string[]) {
+  constructor(...config: ProviderReference[] | undefined[] | string[]) {
     this._active = resolveProviders(...config);
 
     // adding default fallback
@@ -150,7 +141,7 @@ export class Config {
  * @returns {config} - normalized configuration object
  */
 export function resolveProviders(
-  ...configuration: initializationConfig[] | undefined[] | string[]
+  ...configuration: ProviderReference[] | undefined[] | string[]
 ): Provider[] {
   // resolve default if none provided.
   if (typeof configuration === "undefined" || !configuration.length) {
@@ -174,7 +165,7 @@ export function resolveProviders(
 
   // configuration is an array of providers
   // casting
-  const initializationConfig = <initializationConfig[]>configuration;
+  const initializationConfig = <ProviderReference[]>configuration;
 
   // resolving all providers
   return initializationConfig.map((provider) => resolveProvider(provider));

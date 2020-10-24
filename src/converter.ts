@@ -1,6 +1,6 @@
 import { fetchRates } from "./parts/requester";
-import { Provider, providers, UserDefinedProvider } from "./parts/providers";
-import { Config, initializationConfig } from "./parts/config";
+import { Provider, ProviderReference } from "./parts/providers";
+import { Config } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
 
@@ -31,10 +31,10 @@ export class Converter {
 
   /**
    * Creates an instance of Converter and initializes the config.
-   * @param {initializationConfig} config - base config
+   * @param {ProviderReference} config - base config
    * @memberof Converter
    */
-  constructor(...config: initializationConfig[] | undefined[] | string[]) {
+  constructor(...config: ProviderReference[] | undefined[] | string[]) {
     this.config = new Config(...config);
 
     // Forwarding config adder function (with the alternative handle)
