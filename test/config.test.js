@@ -1,8 +1,27 @@
 const { providers, Converter } = require("../dist");
 
-test("Provider operations: Getting active.", async () => {
+test("Provider operations: Initializing and getting active.", async () => {
   // default initialization
   const converter = new Converter("CurrencyLayer", "key");
+
+  const value = converter.providers;
+
+  // expect only one active provider + the base fallback provider
+  expect(value.length).toEqual(2);
+
+  // expect given provider
+  expect(value[0].endpoint.base).toBe(
+    "http://apilayer.net/api/live?access_key=%KEY%"
+  );
+  expect(value[0].key).toBe("key");
+
+  // second getter
+  expect(converter.providers).toEqual(converter.active);
+});
+
+test("Provider operations: Initializing via ProviderReference", async () => {
+  // default initialization
+  const converter = new Converter({ name: "CurrencyLayer", key: "key" });
 
   const value = converter.providers;
 

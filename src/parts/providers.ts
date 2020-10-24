@@ -83,6 +83,12 @@ export interface Provider {
   errorHandler: Function;
 }
 
+/**
+ * An interface for an object that is used to configure providers
+ *
+ * @export
+ * @interface ProviderReference
+ */
 export interface ProviderReference {
   name: string;
   key: any;
@@ -92,7 +98,7 @@ export interface ProviderReference {
  * A function that constructs provider based on raw input data.
  *
  * @export
- * @param {*} provider object containing provider name and api key
+ * @param {ProviderReference} provider object containing provider name and api key
  * @returns {Provider} constructed provider
  */
 export function resolveProvider(provider: ProviderReference): Provider {

@@ -122,7 +122,7 @@ export class Config {
 
   /**
    * Creates an instance of Config.
-   * @param {(object | undefined)} config
+   * @param {(...ProviderReference[] | undefined[] | string[])} config
    * @memberof Config
    */
   constructor(...config: ProviderReference[] | undefined[] | string[]) {
@@ -137,8 +137,8 @@ export class Config {
  * Config resolver that normalizes configuration input into the config interface
  *
  * @export
- * @param {(object | undefined)} configuration - initial configuration
- * @returns {config} - normalized configuration object
+ * @param {(...ProviderReference[] | undefined[] | string[])} configuration
+ * @returns {Provider[]}
  */
 export function resolveProviders(
   ...configuration: ProviderReference[] | undefined[] | string[]

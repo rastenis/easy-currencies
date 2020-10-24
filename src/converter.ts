@@ -30,8 +30,8 @@ export class Converter {
   config: Config;
 
   /**
-   * Creates an instance of Converter and initializes the config.
-   * @param {ProviderReference} config - base config
+   * Creates an instance of Converter.
+   * @param {(...ProviderReference[] | undefined[] | string[])} config
    * @memberof Converter
    */
   constructor(...config: ProviderReference[] | undefined[] | string[]) {

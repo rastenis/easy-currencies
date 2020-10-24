@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>initializationConfig | easy-currencies</title>
+	<title>ProviderReference | easy-currencies</title>
 	<meta name="description" content="Documentation for easy-currencies">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,13 +56,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_parts_config_.html">&quot;parts/config&quot;</a>
+					<a href="../modules/_parts_providers_.html">&quot;parts/providers&quot;</a>
 				</li>
 				<li>
-					<a href="_parts_config_.initializationconfig.html">initializationConfig</a>
+					<a href="_parts_providers_.providerreference.html">ProviderReference</a>
 				</li>
 			</ul>
-			<h1>Interface initializationConfig</h1>
+			<h1>Interface ProviderReference</h1>
 		</div>
 	</div>
 </header>
@@ -72,11 +72,13 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Interface for the format of data passed in to the module initially.</p>
+						<p>An interface for an object that is used to configure providers</p>
 					</div>
 					<dl class="tsd-comment-tags">
+						<dt>export</dt>
+						<dd></dd>
 						<dt>interface</dt>
-						<dd><p>initializationConfig</p>
+						<dd><p>ProviderReference</p>
 						</dd>
 					</dl>
 				</div>
@@ -85,7 +87,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">initializationConfig</span>
+						<span class="target">ProviderReference</span>
 					</li>
 				</ul>
 			</section>
@@ -96,8 +98,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_config_.initializationconfig.html#key" class="tsd-kind-icon">key</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_config_.initializationconfig.html#provider" class="tsd-kind-icon">provider</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.providerreference.html#key" class="tsd-kind-icon">key</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_parts_providers_.providerreference.html#name" class="tsd-kind-icon">name</a></li>
 							</ul>
 						</section>
 					</div>
@@ -111,17 +113,17 @@
 					<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/814861a/src/parts/config.ts#L16">parts/config.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/1c302f4/src/parts/providers.ts#L94">parts/providers.ts:94</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="provider" class="tsd-anchor"></a>
-					<h3>provider</h3>
-					<div class="tsd-signature tsd-kind-icon">provider<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="name" class="tsd-anchor"></a>
+					<h3>name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/814861a/src/parts/config.ts#L17">parts/config.ts:17</a></li>
+							<li>Defined in <a href="https://github.com/Scharkee/easy-currencies/blob/1c302f4/src/parts/providers.ts#L93">parts/providers.ts:93</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -142,10 +144,10 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/_parts_chainer_.html">&quot;parts/chainer&quot;</a>
 					</li>
-					<li class="current tsd-kind-module">
+					<li class=" tsd-kind-module">
 						<a href="../modules/_parts_config_.html">&quot;parts/config&quot;</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="../modules/_parts_providers_.html">&quot;parts/providers&quot;</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -158,26 +160,38 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/_parts_config_.config.html" class="tsd-kind-icon">Config</a>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_parts_providers_.provider.html" class="tsd-kind-icon">Provider</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_parts_providers_.providererrors.html" class="tsd-kind-icon">Provider<wbr>Errors</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-interface tsd-parent-kind-module">
-						<a href="_parts_config_.initializationconfig.html" class="tsd-kind-icon">initialization<wbr>Config</a>
+						<a href="_parts_providers_.providerreference.html" class="tsd-kind-icon">Provider<wbr>Reference</a>
 						<ul>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_config_.initializationconfig.html#key" class="tsd-kind-icon">key</a>
+								<a href="_parts_providers_.providerreference.html#key" class="tsd-kind-icon">key</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="_parts_config_.initializationconfig.html#provider" class="tsd-kind-icon">provider</a>
+								<a href="_parts_providers_.providerreference.html#name" class="tsd-kind-icon">name</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_parts_providers_.providers.html" class="tsd-kind-icon">Providers</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="_parts_providers_.userdefinedprovider.html" class="tsd-kind-icon">User<wbr>Defined<wbr>Provider</a>
+					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="../modules/_parts_config_.html#resolveproviders" class="tsd-kind-icon">resolve<wbr>Providers</a>
+						<a href="../modules/_parts_providers_.html#resolveprovider" class="tsd-kind-icon">resolve<wbr>Provider</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-module">
+						<a href="../modules/_parts_providers_.html#providers-1" class="tsd-kind-icon">providers</a>
 					</li>
 				</ul>
 			</nav>
