@@ -36,16 +36,16 @@ test("Fails because of invalid base currency (AlphaVantage)", async () => {
   expect(err).toBe("Invalid API key or Malformed query.");
 });
 
-test("Fails because of invalid base currency (ExchangeRatesAPI)", async () => {
-  const converter = new Converter("ExchangeRatesAPI");
-  // removing default fallback provider
-  const [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
+test("Chainer fails because of invalid base currency (ExchangeRateAPI)", async () => {
+  const [err, value] = await to(Convert(15).from("invalid").to("EUR"));
 
-  expect(err).toBe("Malformed query.");
+  expect(err).toBe("Currency not found");
 });
 
-test("Chainer fails because of invalid base currency (ExchangeRatesAPI)", async () => {
-  const [err, value] = await to(Convert(15).from("CNYqqqwwC").to("EUR"));
+test("Fails because of invalid base currency (ExchangeRateAPI)", async () => {
+  const converter = new Converter("ExchangeRateAPI");
+  // removing default fallback provider
+  const [err, value] = await to(converter.convert(15, "invalid", "EUR"));
 
-  expect(err).toBe("Malformed query.");
+  expect(err).toBe("Currency not found");
 });

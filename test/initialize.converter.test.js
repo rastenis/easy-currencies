@@ -7,7 +7,9 @@ test("Initializes providers properly (no provider).", async () => {
   const value = converter.providers;
 
   // expect default provider
-  expect(value[0].endpoint.base).toBe("https://api.exchangeratesapi.io/latest");
+  expect(value[0].endpoint.base).toBe(
+    "https://api.exchangerate-api.com/v4/latest/"
+  );
   // second getter
   expect(converter.providers).toEqual(converter.active);
 });

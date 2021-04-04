@@ -116,17 +116,36 @@ export function resolveProvider(provider: ProviderReference): Provider {
  * Provider map initialization
  */
 export const providers: Providers = {
-  ExchangeRatesAPI: {
+  ExchangeRateAPI: {
     endpoint: {
-      base: "https://api.exchangeratesapi.io/latest",
-      single: "?base=%FROM%&symbols=%TO%",
-      multiple: "?base=%FROM%"
+      base: "https://api.exchangerate-api.com/v4/latest/",
+      single: "%FROM%",
+      multiple: "%FROM%"
     },
-    key: null,
+    key: undefined,
     handler: function (data: any) {
       return data.rates;
     },
-    errors: { 400: "Malformed query." },
+    errors: { 400: "Malformed query.", 404: "Currency not found" },
+    errorHandler: function (data: any) {
+      return data.status;
+    }
+  },
+  ExchangeRatesAPIIO: {
+    endpoint: {
+      base: "http://api.exchangeratesapi.io/latest?access_key=%KEY%",
+      single: "&base=%FROM%&symbols=%TO%",
+      multiple: "&base=%FROM%"
+    },
+    errors: {
+      105: "A paid plan is required in order to use other base currencies!",
+      101: "Invalid API key!",
+      201: "Invalid base currency."
+    },
+    key: undefined,
+    handler: function (data: any) {
+      return data.rates;
+    },
     errorHandler: function (data: any) {
       return data.status;
     }
