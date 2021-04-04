@@ -36,6 +36,19 @@ test("Converts an amount of given currency (AlphaVantage).", async () => {
   expect(value).toBeLessThan(30);
 }, 10000);
 
+test("Converts an amount of given currency (ExchangeRatesAPIIO).", async () => {
+  const converter = new Converter(
+    "ExchangeRatesAPIIO",
+    process.env.EXCHANGERATESAPI_IO_KEY
+  );
+
+  const value = await converter.convert(15, "EUR", "USD");
+
+  expect(typeof value).toBe("number");
+  expect(value).toBeGreaterThan(0);
+  expect(value).toBeLessThan(30);
+}, 10000);
+
 /**
  * Omitting  CurrencyLayer and Fixer because they require paid keys to switch base currency
  */

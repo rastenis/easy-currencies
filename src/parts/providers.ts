@@ -133,15 +133,19 @@ export const providers: Providers = {
   },
   ExchangeRatesAPIIO: {
     endpoint: {
-      base: "https://api.exchangeratesapi.io/latest?access_key=%KEY%",
+      base: "http://api.exchangeratesapi.io/latest?access_key=%KEY%",
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
+    },
+    errors: {
+      105: "A paid plan is required in order to use other base currencies!",
+      101: "Invalid API key!",
+      201: "Invalid base currency."
     },
     key: undefined,
     handler: function (data: any) {
       return data.rates;
     },
-    errors: { 400: "Malformed query." },
     errorHandler: function (data: any) {
       return data.status;
     }
