@@ -129,7 +129,7 @@ export class Config {
     this._active = resolveProviders(...config);
 
     // adding default fallback
-    this.addProviders([providers["ExchangeRatesAPI"]], false);
+    this.addProviders([providers.ExchangeRateAPI], false);
   }
 }
 
@@ -145,7 +145,7 @@ export function resolveProviders(
 ): Provider[] {
   // resolve default if none provided.
   if (typeof configuration === "undefined" || !configuration.length) {
-    return [providers.ExchangeRatesAPI];
+    return [providers.ExchangeRateAPI];
   }
 
   // checking for incorrect config types

@@ -1,7 +1,7 @@
 const { Converter } = require("../dist");
 
-test("Converts an amount of given currency (ExchangeRatesAPI).", async () => {
-  const converter = new Converter("ExchangeRatesAPI");
+test("Converts an amount of given currency (ExchangeRateAPI).", async () => {
+  const converter = new Converter("ExchangeRateAPI");
 
   const value = await converter.convert(15, "USD", "EUR");
 
