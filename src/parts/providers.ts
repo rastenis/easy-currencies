@@ -167,7 +167,8 @@ export const providers: Providers = {
     errors: {
       105: "A paid plan is required in order to use CurrencyLayer (base currency use not allowed)",
       101: "Invalid API key!",
-      201: "Invalid base currency."
+      201: "Invalid base currency.",
+      106: "No results."
     },
     errorHandler: function (data: any) {
       return data.error ? data.error.code : null;
@@ -192,8 +193,7 @@ export const providers: Providers = {
   },
   AlphaVantage: {
     endpoint: {
-      base:
-        "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
+      base: "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
       single: "&from_currency=%FROM%&to_currency=%TO%",
       multiple: ""
     },

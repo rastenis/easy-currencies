@@ -11,7 +11,9 @@ test("Fails because of invalid base currency (CurrencyLayer)", async () => {
   // removing default fallback provider
   converter.remove(converter.active[1]);
   const [err, value] = await to(converter.convert(15, "9q3j4fq938juf", "EUR"));
-  expect(err).toBe("Invalid base currency.");
+  expect(
+    err === "Invalid base currency." || err === "No results."
+  ).toBeTruthy();
 });
 
 test("Fails because of invalid base currency (Fixer)", async () => {
