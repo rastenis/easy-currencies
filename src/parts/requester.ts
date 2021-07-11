@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError, AxiosInstance } from "axios";
 import { Provider } from "./providers";
 import to from "await-to-js";
 
@@ -23,10 +23,11 @@ export interface Query {
  * @returns {Promise<any>} - a result promise
  */
 export async function fetchRates(
+  client: AxiosInstance,
   provider: Provider,
   query: Query
 ): Promise<any> {
-  const [err, result] = (await to(axios.get(formatUrl(provider, query)))) as [
+  const [err, result] = (await to(client.get(formatUrl(provider, query)))) as [
     AxiosError,
     any
   ];

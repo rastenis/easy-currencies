@@ -1,3 +1,4 @@
+import axios, { AxiosInstance } from "axios";
 import {
   Provider,
   providers,
@@ -7,6 +8,15 @@ import {
 } from "./providers";
 
 import { checkIfUserDefinedProvider } from "./utils";
+
+/**
+ * Proxy configuration object.
+ */
+export interface ProxyConfiguration {
+  host: string;
+  port: number;
+  auth: { username: string; password: string };
+}
 
 /**
  * Config object that initializes with configuration data
@@ -25,7 +35,7 @@ export class Config {
   private _active: Provider[];
 
   /**
-   * Provider getter
+   * Provider getter.
    *
    * @returns {Provider[]}
    * @memberof Config
@@ -35,7 +45,27 @@ export class Config {
   }
 
   /**
-   * Provider setter (adder)
+   * Active client.
+   */
+  private _client: AxiosInstance = axios.create();
+
+  /**
+   * Client setter.
+   * @param client  The client.
+   */
+  setClient = (client: AxiosInstance): void => {
+    this._client = client;
+  };
+
+  /**
+   * Client getter.
+   */
+  getClient = () => {
+    return this._client;
+  };
+
+  /**
+   * Provider setter (adder).
    *
    * @param {Provider[]} providers - providers to be added
    * @param {boolean} [setActive=false] - should the new provider(s) be prioritized
