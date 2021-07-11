@@ -32,9 +32,7 @@ const { Convert } = require("easy-currencies");
 // ES6
 import { Convert } from "easy-currencies";
 
-let value = await Convert(15)
-  .from("USD")
-  .to("EUR");
+const value = await Convert(15).from("USD").to("EUR");
 
 console.log(value); // converted value
 ```
@@ -46,8 +44,8 @@ Default provider initialization, no key needed
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter();
-let value = await converter.convert(15, "USD", "EUR");
+const converter = new Converter();
+const value = await converter.convert(15, "USD", "EUR");
 
 console.log(value); // converted value
 ```
@@ -59,9 +57,7 @@ Use this to get a JSON of conversion rates from your current provider.
 ```js
 import { Convert } from "easy-currencies";
 
-let convert = await Convert()
-  .from("USD")
-  .fetch();
+const convert = await Convert().from("USD").fetch();
 
 console.log(convert.rates);
 // {
@@ -74,7 +70,6 @@ console.log(convert.rates);
 //   USD: 1,
 //   ...
 // }
-
 ```
 
 This also allows for cached conversion:
@@ -82,17 +77,15 @@ This also allows for cached conversion:
 ```js
 import { Convert } from "easy-currencies";
 
-let convert = await Convert()
-  .from("USD")
-  .fetch();
+const convert = await Convert().from("USD").fetch();
 
 // use the fetched rates: (does not use the current provider's API anymore)
-let value1 = await convert.amount(10).to("GBP");
+const value1 = await convert.amount(10).to("GBP");
 
 await convert.from("USD").fetch(); // refresh rates
 // or await convert.from("GBP").fetch() to switch base currency
 
-let value2 = await convert.amount(10).to("GBP");
+const value2 = await convert.amount(10).to("GBP");
 ```
 
 ## Using custom providers
@@ -102,8 +95,8 @@ Custom single provider initialization
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter("OpenExchangeRates", "API_KEY");
-let value = await converter.convert(15, "USD", "EUR");
+const converter = new Converter("OpenExchangeRates", "API_KEY");
+const value = await converter.convert(15, "USD", "EUR");
 
 console.log(value); // converted value
 ```
@@ -113,12 +106,12 @@ Custom multiple provider initialization
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter(
+const converter = new Converter(
   { name: "OpenExchangeRates", key: "API_KEY" },
   { name: "AlphaVantage", key: "API_KEY" }
   { name: "Fixer", key: "API_KEY" }
 );
-let value = await converter.convert(15, "USD", "EUR");
+const value = await converter.convert(15, "USD", "EUR");
 console.log(value); // converted value
 ```
 
@@ -132,6 +125,21 @@ The list of supoprted exchange rate providers is as follows:
 4. [AlphaVantage](https://www.alphavantage.co/)
 5. [Fixer](https://fixer.io/) (requires an api key with base currency supoprt)
 
+## Using proxy
+
+```js
+import { Converter } from "easy-currencies";
+
+const converter = new Converter();
+converter.setProxyConfiguration({
+  host: "127.0.0.1",
+  port: 8080,
+  auth: { username: "user", password: "pass" }
+});
+
+// Further usage will be proxied!
+```
+
 ## API
 
 Check out the [api reference docs.](https://scharkee.github.io/easy-currencies/)
@@ -141,7 +149,7 @@ The list of configured (active) providers can be accessed like so:
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter("OpenExchangeRates", "API_KEY");
+const converter = new Converter("OpenExchangeRates", "API_KEY");
 
 console.log(converter.providers);
 /**
@@ -170,7 +178,7 @@ The current active provider can be retrieved like this:
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter("OpenExchangeRates", "API_KEY");
+const converter = new Converter("OpenExchangeRates", "API_KEY");
 
 console.log(converter.activeProvider()); // ...provider data
 ```
@@ -190,7 +198,7 @@ Custom provider definitions can be added as such:
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter();
+const converter = new Converter();
 
 converter.add("MyProvider", {
   // the name of the custom provider
@@ -221,7 +229,7 @@ Multiple providers can be added with addMultiple:
 ```js
 import { Converter } from "easy-currencies";
 
-let converter = new Converter();
+const converter = new Converter();
 
 converter.add([
   { name: "Name1", provider: provider1 },

@@ -18,6 +18,7 @@ export interface Query {
  * The fetchRates function, used for fetching currency conversion rates.
  *
  * @export
+ * @param {AxiosInstance} client - client to be used for the request
  * @param {Provider} provider - provider from which the quotes will be fetched
  * @param {Query} query - the query
  * @returns {Promise<any>} - a result promise
