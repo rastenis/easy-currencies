@@ -160,3 +160,24 @@ test("Provider operations: Adding multiple providers.", async () => {
   expect(providers["MyProvider2"]).toBeDefined();
   expect(providers["MyProvider2"]).toEqual(newProvider2);
 });
+
+test("Proxy operations: Set proxy.", async () => {
+  // default initialization
+  const converter = new Converter("CurrencyLayer", "key");
+
+  const expectedProxyConfiguration = {
+    host: "0.0.0.0",
+    port: 1,
+    auth: { username: "", password: "" }
+  };
+
+  converter.setProxyConfiguration({
+    host: "0.0.0.0",
+    port: 1,
+    auth: { username: "", password: "" }
+  });
+
+  expect(converter.config.getClient().defaults.proxy).toEqual(
+    expectedProxyConfiguration
+  );
+});

@@ -1,8 +1,9 @@
 import { fetchRates } from "./parts/requester";
 import { Provider, ProviderReference } from "./parts/providers";
-import { Config } from "./parts/config";
+import { Config, ProxyConfiguration } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import _to from "await-to-js";
+import axios from "axios";
 
 /**
  * A simple map object for rates
@@ -72,6 +73,14 @@ export class Converter {
   remove: Config["remove"];
 
   /**
+   * Method to set the proxy configuration.
+   * @param proxyConfiguration  The proxy configuration.
+   */
+  setProxyConfiguration = (proxyConfiguration: ProxyConfiguration) => {
+    this.config.setClient(axios.create({ proxy: proxyConfiguration }));
+  };
+
+  /**
    * Conversion function (non chainable).
    *
    * @example
@@ -126,9 +135,12 @@ export class Converter {
     // Getting the current active provider
     const provider = this.config.activeProvider();
 
+    // Getting the client
+    const client = this.config.getClient();
+
     // Fetching conversion rates from the active provider.
     const [err, data] = await (<any>_to(
-      fetchRates(provider, {
+      fetchRates(client, provider, {
         FROM: from,
         TO: to,
         multiple: multiple

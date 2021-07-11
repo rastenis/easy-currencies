@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError, AxiosInstance } from "axios";
 import { Provider } from "./providers";
 import to from "await-to-js";
 
@@ -18,15 +18,17 @@ export interface Query {
  * The fetchRates function, used for fetching currency conversion rates.
  *
  * @export
+ * @param {AxiosInstance} client - client to be used for the request
  * @param {Provider} provider - provider from which the quotes will be fetched
  * @param {Query} query - the query
  * @returns {Promise<any>} - a result promise
  */
 export async function fetchRates(
+  client: AxiosInstance,
   provider: Provider,
   query: Query
 ): Promise<any> {
-  const [err, result] = (await to(axios.get(formatUrl(provider, query)))) as [
+  const [err, result] = (await to(client.get(formatUrl(provider, query)))) as [
     AxiosError,
     any
   ];
