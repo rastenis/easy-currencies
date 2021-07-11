@@ -1,7 +1,7 @@
 # easy-currencies
 
 [![npm version](http://img.shields.io/npm/v/easy-currencies.svg?style=flat)](https://npmjs.org/package/easy-currencies "View this project on npm")
-[![Status](https://travis-ci.org/scharkee/easy-currencies.svg?branch=master)](https://travis-ci.org/scharkee/easy-currencies)
+[![Status](https://travis-ci.com/Scharkee/easy-currencies.svg?branch=master)](https://travis-ci.com/scharkee/easy-currencies)
 [![Coverage Status](https://coveralls.io/repos/github/Scharkee/easy-currencies/badge.svg?branch=master)](https://coveralls.io/github/Scharkee/easy-currencies?branch=master)
 [![David](https://img.shields.io/david/scharkee/easy-currencies.svg)](https://david-dm.org/scharkee/easy-currencies)
 
