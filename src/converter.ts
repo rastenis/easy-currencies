@@ -102,7 +102,7 @@ export class Converter {
   ): Promise<number> => {
     // Returining conversion from provided rates
     if (typeof rates !== "undefined") {
-      return amount * rates[to];
+      return this.convertRate(amount, to, rates);
     }
 
     //Fetching conversion rates from the active provider
@@ -117,7 +117,26 @@ export class Converter {
     }
 
     // Normalizing resulting rates data
-    return amount * data[to];
+    return this.convertRate(amount, to, data);
+  };
+
+  /**
+   * Performs safe multiplication to get the result amount.
+   * @param {number} amount - amount to be converted
+   * @param {string} to - conversion currency
+   * @param {any} rates - conversion rates, if they were pre-fetched
+   * @returns
+   */
+  convertRate = (
+    amount: number,
+    to: string,
+    rates: any = undefined
+  ): number => {
+    if (!rates[to]) {
+      throw new Error(`No '${to}' present in rates: ${rates}`);
+    }
+
+    return amount * rates[to];
   };
 
   /**
