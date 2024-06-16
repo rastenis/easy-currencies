@@ -14,12 +14,9 @@ _config.yml
 .editorconfig
 .prettierrc
 jest.config.js
-tsconfig.json
 typedoc.json
 
 # GitHub workflows
 .github/
 
-# Source files
-src/
 
