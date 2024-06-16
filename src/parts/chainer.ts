@@ -1,6 +1,5 @@
 import { Converter, rateObject } from "../converter";
-
-import __to from "await-to-js";
+import { _to } from "../parts/utils"
 
 /**
  * The chainable object interface.
