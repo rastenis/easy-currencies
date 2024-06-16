@@ -3,5 +3,20 @@ docs/
 
 # Ignoring tests for the published package
 test/
-
 coverage/
+
+# Environment files
+.env
+.env.example
+
+# Configuration files
+_config.yml
+.editorconfig
+.prettierrc
+jest.config.js
+typedoc.json
+
+# GitHub workflows
+.github/
+
+
