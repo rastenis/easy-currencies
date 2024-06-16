@@ -44,6 +44,7 @@ jobs:
           EXCHANGERATESAPI_IO_KEY: ${{ secrets.EXCHANGERATESAPI_IO_KEY }}
           OPEN_EXCHANGE_RATES_KEY: ${{ secrets.OPEN_EXCHANGE_RATES_KEY }}
       - name: Run coveralls
+        if: github.ref == 'refs/heads/master'
         run: npm run coveralls
         env:
           CURRENCY_LAYER_KEY: ${{ secrets.CURRENCY_LAYER_KEY }}
