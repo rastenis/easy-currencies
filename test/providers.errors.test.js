@@ -12,7 +12,6 @@ test("Fails because of insufficient key level (CurrencyLayer)", async () => {
   // removing default fallback provider
   converter.remove(converter.active[1]);
   const [err, value] = await to(converter.convert(15, "CNY", "EUR"));
-
   expect(err).toBeTruthy();
 });
 
