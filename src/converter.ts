@@ -2,7 +2,7 @@ import { fetchRates } from "./parts/requester";
 import { Provider, ProviderReference } from "./parts/providers";
 import { Config, ProxyConfiguration } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
-import _to from "await-to-js";
+import { _to } from "./parts/utils";
 import axios from "axios";
 
 /**

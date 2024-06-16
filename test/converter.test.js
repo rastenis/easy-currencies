@@ -1,5 +1,5 @@
 const { Converter } = require("../dist");
-const to = require("await-to-js").default;
+const { _to } = require("../dist/parts/utils");
 
 test("Converts an amount of given currency.", async () => {
   // default initialization
@@ -53,7 +53,7 @@ test("Throws on empty rate object.", async () => {
 
   converter.add("MyProvider", newProvider, true);
 
-  const [err, value] = await to(converter.convert(15, "USD", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "USD", "EUR"));
 
   console.log(err, value);
 

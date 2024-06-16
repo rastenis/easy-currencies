@@ -34,3 +34,17 @@ export function checkIfProvider(
     (provider as Provider).key !== undefined
   );
 }
+
+
+/**
+ * Wraps a promise and handles both the resolved value and any potential errors.
+ * @param promise - The promise to wrap.
+ * @returns A promise that resolves to a tuple containing the error (if any) and the resolved value (if any).
+ */
+export function _to<T, U = Error>(
+  promise: Promise<T>,
+): Promise<[U | null, T | null]> {
+  return promise
+    .then((data: T): [null, T] => [null, data])
+    .catch((err: U): [U, null] => [err, null]);
+}

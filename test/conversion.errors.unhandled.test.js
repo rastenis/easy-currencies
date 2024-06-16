@@ -1,5 +1,5 @@
 const { Converter, Convert } = require("../dist");
-const to = require("await-to-js").default;
+const { _to } = require("../dist/parts/utils");
 
 test("Conversion error: Unhandled", async () => {
   // default initialization
@@ -28,7 +28,7 @@ test("Conversion error: Unhandled", async () => {
 
   converter.add("MyProvider", newProvider, true);
 
-  const [err, value] = await to(converter.convert(15, "USD", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "USD", "EUR"));
   expect(err).toBe(101); // unhandled error expected
 });
 
@@ -55,6 +55,6 @@ test("Conversion error: Unhandled rates issue", async () => {
 
   converter.add("MyProvider1", newProvider, true);
 
-  const [err, value] = await to(converter.convert(15, "USD", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "USD", "EUR"));
   expect(err.message).toBe("No 'EUR' present in rates: Sample false response"); // unhandled error expected
 });

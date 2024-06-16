@@ -1,5 +1,6 @@
-const { Converter, Convert } = require("../dist");
-const to = require("await-to-js").default;
+const { Converter, Convert, utils } = require("../dist");
+const { _to } = require("../dist/parts/utils");
+
 /**
  * Invalid currencies
  */
@@ -10,7 +11,7 @@ test("Fails because of invalid base currency (CurrencyLayer)", async () => {
   );
   // removing default fallback provider
   converter.remove(converter.active[1]);
-  const [err, value] = await to(converter.convert(15, "9q3j4fq938juf", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "9q3j4fq938juf", "EUR"));
   expect(
     err === "Invalid base currency." || err === "No results."
   ).toBeTruthy();
@@ -20,7 +21,7 @@ test("Fails because of invalid base currency (Fixer)", async () => {
   const converter = new Converter("Fixer", process.env.FIXER_KEY);
   // removing default fallback provider
   converter.remove(converter.active[1]);
-  const [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
   expect(err).toBe("Invalid base currency.");
 });
@@ -33,13 +34,13 @@ test("Fails because of invalid base currency (AlphaVantage)", async () => {
   // removing default fallback provider
   converter.remove(converter.active[1]);
 
-  const [err, value] = await to(converter.convert(15, "CNYqqqwwC", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
   expect(err).toBe("Invalid API key or Malformed query.");
 });
 
 test("Chainer fails because of invalid base currency (ExchangeRateAPI)", async () => {
-  const [err, value] = await to(Convert(15).from("invalid").to("EUR"));
+  const [err, value] = await _to(Convert(15).from("invalid").to("EUR"));
 
   expect(err).toBe("Currency not found");
 });
@@ -47,7 +48,7 @@ test("Chainer fails because of invalid base currency (ExchangeRateAPI)", async (
 test("Fails because of invalid base currency (ExchangeRateAPI)", async () => {
   const converter = new Converter("ExchangeRateAPI");
   // removing default fallback provider
-  const [err, value] = await to(converter.convert(15, "invalid", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "invalid", "EUR"));
 
   expect(err).toBe("Currency not found");
 });
