@@ -80,7 +80,7 @@ export interface Provider {
    * @type {Function}
    * @memberof Provider
    */
-  errorHandler: Function;
+  errorHandler: (data: any) => number | string | null;
 }
 
 /**
@@ -208,7 +208,23 @@ export const providers: Providers = {
       503: "Invalid API key or Malformed query."
     },
     errorHandler: function (data: any) {
-      return data["Error Message"] ? 503 : false;
+      if (!data) {
+        return null;
+      }
+      // AlphaVantage does not return error codes in the response,
+      // so we have to check if the response contains error messages
+      // and translate them to error codes if possible.
+
+      const hasError = data["Error Message"] || data["Information"];
+
+      if (hasError?.includes("API rate limit")) {
+        return 429;
+      }
+
+      if (hasError) {
+        return hasError;
+      }
+      return null;
     }
   },
   Fixer: {

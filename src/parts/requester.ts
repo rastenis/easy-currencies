@@ -1,4 +1,4 @@
-import { AxiosError, AxiosInstance } from "axios";
+import { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import { Provider } from "./providers";
 import { _to } from "../parts/utils"
 
@@ -30,7 +30,7 @@ export async function fetchRates(
 ): Promise<any> {
   const [err, result] = (await _to(client.get(formatUrl(provider, query)))) as [
     AxiosError,
-    any
+    AxiosResponse
   ];
 
   // resolving error
