@@ -48,3 +48,14 @@ export function _to<T, U = Error>(
     .then((data: T): [null, T] => [null, data])
     .catch((err: U): [U, null] => [err, null]);
 }
+
+
+/**
+ * Delays execution by the specified amount of time.
+ *
+ * @param ms - The number of milliseconds to wait.
+ * @returns A promise that resolves after the specified delay.
+ */
+export function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
