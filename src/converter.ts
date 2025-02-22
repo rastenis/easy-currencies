@@ -132,11 +132,18 @@ export class Converter {
     to: string,
     rates: any = undefined
   ): number => {
-    if (!rates[to]) {
-      throw new Error(`No '${to}' present in rates: ${rates}`);
+    const rate = rates[to] ?? rates[to.toUpperCase()] ?? rates[to.toLowerCase()];
+
+    if (!rate) {
+      throw new Error(`No '${to}' present in rates: ${JSON.stringify(rates, null, 2)}`);
     }
 
-    return amount * rates[to];
+    const numericRate = parseFloat(rate);
+    if (isNaN(numericRate)) {
+      throw new Error(`Invalid rate value for '${to}': ${rate}`);
+    }
+
+    return amount * numericRate;
   };
 
   /**

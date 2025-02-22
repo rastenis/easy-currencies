@@ -36,7 +36,7 @@ test("Fails because of invalid base currency (AlphaVantage)", async () => {
 
   const [err, value] = await _to(converter.convert(15, "CNYqqqwwC", "EUR"));
 
-  expect(err).toBe("Invalid API key or Malformed query.");
+  expect(err).toBe("Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for CURRENCY_EXCHANGE_RATE.");
 });
 
 test("Chainer fails because of invalid base currency (ExchangeRateAPI)", async () => {

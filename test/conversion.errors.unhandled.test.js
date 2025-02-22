@@ -56,5 +56,33 @@ test("Conversion error: Unhandled rates issue", async () => {
   converter.add("MyProvider1", newProvider, true);
 
   const [err, value] = await _to(converter.convert(15, "USD", "EUR"));
-  expect(err.message).toBe("No 'EUR' present in rates: Sample false response"); // unhandled error expected
+  expect(err.message).toBe("No 'EUR' present in rates: \"Sample false response\""); // unhandled error expected
+});
+
+
+test("Conversion error: Invalid rate value", async () => {
+  // default initialization
+  const converter = new Converter();
+
+  // defining provider with unhandled errors
+  const newProvider = {
+    endpoint: {
+      base: "https://baconipsum.com/api/?type=meat-and-filler",
+      single: "",
+      multiple: ""
+    },
+    key: "",
+    handler: function (data) {
+      return { "USD": "non-number" };
+    },
+    errors: {},
+    errorHandler: function (data) {
+      return data.error ? data.error.code : null;
+    }
+  };
+
+  converter.add("MyProvider2", newProvider, true);
+
+  const [err, value] = await _to(converter.convert(15, "EUR", "USD"));
+  expect(err.message).toBe("Invalid rate value for 'USD': non-number");
 });
