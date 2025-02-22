@@ -44,11 +44,10 @@ test("Fails because of invalid key (OpenExchangeRates)", async () => {
   expect(err).toBeTruthy();
 });
 
-// AlphaVantage key checking is incorrect at the moment.
-// test("Fails because of invalid key (AlphaVantage)", async () => {
-//   const converter = new Converter("AlphaVantage", "");
+test("Fails because of invalid key (AlphaVantage)", async () => {
+  const converter = new Converter("AlphaVantage", "");
 
-//   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
+  const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-//   expect(err).toBeTruthy();
-// });
+  expect(err).toBeTruthy();
+});

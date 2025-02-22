@@ -55,7 +55,32 @@ test("Throws on empty rate object.", async () => {
 
   const [err, value] = await _to(converter.convert(15, "USD", "EUR"));
 
-  console.log(err, value);
-
   expect(err.message).toBe("No data returned for rate fetch.");
+});
+
+test("Inconsistent rate object capitalization.", async () => {
+  const converter = new Converter();
+
+  const newProvider = {
+    endpoint: {
+      base: "https://api.exchangeratesapi.io/latest",
+      single: "?base=%FROM%&symbols=%TO%",
+      multiple: "?base=%FROM%"
+    },
+    key: null,
+    handler: function (data) {
+      return { "eUr": 0.9 };
+    },
+    errors: {},
+    errorHandler: function (data) {
+      return data.status;
+    }
+  };
+
+  converter.add("MyProvider1", newProvider, true);
+
+  const [err, value] = await _to(converter.convert(15, "usd", "euR"));
+
+  expect(err).toBe(null);
+  expect(value).toBe(13.5);
 });

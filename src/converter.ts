@@ -132,7 +132,9 @@ export class Converter {
     to: string,
     rates: any = undefined
   ): number => {
-    const rate = rates[to] ?? rates[to.toUpperCase()] ?? rates[to.toLowerCase()];
+    const keys = Object.keys(rates);
+    const rateKey = keys.find(key => key.toLowerCase() === to.toLowerCase());
+    const rate = rateKey ? rates[rateKey] : undefined;
 
     if (!rate) {
       throw new Error(`No '${to}' present in rates: ${JSON.stringify(rates, null, 2)}`);
