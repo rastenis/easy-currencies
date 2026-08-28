@@ -9,10 +9,13 @@ import { Converter } from "../../src/converter";
  * The chain is now a per-call snapshot, so both calls fall back independently.
  */
 
-/** Fixer rejects the key; the implicit ExchangeRateAPI fallback answers. */
+/** Fixer rejects the key; the implicit keyless fallbacks answer. */
 function racingConverter() {
   const converter = new Converter("Fixer", "bad-key");
-  expect(converter.providers).toHaveLength(2);
+  // Relative, so the test does not have to be edited whenever the implicit
+  // fallback chain changes.
+  const initialCount = converter.providers.length;
+  expect(initialCount).toBeGreaterThan(1);
 
   const urls: string[] = [];
   converter.onError = () => {};
@@ -30,7 +33,7 @@ function racingConverter() {
     }
   });
 
-  return { converter, urls };
+  return { converter, urls, initialCount };
 }
 
 it("serves two simultaneous conversions through the fallback", async () => {
@@ -49,14 +52,15 @@ it("serves two simultaneous conversions through the fallback", async () => {
 });
 
 it("removes the permanently failed provider exactly once", async () => {
-  const { converter } = racingConverter();
+  const { converter, initialCount } = racingConverter();
 
   await Promise.all([
     converter.convert(10, "USD", "EUR"),
     converter.convert(20, "USD", "EUR")
   ]);
 
-  expect(converter.providers).toHaveLength(1);
+  // Exactly one removal, however many concurrent callers raced.
+  expect(converter.providers).toHaveLength(initialCount - 1);
   expect(converter.providers[0].endpoint.base).toContain("exchangerate-api.com");
 });
 
