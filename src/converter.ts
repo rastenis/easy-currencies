@@ -97,10 +97,28 @@ function requireAmount(amount: unknown): number {
  * @param {string} label - the parameter name, so the error says which is missing
  * @returns {string} - the validated currency
  */
+/**
+ * Every code the configured providers accept is alphanumeric: ISO 4217 is three
+ * letters, and the crypto tickers they carry include `USDT`, `1INCH`, `0G` and
+ * `00`, so neither "starts with a letter" nor "letters only" holds. AlphaVantage
+ * publishes `SBDf`, so the check is case-insensitive.
+ */
+const CURRENCY_CODE = /^[A-Za-z0-9]{1,16}$/;
+
 function requireCurrency(currency: unknown, label: string): string {
   if (typeof currency !== "string" || currency.trim().length === 0) {
     throw new Error(
       `The '${label}' currency must be a non-empty string, received ${describeRate(
+        currency
+      )}.`
+    );
+  }
+  // Encoding alone does not close this: `.` is unreserved in RFC 3986, so
+  // encodeURIComponent("..") is "..", and the URL parser then resolves the dot
+  // segment and climbs the path. Rejecting the value is what actually stops it.
+  if (!CURRENCY_CODE.test(currency)) {
+    throw new Error(
+      `The '${label}' currency must be alphanumeric, received ${describeRate(
         currency
       )}.`
     );
