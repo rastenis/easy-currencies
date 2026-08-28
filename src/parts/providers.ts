@@ -102,20 +102,25 @@ export interface ProviderReference {
  * @returns {Provider} constructed provider
  */
 export function resolveProvider(provider: ProviderReference): Provider {
-  const existentProvider = providers[provider.name];
-  if (!existentProvider) {
+  // Own-property check only. A plain lookup accepts "__proto__", "constructor"
+  // and every other inherited key, and assigning the key through "__proto__"
+  // writes it onto Object.prototype.
+  const name = provider?.name;
+  if (
+    typeof name !== "string" ||
+    !Object.prototype.hasOwnProperty.call(providers, name)
+  ) {
     throw "No provider with this name. Please use a provider from the supported providers list.";
   }
 
-  // attaching key
-  existentProvider.key = provider.key;
-  return existentProvider;
+  // Copy, so instances do not share a template and overwrite each other's key.
+  return { ...providers[name], key: provider.key };
 }
 
 /**
  * Provider map initialization
  */
-export const providers: Providers = {
+export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRateAPI: {
     endpoint: {
       base: "https://api.exchangerate-api.com/v4/latest/",
@@ -133,7 +138,7 @@ export const providers: Providers = {
   },
   ExchangeRatesAPIIO: {
     endpoint: {
-      base: "http://api.exchangeratesapi.io/latest?access_key=%KEY%",
+      base: "https://api.exchangeratesapi.io/latest?access_key=%KEY%",
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
     },
@@ -152,7 +157,7 @@ export const providers: Providers = {
   },
   CurrencyLayer: {
     endpoint: {
-      base: "http://apilayer.net/api/live?access_key=%KEY%",
+      base: "https://apilayer.net/api/live?access_key=%KEY%",
       single: "&source=%FROM%",
       multiple: "&source=%FROM%&currencies=%TO%"
     },
@@ -229,7 +234,7 @@ export const providers: Providers = {
   },
   Fixer: {
     endpoint: {
-      base: "http://data.fixer.io/api/latest?access_key=%KEY%",
+      base: "https://data.fixer.io/api/latest?access_key=%KEY%",
       single: "&base=%FROM%&symbols=%TO%",
       multiple: "&base=%FROM%"
     },
@@ -246,4 +251,13 @@ export const providers: Providers = {
       return data.error ? data.error.code : null;
     }
   }
-};
+});
+
+// Templates are copied on resolve; freezing makes accidental mutation of the
+// shared definitions fail loudly rather than silently affecting every future
+// Converter.
+for (const name of Object.keys(providers)) {
+  Object.freeze(providers[name].endpoint);
+  Object.freeze(providers[name].errors);
+  Object.freeze(providers[name]);
+}
