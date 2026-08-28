@@ -68,8 +68,9 @@ describe("provider names", () => {
   });
 
   it.each(NAMES)("%s is constructible by name", (name) => {
-    const converter = new (freshPkg().Converter)(name, "k");
-
-    expect(converter.active[0].endpoint.base).toEqual(expect.any(String));
+    // Only that the name still resolves: what the resulting provider does with
+    // a response is the contract suite's job, and its endpoint is pinned by the
+    // contract fixtures.
+    expect(() => new (freshPkg().Converter)(name, "k")).not.toThrow();
   });
 });

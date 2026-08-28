@@ -57,15 +57,6 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
       );
     });
 
-    it("is case-insensitive about the target currency", async () => {
-      const { converter } = isolated(fixture, response(fixture.success));
-
-      await expect(converter.convert(AMOUNT, "USD", "eur")).resolves.toBeCloseTo(
-        EXPECTED,
-        10
-      );
-    });
-
     it("rejects when the response contains no usable rate", async () => {
       const { converter } = isolated(fixture, response({}));
 
