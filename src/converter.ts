@@ -199,6 +199,21 @@ export class Converter {
     // if the error is in the list, but there are no backup providers, then throw.
     // if the error is in the list and there is a backup, log the error and continue.
     if (!err) {
+      // Some vendors truncate an unrecognised code to a valid prefix and answer
+      // for that instead — exchangerate-api turns "CNYqqqwwC" into "CNY" and
+      // returns 200. Providers that echo the base let us catch the swap rather
+      // than return a confident wrong number.
+      const echoed = data && (data.base || data.source);
+      if (
+        typeof echoed === "string" &&
+        typeof from === "string" &&
+        echoed.toLowerCase() !== from.toLowerCase()
+      ) {
+        throw new Error(
+          `Provider answered for base '${echoed}', not the requested '${from}'.`
+        );
+      }
+
       const rates = provider.handler(data);
       if (rates && typeof rates === "object") {
         Object.defineProperty(rates, RATES_BASE, {

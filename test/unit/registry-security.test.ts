@@ -11,7 +11,12 @@ describe("registry lookup", () => {
   it.each(["__proto__", "constructor", "prototype", "toString", "valueOf", "hasOwnProperty"])(
     "rejects the inherited name %s",
     (name) => {
-      expect(() => new Converter(name, "SECRET")).toThrow();
+      // Message-pinned: a bare toThrow() also passes on the incidental
+      // TypeError raised further down when the lookup returns a prototype
+      // object, so it stays green with the guard removed.
+      expect(() => new Converter(name, "SECRET")).toThrow(
+        /No provider with this name/
+      );
     }
   );
 
@@ -28,7 +33,9 @@ describe("registry lookup", () => {
   });
 
   it.each([null, undefined, 42, {}])("rejects the non-string name %p", (name) => {
-    expect(() => resolveProvider({ name: name as any, key: "k" })).toThrow();
+    expect(() => resolveProvider({ name: name as any, key: "k" })).toThrow(
+      /No provider with this name/
+    );
   });
 });
 
@@ -71,5 +78,30 @@ describe("built-in templates", () => {
     for (const name of Object.keys(providers)) {
       expect(providers[name].endpoint.base).not.toMatch(/^http:/);
     }
+  });
+});
+
+describe("provider validation", () => {
+  it("rejects a provider that is missing required fields", () => {
+    // Pinned by message on purpose: a bare throw assertion also passes when
+    // the validation is removed, because a later TypeError surfaces instead.
+    expect(() =>
+      new Converter().add("Malformed", { errors: {} } as any)
+    ).toThrow("Invalid provider format!");
+  });
+
+  it("rejects a duplicate provider name", () => {
+    const provider = {
+      endpoint: { base: "https://dup.example/", single: "%FROM%", multiple: "" },
+      key: "k",
+      handler: (d: any) => d.rates,
+      errors: {},
+      errorHandler: () => null
+    };
+    new Converter().add("DuplicateName", provider as any);
+
+    expect(() => new Converter().add("DuplicateName", provider as any)).toThrow(
+      "A provider by this name is already registered!"
+    );
   });
 });
