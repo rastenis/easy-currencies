@@ -116,6 +116,8 @@ const value = await converter.convert(15, "USD", "EUR");
 console.log(value); // converted value
 ```
 
+Upgrading from 1.x? See [MIGRATION.md](MIGRATION.md).
+
 ## Supported providers and API keys
 
 The first column is the exact name to pass to `new Converter()`.
