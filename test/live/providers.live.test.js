@@ -49,6 +49,26 @@ test("Converts an amount of given currency (ExchangeRatesAPIIO).", async () => {
   expect(value).toBeLessThan(30);
 }, 10000);
 
+test("Converts an amount of given currency (Frankfurter).", async () => {
+  const converter = new Converter("Frankfurter");
+
+  const value = await converter.convert(15, "USD", "EUR");
+
+  expect(typeof value).toBe("number");
+  expect(value).toBeGreaterThan(0);
+  expect(value).toBeLessThan(30);
+}, 10000);
+
+test("Converts an amount of given currency (FloatRates).", async () => {
+  const converter = new Converter("FloatRates");
+
+  const value = await converter.convert(15, "USD", "EUR");
+
+  expect(typeof value).toBe("number");
+  expect(value).toBeGreaterThan(0);
+  expect(value).toBeLessThan(30);
+}, 10000);
+
 /**
  * Omitting  CurrencyLayer and Fixer because they require paid keys to switch base currency
  */

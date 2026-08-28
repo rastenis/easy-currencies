@@ -58,6 +58,8 @@ describe("provider names", () => {
     "ExchangeRateAPI",
     "ExchangeRatesAPIIO",
     "Fixer",
+    "FloatRates",
+    "Frankfurter",
     "OpenExchangeRates"
   ];
 

@@ -160,8 +160,14 @@ export class Config {
   constructor(...config: ProviderReference[] | undefined[] | string[]) {
     this._active = resolveProviders(...config);
 
-    // adding default fallback
-    this.addProviders([providers.ExchangeRateAPI], false);
+    // Keyless providers are appended as fallbacks so a converter works out of
+    // the box, and keeps working when one of them is down. Ordered by currency
+    // coverage, widest first: Frankfurter carries only the ECB set, so it is
+    // the last resort rather than the first.
+    this.addProviders(
+      [providers.ExchangeRateAPI, providers.FloatRates, providers.Frankfurter],
+      false
+    );
   }
 }
 

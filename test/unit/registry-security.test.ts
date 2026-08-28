@@ -52,9 +52,12 @@ describe("instance isolation", () => {
   it("still de-duplicates the auto-inserted fallback", () => {
     // Copies broke identity-based de-duplication; the endpoint identifies a
     // duplicate instead.
-    expect(new Converter().providers).toHaveLength(1);
-    expect(new Converter("ExchangeRateAPI").providers).toHaveLength(1);
-    expect(new Converter("Fixer", "k").providers).toHaveLength(2);
+    // Three keyless providers are added implicitly; naming one must not
+    // duplicate it.
+    expect(new Converter().providers).toHaveLength(3);
+    expect(new Converter("ExchangeRateAPI").providers).toHaveLength(3);
+    expect(new Converter("Frankfurter").providers).toHaveLength(3);
+    expect(new Converter("Fixer", "k").providers).toHaveLength(4);
   });
 });
 
@@ -74,7 +77,7 @@ describe("built-in templates", () => {
 
 describe("configuration guards", () => {
   it.each([undefined, null])("falls back to the default provider for %p", (config) => {
-    expect(new Converter(config as any).providers).toHaveLength(1);
+    expect(new Converter(config as any).providers).toHaveLength(3);
   });
 
   it("rejects a non-array batch", () => {

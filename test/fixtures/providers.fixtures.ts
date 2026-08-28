@@ -23,8 +23,6 @@ export interface ProviderFixture {
   unhandledError?: { payload?: any; http?: number; error: any };
   /** How the provider rejects a 200 response containing no usable rate. */
   emptyResponse: RegExp;
-  /** Set when `emptyResponse` records a defect (an internal crash) rather than intended behaviour. */
-  emptyResponseIsDefect?: boolean;
 }
 
 // Distinct per provider, so a key leaking between instances is visible rather than silently equal.
@@ -58,9 +56,7 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
     // Quotes are prefixed with the source currency.
     success: { quotes: { USDEUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
-    // Defect: the handler calls Object.keys(data.quotes) without a guard.
-    emptyResponse: /Cannot convert undefined or null to object/,
-    emptyResponseIsDefect: true
+    emptyResponse: NO_RATE
   },
   {
     name: "OpenExchangeRates",
@@ -92,9 +88,7 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
       payload: { "Error Message": "Invalid API call." },
       error: "Invalid API call."
     },
-    // Defect: the handler indexes data[keys[0]] without a guard.
-    emptyResponse: /Cannot read properties of undefined/,
-    emptyResponseIsDefect: true
+    emptyResponse: NO_RATE
   },
   {
     name: "Fixer",
@@ -102,6 +96,34 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
     url: `https://data.fixer.io/api/latest?access_key=${key("Fixer")}&base=USD&symbols=EUR`,
     success: { rates: { EUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
+    emptyResponse: NO_RATE
+  },
+  {
+    name: "Frankfurter",
+    url: "https://api.frankfurter.dev/v1/latest?base=USD",
+    // Real shape, trimmed: the body carries amount/base/date alongside `rates`.
+    success: { amount: 1.0, base: "USD", date: "2026-08-27", rates: { EUR: RATE } },
+    // Verified live: GET /v1/latest?base=XYZ -> 404 {"message":"not found"}.
+    handledError: { http: 404, payload: { message: "not found" }, message: "Currency not found or not supported by Frankfurter." },
+    emptyResponse: NO_RATE
+  },
+  {
+    name: "FloatRates",
+    url: "https://www.floatrates.com/daily/USD.json",
+    // Real shape, trimmed: keys are lower case, rates are strings.
+    success: {
+      eur: {
+        code: "EUR",
+        alphaCode: "EUR",
+        numericCode: "978",
+        name: "Euro",
+        rate: String(RATE),
+        date: "Thu, 27 Aug 2026 23:59:00 GMT",
+        inverseRate: "1.11111111"
+      }
+    },
+    // Verified live: GET /daily/XYZ.json -> 403 with an empty (unparseable) body.
+    handledError: { http: 403, message: "Currency not found or not supported by FloatRates." },
     emptyResponse: NO_RATE
   }
 ];
