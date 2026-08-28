@@ -48,7 +48,14 @@ jobs:
       # the OIDC claim, so there is no NPM_TOKEN to leak or rotate.
       - run: npm install -g npm@latest
 
-      - run: npm publish --access public
+      # Trusted publishing emits provenance by default; passing it explicitly
+      # means a misconfiguration fails the release instead of quietly shipping
+      # an unattested tarball.
+      - run: npm publish --access public --provenance
+
+      # Proves the attestation actually landed, rather than trusting the exit code.
+      - name: Verify the published attestation
+        run: npm audit signatures
 
       # Merged PR titles become the release notes, so there is no changelog to
       # keep in sync.
