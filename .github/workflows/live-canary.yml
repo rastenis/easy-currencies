@@ -1,0 +1,28 @@
+name: Live API canary
+
+# The offline suite cannot see vendor drift — changed payloads, retired
+# endpoints, revoked keys. This runs the live suite on a schedule so drift
+# surfaces here rather than in a consumer's build.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - run: npm ci
+      - run: npm run test:live
+        env:
+          CURRENCY_LAYER_KEY: ${{ secrets.CURRENCY_LAYER_KEY }}
+          FIXER_KEY: ${{ secrets.FIXER_KEY }}
+          ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
+          EXCHANGERATESAPI_IO_KEY: ${{ secrets.EXCHANGERATESAPI_IO_KEY }}
+          OPEN_EXCHANGE_RATES_KEY: ${{ secrets.OPEN_EXCHANGE_RATES_KEY }}
