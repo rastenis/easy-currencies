@@ -21,7 +21,9 @@ const base =
 /** Line numbers added per file, from a zero-context diff. */
 function addedLines(baseRef) {
   const diff = execSync(
-    `git diff --unified=0 --diff-filter=AM ${baseRef}...HEAD -- "src/**/*.ts"`,
+    // Pathspec is `src`, not a glob: git wildmatch cannot match zero
+    // directories, so `src/**/*.ts` silently skips files directly in src/.
+    `git diff --unified=0 --diff-filter=AM ${baseRef}...HEAD -- src`,
     { encoding: "utf8", maxBuffer: 1 << 26 }
   );
 
