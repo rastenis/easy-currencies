@@ -3,7 +3,7 @@
 [![npm version](http://img.shields.io/npm/v/easy-currencies.svg?style=flat)](https://npmjs.org/package/easy-currencies "View this project on npm")
 [![CI](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml/badge.svg)](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml)
 
-Convert currencies with ease! Six exchange rate providers to choose from, others easily implementable.
+Convert currencies with ease! Eight exchange rate providers to choose from, others easily implementable.
 
 ## Features
 
@@ -128,6 +128,8 @@ The first column is the exact name to pass to `new Converter()`.
 | `OpenExchangeRates`  | [openexchangerates.org](https://openexchangerates.org/)   | required                             |
 | `AlphaVantage`       | [alphavantage.co](https://www.alphavantage.co/)           | required                             |
 | `Fixer`              | [fixer.io](https://fixer.io/)                             | required, with base currency support |
+| `Frankfurter`        | [frankfurter.dev](https://frankfurter.dev/)               | not required, ECB rates only         |
+| `FloatRates`         | [floatrates.com](https://www.floatrates.com/)             | not required                         |
 
 `ExchangeRateAPI` and `ExchangeRatesAPIIO` are different services with confusingly similar names.
 
