@@ -163,6 +163,11 @@ export const providers: Providers = Object.assign(Object.create(null), {
     },
     key: undefined,
     handler: function (data: any) {
+      // An empty or unexpected 200 body would otherwise throw a TypeError out
+      // of the handler, which the caller reports as a missing response.
+      if (!data || typeof data.quotes !== "object" || data.quotes === null) {
+        return {};
+      }
       const map = {} as any;
       Object.keys(data.quotes).map((key) => {
         map[key.slice(3)] = data.quotes[key];
@@ -205,7 +210,11 @@ export const providers: Providers = Object.assign(Object.create(null), {
     key: undefined,
     handler: function (data: any) {
       const map = {} as any;
-      const o = data[Object.keys(data)[0]];
+      const o = data ? data[Object.keys(data)[0]] : undefined;
+      // Same guard: an empty 200 must not crash the handler.
+      if (!o || typeof o !== "object") {
+        return map;
+      }
       map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
       return map;
     },

@@ -23,8 +23,6 @@ export interface ProviderFixture {
   unhandledError?: { payload?: any; http?: number; error: any };
   /** How the provider rejects a 200 response containing no usable rate. */
   emptyResponse: RegExp;
-  /** Set when `emptyResponse` records a defect (an internal crash) rather than intended behaviour. */
-  emptyResponseIsDefect?: boolean;
 }
 
 // Distinct per provider, so a key leaking between instances is visible rather than silently equal.
@@ -58,9 +56,7 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
     // Quotes are prefixed with the source currency.
     success: { quotes: { USDEUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
-    // Defect: the handler calls Object.keys(data.quotes) without a guard.
-    emptyResponse: /Cannot convert undefined or null to object/,
-    emptyResponseIsDefect: true
+    emptyResponse: NO_RATE
   },
   {
     name: "OpenExchangeRates",
@@ -92,9 +88,7 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
       payload: { "Error Message": "Invalid API call." },
       error: "Invalid API call."
     },
-    // Defect: the handler indexes data[keys[0]] without a guard.
-    emptyResponse: /Cannot read properties of undefined/,
-    emptyResponseIsDefect: true
+    emptyResponse: NO_RATE
   },
   {
     name: "Fixer",
