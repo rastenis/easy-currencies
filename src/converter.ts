@@ -200,9 +200,7 @@ export class Converter {
     // if the error is in the list and there is a backup, log the error and continue.
     if (!err) {
       // Some vendors truncate an unrecognised code to a valid prefix and answer
-      // for that instead — exchangerate-api turns "CNYqqqwwC" into "CNY" and
-      // returns 200. Providers that echo the base let us catch the swap rather
-      // than return a confident wrong number.
+      // for that instead: exchangerate-api turns "CNYqqqwwC" into "CNY".
       const echoed = data && (data.base || data.source);
       if (
         typeof echoed === "string" &&

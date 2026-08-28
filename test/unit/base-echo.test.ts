@@ -1,11 +1,6 @@
 import { Converter } from "../../src/converter";
 
-/**
- * Some vendors answer HTTP 200 for an unrecognised currency by truncating it to
- * a valid prefix — exchangerate-api turns "CNYqqqwwC" into "CNY" — and return
- * rates for that instead. Providers that echo the base they used let the
- * mismatch be caught rather than returning a confident wrong number.
- */
+/** exchangerate-api answers 200 for "CNYqqqwwC" with CNY rates; the echoed base catches the swap. */
 
 function converterWith(data: any) {
   const converter = new Converter("ExchangeRateAPI");

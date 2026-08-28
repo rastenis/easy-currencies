@@ -11,9 +11,8 @@ describe("registry lookup", () => {
   it.each(["__proto__", "constructor", "prototype", "toString", "valueOf", "hasOwnProperty"])(
     "rejects the inherited name %s",
     (name) => {
-      // Message-pinned: a bare toThrow() also passes on the incidental
-      // TypeError raised further down when the lookup returns a prototype
-      // object, so it stays green with the guard removed.
+      // Message-pinned: a bare toThrow() stays green with the guard removed,
+      // satisfied by an incidental TypeError further down.
       expect(() => new Converter(name, "SECRET")).toThrow(
         /No provider with this name/
       );
@@ -83,8 +82,8 @@ describe("built-in templates", () => {
 
 describe("provider validation", () => {
   it("rejects a provider that is missing required fields", () => {
-    // Pinned by message on purpose: a bare throw assertion also passes when
-    // the validation is removed, because a later TypeError surfaces instead.
+    // Message-pinned for the same reason: a bare throw check survives
+    // deleting the validation.
     expect(() =>
       new Converter().add("Malformed", { errors: {} } as any)
     ).toThrow("Invalid provider format!");
