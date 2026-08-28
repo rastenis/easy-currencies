@@ -38,6 +38,12 @@ jobs:
       - run: npm ci
       - run: npm run test:coverage
 
+      # Renders the figures on the run page; `always()` so they still show when
+      # the coverage threshold is what failed the job.
+      - name: Coverage summary
+        if: always()
+        run: node scripts/coverage-summary.js >> "$GITHUB_STEP_SUMMARY"
+
       - uses: coverallsapp/github-action@v2
         with:
           file: ./coverage/lcov.info
