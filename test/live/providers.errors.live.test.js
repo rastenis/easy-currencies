@@ -1,17 +1,25 @@
 const { Converter } = require("../../src");
 const { _to } = require("../../src/parts/utils");
 
+/** Strips every fallback, so the provider under test is the only one left. */
+function isolate(converter) {
+  while (converter.active.length > 1) {
+    converter.remove(converter.active[1]);
+  }
+  return converter;
+}
+
 /**
  *  Fixer api key level failures
  */
 
 test("Fails because of insufficient key level (Fixer)", async () => {
   const converter = new Converter("Fixer", process.env.FIXER_KEY);
-  // removing default fallback provider
-  converter.remove(converter.active[1]);
+  isolate(converter);
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-  expect(err).toBeTruthy();
+  expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
+  expect(value).toBeNull();
 });
 
 /**
@@ -19,29 +27,29 @@ test("Fails because of insufficient key level (Fixer)", async () => {
  */
 test("Fails because of invalid key (CurrencyLayer)", async () => {
   const converter = new Converter("CurrencyLayer", "invalid");
-  // removing default fallback provider
-  converter.remove(converter.active[1]);
+  isolate(converter);
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-  expect(err).toBeTruthy();
+  expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
+  expect(value).toBeNull();
 });
 
 test("Fails because of invalid key (Fixer)", async () => {
   const converter = new Converter("Fixer", "invalid");
-  // removing default fallback provider
-  converter.remove(converter.active[1]);
+  isolate(converter);
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-  expect(err).toBeTruthy();
+  expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
+  expect(value).toBeNull();
 });
 
 test("Fails because of invalid key (OpenExchangeRates)", async () => {
   const converter = new Converter("OpenExchangeRates", "invalid");
-  // removing default fallback provider
-  converter.remove(converter.active[1]);
+  isolate(converter);
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-  expect(err).toBeTruthy();
+  expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
+  expect(value).toBeNull();
 });
 
 test("Fails because of invalid key (AlphaVantage)", async () => {
@@ -49,5 +57,6 @@ test("Fails because of invalid key (AlphaVantage)", async () => {
 
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
-  expect(err).toBeTruthy();
+  expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
+  expect(value).toBeNull();
 });
