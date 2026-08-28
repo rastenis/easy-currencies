@@ -14,7 +14,9 @@
     "test": "jest --selectProjects offline",
     "test:live": "jest --selectProjects live --passWithNoTests --runInBand",
     "test:all": "jest --passWithNoTests",
-    "test:coverage": "jest --selectProjects offline --coverage"
+    "test:coverage": "jest --selectProjects offline --coverage",
+    "api:check": "npm run build && api-extractor run",
+    "api:update": "npm run build && api-extractor run --local"
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,7 @@
   },
   "homepage": "https://github.com/Scharkee/easy-currencies#readme",
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.59.0",
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.2",

@@ -26,6 +26,21 @@ jobs:
       # Offline suite only: no secrets, so this passes on fork PRs.
       - run: npm test
 
+  api-surface:
+    name: api surface
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - run: npm ci
+      # Fails when the public API differs from etc/easy-currencies.api.md.
+      # Regenerate with `npm run api:update` and commit the diff to approve it.
+      - run: npm run api:check
+
   coverage:
     runs-on: ubuntu-latest
     permissions:
