@@ -293,7 +293,11 @@ export class Converter {
     }
 
     const keys = Object.keys(rates);
-    const rateKey = keys.find(key => key.toLowerCase() === to.toLowerCase());
+    // Exact match wins, so a response carrying both "EUR" and "eur" does not
+    // resolve differently depending on JSON key order.
+    const rateKey =
+      keys.find((key) => key === to) ??
+      keys.find((key) => key.toLowerCase() === to.toLowerCase());
 
     // Truthiness would report a present-but-zero rate as missing.
     if (rateKey === undefined) {

@@ -285,15 +285,14 @@ function transportError(err: unknown): Error {
  * @returns {string} - formatted GET url string.
  */
 function formatUrl(provider: Provider, query: Query): string {
-  // if (query.multiple) {
-  //   return (provider.endpoint.base + provider.endpoint.multiple)
-  //     .replace("%FROM%", query.FROM)
-  //     .replace("%KEY%", provider.key || "");
-  // }
+  // Replacer functions, not strings: `$&`, `` $` `` and `$'` are substitution
+  // patterns, so a currency of "US$`D" would otherwise splice the URL prefix
+  // into the middle of the URL. Encoding then stops a value escaping its slot —
+  // "USD&access_key=x" adding a parameter, or "../.." traversing the path.
+  const put = (value: string) => () => encodeURIComponent(value);
 
-  // inserting base currency, final currency, and key (if needed)
   return (provider.endpoint.base + provider.endpoint.single)
-    .replace("%FROM%", query.FROM)
-    .replace("%TO%", query.TO)
-    .replace("%KEY%", provider.key || "");
+    .replace("%FROM%", put(query.FROM))
+    .replace("%TO%", put(query.TO))
+    .replace("%KEY%", put(provider.key || ""));
 }
