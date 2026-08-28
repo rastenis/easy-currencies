@@ -16,8 +16,9 @@ _config.yml
 jest.config.js
 typedoc.json
 
-# GitHub workflows
+# GitHub workflows and metadata
 .github/
+SECURITY.md
 
 
 scripts
