@@ -1,4 +1,4 @@
-const { providers, Converter } = require("../dist");
+const { providers, Converter } = require("../../src");
 
 test("Provider error operations: Adding duplicate provider.", async () => {
   // default initialization

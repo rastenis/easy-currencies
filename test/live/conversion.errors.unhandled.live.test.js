@@ -1,5 +1,5 @@
-const { Converter, Convert } = require("../dist");
-const { _to } = require("../dist/parts/utils");
+const { Converter, Convert } = require("../../src");
+const { _to } = require("../../src/parts/utils");
 
 test("Conversion error: Unhandled", async () => {
   // default initialization

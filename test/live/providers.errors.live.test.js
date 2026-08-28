@@ -1,5 +1,5 @@
-const { Converter } = require("../dist");
-const { _to } = require("../dist/parts/utils");
+const { Converter } = require("../../src");
+const { _to } = require("../../src/parts/utils");
 
 /**
  *  Fixer api key level failures

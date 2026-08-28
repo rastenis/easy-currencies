@@ -1,5 +1,5 @@
-const { Converter } = require("../dist");
-const { _to } = require("../dist/parts/utils");
+const { Converter } = require("../../src");
+const { _to } = require("../../src/parts/utils");
 
 test("Converts an amount of given currency.", async () => {
   // default initialization

@@ -1,5 +1,5 @@
-const { Converter, Convert } = require("../dist");
-const { _to } = require("../dist/parts/utils");
+const { Converter, Convert } = require("../../src");
+const { _to } = require("../../src/parts/utils");
 
 test("Fallback conversion", async () => {
   // invalid API key provider initialization
