@@ -9,9 +9,10 @@
     "docs": "typedoc && cp ./_config.yml docs/_config.yml",
     "prepublishOnly": "npm test",
     "test": "jest --selectProjects offline",
-    "test:live": "jest --selectProjects live --setupFiles dotenv/config --passWithNoTests --runInBand",
-    "test:all": "jest --setupFiles dotenv/config --passWithNoTests",
-    "test:coverage": "jest --selectProjects offline --coverage"
+    "test:live": "jest --selectProjects live --passWithNoTests --runInBand",
+    "test:all": "jest --passWithNoTests",
+    "test:coverage": "jest --selectProjects offline --coverage",
+    "coveralls": "npm run test:coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",

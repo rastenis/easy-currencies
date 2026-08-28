@@ -1,11 +1,5 @@
-/**
- * Chainable API coverage.
- *
- * `Chainer` constructs its own `Converter` internally, so there is no client to
- * inject. `Config` builds its default client with `axios.create()`, so the
- * axios module is mocked here to reach it. If a proper injection seam is added
- * later, these tests should switch to it.
- */
+// Chainer builds its own Converter, so there is no client to inject; mocking
+// the axios module is the only way to reach Config's default client.
 
 const get = jest.fn();
 
@@ -59,7 +53,6 @@ describe("Convert chain", () => {
 
     const eur = await chain.to("EUR");
 
-    // Cached rates are reused, so no second request goes out.
     expect(eur).toBeCloseTo(9, 10);
     expect(get).toHaveBeenCalledTimes(1);
   });
@@ -73,6 +66,8 @@ describe("Convert chain", () => {
   });
 
   it("rejects when the target currency is absent from the rates", async () => {
-    await expect(Convert(15).from("USD").to("XYZ")).rejects.toBeDefined();
+    await expect(Convert(15).from("USD").to("XYZ")).rejects.toThrow(
+      /No 'XYZ' present in rates/
+    );
   });
 });

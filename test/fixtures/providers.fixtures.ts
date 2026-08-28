@@ -1,82 +1,85 @@
 /**
- * The provider contract table.
+ * The provider contract table: adding a provider to src/parts/providers.ts and a
+ * row here gives it full coverage.
  *
- * Every supported provider is described here once: the URL it must build, a
- * realistic success payload, and a realistic error payload. The contract suite
- * runs the same assertions across every row, so adding a provider to
- * `src/parts/providers.ts` and a row here gives it full coverage.
- *
- * Payload shapes mirror what each vendor actually returns; keep them realistic,
- * because they are the only description of vendor behaviour the offline suite has.
+ * These payloads are the only description of vendor behaviour the offline suite
+ * has, so they must match what the vendor really returns — a shape invented to
+ * make a test pass hides exactly the bug this table exists to catch.
  */
 
-/** Fixed rate used across all fixtures, so expected values stay obvious. */
-export const RATE = 0.9;
 export const AMOUNT = 15;
-export const EXPECTED = AMOUNT * RATE; // 13.5
+export const RATE = 0.9;
+export const EXPECTED = 13.5;
 
 export interface ProviderFixture {
-  /** Provider name as registered in `providers`. */
   name: string;
-  /** API key to configure, or undefined for keyless providers. */
   key?: string;
-  /** Exact URL expected for a USD -> EUR single conversion. */
+  /** Expected URL for a USD -> EUR conversion. */
   url: string;
-  /** A success response body that yields RATE for EUR. */
   success: any;
-  /**
-   * An error the provider is expected to recognise and map to a message.
-   * `http` means the vendor signals it via an HTTP failure status; otherwise
-   * the error arrives inside a 200 response body.
-   */
+  /** An error the provider maps to a documented message. `http` if the vendor signals it by status rather than in a 200 body. */
   handledError?: { payload?: any; http?: number; message: string };
-  /**
-   * An error the provider does NOT map to a known message, which must surface
-   * as an unhandled error rather than triggering silent fallback.
-   */
+  /** An error the provider does not map, which must surface rather than triggering silent fallback. */
   unhandledError?: { payload?: any; http?: number; error: any };
+  /** How the provider rejects a 200 response containing no usable rate. */
+  emptyResponse: RegExp;
+  /** Set when `emptyResponse` records a defect (an internal crash) rather than intended behaviour. */
+  emptyResponseIsDefect?: boolean;
 }
 
-const KEY = "TEST_KEY";
+// Distinct per provider, so a key leaking between instances is visible rather than silently equal.
+const key = (name: string) => `KEY_${name.toUpperCase()}`;
+
+const NO_RATE = /No data returned for rate fetch|No 'EUR' present in rates/;
 
 export const PROVIDER_FIXTURES: ProviderFixture[] = [
   {
     name: "ExchangeRateAPI",
     url: "https://api.exchangerate-api.com/v4/latest/USD",
     success: { rates: { EUR: RATE } },
-    handledError: { http: 404, message: "Currency not found" }
+    handledError: { http: 404, message: "Currency not found" },
+    emptyResponse: NO_RATE
   },
   {
     name: "ExchangeRatesAPIIO",
-    key: KEY,
-    url: `http://api.exchangeratesapi.io/latest?access_key=${KEY}&base=USD&symbols=EUR`,
+    key: key("ExchangeRatesAPIIO"),
+    url: `http://api.exchangeratesapi.io/latest?access_key=${key(
+      "ExchangeRatesAPIIO"
+    )}&base=USD&symbols=EUR`,
     success: { rates: { EUR: RATE } },
-    handledError: { payload: { status: 101 }, message: "Invalid API key!" }
+    // Verified against the live endpoint: apilayer returns { error: { code } },
+    // but this provider's errorHandler reads data.status, so 101/105/201 are all
+    // unreachable — no error of any kind is recognised. See "known defects".
+    emptyResponse: NO_RATE
   },
   {
     name: "CurrencyLayer",
-    key: KEY,
-    url: `http://apilayer.net/api/live?access_key=${KEY}&source=USD`,
-    // CurrencyLayer prefixes every quote with the source currency.
+    key: key("CurrencyLayer"),
+    url: `http://apilayer.net/api/live?access_key=${key("CurrencyLayer")}&source=USD`,
+    // Quotes are prefixed with the source currency.
     success: { quotes: { USDEUR: RATE } },
-    handledError: {
-      payload: { error: { code: 101 } },
-      message: "Invalid API key!"
-    }
+    handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
+    // Defect: the handler calls Object.keys(data.quotes) without a guard.
+    emptyResponse: /Cannot convert undefined or null to object/,
+    emptyResponseIsDefect: true
   },
   {
     name: "OpenExchangeRates",
-    key: KEY,
-    url: `https://openexchangerates.org/api/latest.json?app_id=${KEY}&base=USD`,
+    key: key("OpenExchangeRates"),
+    url: `https://openexchangerates.org/api/latest.json?app_id=${key(
+      "OpenExchangeRates"
+    )}&base=USD`,
     success: { rates: { EUR: RATE } },
-    handledError: { http: 401, message: "Invalid API key!" }
+    handledError: { http: 401, message: "Invalid API key!" },
+    emptyResponse: NO_RATE
   },
   {
     name: "AlphaVantage",
-    key: KEY,
-    url: `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=${KEY}&from_currency=USD&to_currency=EUR`,
-    // AlphaVantage nests the quote under a single verbose key and returns the
-    // rate as a string, not a number.
+    key: key("AlphaVantage"),
+    url: `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=${key(
+      "AlphaVantage"
+    )}&from_currency=USD&to_currency=EUR`,
+    // The rate comes back as a string, not a number.
     success: {
       "Realtime Currency Exchange Rate": {
         "1. From_Currency Code": "USD",
@@ -84,21 +87,22 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
         "5. Exchange Rate": String(RATE)
       }
     },
-    // AlphaVantage signals failure with prose, which the provider surfaces
-    // verbatim because its `errors` map has no matching entry.
+    // AlphaVantage signals failure with prose; its errors map has no matching
+    // entry, so the message surfaces verbatim.
     unhandledError: {
       payload: { "Error Message": "Invalid API call." },
       error: "Invalid API call."
-    }
+    },
+    // Defect: the handler indexes data[keys[0]] without a guard.
+    emptyResponse: /Cannot read properties of undefined/,
+    emptyResponseIsDefect: true
   },
   {
     name: "Fixer",
-    key: KEY,
-    url: `http://data.fixer.io/api/latest?access_key=${KEY}&base=USD&symbols=EUR`,
+    key: key("Fixer"),
+    url: `http://data.fixer.io/api/latest?access_key=${key("Fixer")}&base=USD&symbols=EUR`,
     success: { rates: { EUR: RATE } },
-    handledError: {
-      payload: { error: { code: 101 } },
-      message: "Invalid API key!"
-    }
+    handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
+    emptyResponse: NO_RATE
   }
 ];
