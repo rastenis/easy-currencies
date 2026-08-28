@@ -1,4 +1,4 @@
-import { AxiosError, AxiosInstance, AxiosResponse } from "axios";
+import { HttpClient, HttpError, HttpResponse } from "./client";
 import { Provider } from "./providers";
 import { _to, sleep } from "../parts/utils"
 
@@ -25,7 +25,7 @@ export interface Query {
  * @returns {Promise<any>} - a result promise
  */
 export async function fetchRates(
-  client: AxiosInstance,
+  client: HttpClient,
   provider: Provider,
   query: Query
 ): Promise<any> {
@@ -35,8 +35,8 @@ export async function fetchRates(
 
   while (true) {
     const [err, result] = (await _to(client.get(formatUrl(provider, query)))) as [
-      AxiosError,
-      AxiosResponse
+      HttpError,
+      HttpResponse
     ];
 
     if (err?.response?.status === 429) {
@@ -78,18 +78,18 @@ export async function fetchRates(
 }
 
 /**
- * Reduces an axios error to a message and code.
+ * Reduces a request error to a message and code.
  *
- * The raw AxiosError carries `config.url`, which embeds the provider API key.
- * Callers log these errors, so returning the original would write credentials
- * to the consumer's logs.
+ * The underlying error can carry the request URL, which embeds the provider API
+ * key. Callers log these errors, so returning the original would write
+ * credentials to the consumer's logs.
  *
- * @param {AxiosError} err - the axios error
+ * @param {HttpError} err - the request error
  * @returns {Error} - an error safe to log
  */
-function transportError(err: AxiosError): Error {
+function transportError(err: HttpError): Error {
   const status = err.response?.status;
-  const detail = status ? `HTTP ${status}` : err.code || err.message;
+  const detail = status ? `HTTP ${status}` : err.code || err.message || String(err);
   const error = new Error(`Request to the provider failed: ${detail}`);
   (error as any).code = err.code;
   return error;

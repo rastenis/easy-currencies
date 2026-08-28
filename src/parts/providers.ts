@@ -52,7 +52,7 @@ export interface Provider {
    */
   endpoint: { base: string; single: string; multiple: string };
   /**
-   * A function that returns a map of currencies from the data object returned by axios (response.data)
+   * A function that returns a map of currencies from the data object returned by the client (response.data)
    *
    * @example
    *  function(data) { //must return {currency1:rate1,curency2:rate2} in reference to the base currency.

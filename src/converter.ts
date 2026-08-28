@@ -1,9 +1,9 @@
 import { fetchRates } from "./parts/requester";
 import { Provider, ProviderReference } from "./parts/providers";
-import { Config, ProxyConfiguration } from "./parts/config";
+import { Config } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
 import { _to } from "./parts/utils";
-import axios from "axios";
+import { HttpClient } from "./parts/client";
 
 /**
  * A simple map object for rates
@@ -82,11 +82,26 @@ export class Converter {
   remove: Config["remove"];
 
   /**
-   * Method to set the proxy configuration.
-   * @param proxyConfiguration  The proxy configuration.
+   * Replaces the HTTP client.
+   *
+   * The default client uses the global fetch, which has no proxy option, so
+   * proxying (or a custom agent, or instrumentation) means supplying your own.
+   *
+   * @example
+   * import { ProxyAgent } from "undici";
+   * const dispatcher = new ProxyAgent("http://proxy:8080");
+   * converter.setClient({
+   *   get: (url) =>
+   *     fetch(url, { dispatcher } as any).then(async (r) => ({
+   *       status: r.status,
+   *       data: await r.json()
+   *     }))
+   * });
+   *
+   * @param {HttpClient} client - the client to use
    */
-  setProxyConfiguration = (proxyConfiguration: ProxyConfiguration) => {
-    this.config.setClient(axios.create({ proxy: proxyConfiguration }));
+  setClient = (client: HttpClient) => {
+    this.config.setClient(client);
   };
 
   /**

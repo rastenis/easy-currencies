@@ -161,23 +161,27 @@ test("Provider operations: Adding multiple providers.", async () => {
   expect(providers["MyProvider2"]).toEqual(newProvider2);
 });
 
-test("Proxy operations: Set proxy.", async () => {
-  // default initialization
+test("Client operations: replace the HTTP client.", async () => {
   const converter = new Converter("CurrencyLayer", "key");
+  const client = { get: async () => ({ status: 200, data: {} }) };
 
-  const expectedProxyConfiguration = {
-    host: "0.0.0.0",
-    port: 1,
-    auth: { username: "", password: "" }
-  };
+  converter.setClient(client);
 
-  converter.setProxyConfiguration({
-    host: "0.0.0.0",
-    port: 1,
-    auth: { username: "", password: "" }
+  expect(converter.config.getClient()).toBe(client);
+});
+
+test("Client operations: the replacement client is the one used.", async () => {
+  const converter = new Converter("ExchangeRateAPI");
+  const urls = [];
+  converter.setClient({
+    get: async (url) => {
+      urls.push(url);
+      return { status: 200, data: { rates: { EUR: 0.9 } } };
+    }
   });
 
-  expect(converter.config.getClient().defaults.proxy).toEqual(
-    expectedProxyConfiguration
-  );
+  const value = await converter.convert(15, "USD", "EUR");
+
+  expect(value).toBeCloseTo(13.5, 10);
+  expect(urls).toHaveLength(1);
 });

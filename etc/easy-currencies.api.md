@@ -4,8 +4,6 @@
 
 ```ts
 
-import { AxiosInstance } from 'axios';
-
 // @public
 export interface chainableConverter {
     // (undocumented)
@@ -20,16 +18,21 @@ export interface chainableConverter {
     to: (to: string) => Promise<number>;
 }
 
+// @public (undocumented)
+export interface ClientOptions {
+    timeout?: number;
+}
+
 // @public
 export class Config {
     constructor(...config: ProviderReference[] | undefined[] | string[]);
     activeProvider(): Provider;
     add: (name: string, provider: Provider, setActive?: boolean) => void;
     addMultiple: (newProviders: UserDefinedProvider[], setActive?: boolean) => void;
-    getClient: () => AxiosInstance;
+    getClient: () => HttpClient;
     get providers(): Provider[];
     remove: (provider: Provider) => void;
-    setClient: (client: AxiosInstance) => void;
+    setClient: (client: HttpClient) => void;
 }
 
 // @public
@@ -55,7 +58,32 @@ export class Converter {
     get providers(): Provider[];
     // (undocumented)
     remove: Config["remove"];
-    setProxyConfiguration: (proxyConfiguration: ProxyConfiguration) => void;
+    setClient: (client: HttpClient) => void;
+}
+
+// @public (undocumented)
+export function createClient(options?: ClientOptions): HttpClient;
+
+// @public (undocumented)
+export interface HttpClient {
+    // (undocumented)
+    get(url: string): Promise<HttpResponse>;
+}
+
+// @public
+export interface HttpError extends Error {
+    // (undocumented)
+    code?: string;
+    // (undocumented)
+    response?: HttpResponse;
+}
+
+// @public
+export interface HttpResponse {
+    // (undocumented)
+    data: any;
+    // (undocumented)
+    status: number;
 }
 
 // @public
@@ -93,19 +121,6 @@ export interface Providers {
 
 // @public
 export const providers: Providers;
-
-// @public
-export interface ProxyConfiguration {
-    // (undocumented)
-    auth: {
-        username: string;
-        password: string;
-    };
-    // (undocumented)
-    host: string;
-    // (undocumented)
-    port: number;
-}
 
 // @public
 export interface rateObject {

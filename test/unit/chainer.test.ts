@@ -1,23 +1,18 @@
 // Chainer builds its own Converter, so there is no client to inject; mocking
-// the axios module is the only way to reach Config's default client.
+// the client module is the only way to reach Config's default client.
 
 const get = jest.fn();
 
-jest.mock("axios", () => {
-  const instance = { get };
-  return {
-    __esModule: true,
-    default: { create: () => instance },
-    create: () => instance
-  };
-});
+jest.mock("../../src/parts/client", () => ({
+  createClient: () => ({ get })
+}));
 
 import { Convert } from "../../src/converter";
 
 const RATES = { rates: { EUR: 0.9, GBP: 0.8 } };
 
 function ok(data: any) {
-  return Promise.resolve({ data, status: 200, statusText: "", headers: {}, config: {} });
+  return Promise.resolve({ status: 200, data });
 }
 
 beforeEach(() => {

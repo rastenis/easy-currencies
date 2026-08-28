@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import { HttpClient, createClient } from "./client";
 import {
   Provider,
   providers,
@@ -8,15 +8,6 @@ import {
 } from "./providers";
 
 import { checkIfUserDefinedProvider } from "./utils";
-
-/**
- * Proxy configuration object.
- */
-export interface ProxyConfiguration {
-  host: string;
-  port: number;
-  auth: { username: string; password: string };
-}
 
 /**
  * Config object that initializes with configuration data
@@ -47,13 +38,13 @@ export class Config {
   /**
    * Active client.
    */
-  private _client: AxiosInstance = axios.create();
+  private _client: HttpClient = createClient();
 
   /**
    * Client setter.
    * @param client  The client.
    */
-  setClient = (client: AxiosInstance): void => {
+  setClient = (client: HttpClient): void => {
     this._client = client;
   };
 

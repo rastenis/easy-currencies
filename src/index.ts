@@ -11,5 +11,7 @@ export type {
   Providers,
   UserDefinedProvider
 } from "./parts/providers";
-export type { Config, ProxyConfiguration } from "./parts/config";
+export type { Config } from "./parts/config";
+export type { HttpClient, HttpResponse, HttpError, ClientOptions } from "./parts/client";
+export { createClient } from "./parts/client";
 export type { chainableConverter } from "./parts/chainer";
