@@ -65,6 +65,25 @@ describe("Convert chain", () => {
     expect(get).toHaveBeenCalledTimes(1);
   });
 
+  it("refetches when the base currency changes after a fetch", async () => {
+    const chain = await Convert(100).from("USD").fetch();
+    expect(get).toHaveBeenCalledTimes(1);
+
+    await chain.from("GBP").to("EUR");
+
+    // Cached USD rates must not be reused for a GBP base.
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(get.mock.calls[1][0]).toContain("GBP");
+  });
+
+  it("keeps cached rates when the base is set again to the same currency", async () => {
+    const chain = await Convert(100).from("USD").fetch();
+
+    await chain.from("USD").to("EUR");
+
+    expect(get).toHaveBeenCalledTimes(1);
+  });
+
   it("rejects when the target currency is absent from the rates", async () => {
     await expect(Convert(15).from("USD").to("XYZ")).rejects.toThrow(
       /No 'XYZ' present in rates/

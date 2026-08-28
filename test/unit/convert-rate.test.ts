@@ -1,8 +1,44 @@
-import { Converter } from "../../src/converter";
+import { Converter, RATES_BASE } from "../../src/converter";
 
 /** convertRate is pure: it takes pre-fetched rates and never touches the network. */
 const rate = (rates: any, to: string = "EUR", amount: number = 15) =>
   new Converter().convertRate(amount, to, rates);
+
+describe("rate base guard", () => {
+  const tagged = (base: string, rates: any) => {
+    Object.defineProperty(rates, RATES_BASE, { value: base, enumerable: false });
+    return rates;
+  };
+
+  it("rejects rates fetched for a different base currency", async () => {
+    const rates = tagged("USD", { EUR: 0.9 });
+
+    await expect(
+      new Converter().convert(100, "JPY", "EUR", rates)
+    ).rejects.toThrow(/fetched for base 'USD'.*asked for 'JPY'/);
+  });
+
+  it("accepts rates whose base matches, case-insensitively", async () => {
+    const rates = tagged("USD", { EUR: 0.9 });
+
+    await expect(
+      new Converter().convert(100, "usd", "EUR", rates)
+    ).resolves.toBeCloseTo(90, 10);
+  });
+
+  it("accepts hand-built rates, which carry no base", async () => {
+    await expect(
+      new Converter().convert(10, "USD", "EUR", { EUR: 0.9 })
+    ).resolves.toBeCloseTo(9, 10);
+  });
+
+  it("does not expose the marker through Object.keys or JSON", () => {
+    const rates = tagged("USD", { EUR: 0.9 });
+
+    expect(Object.keys(rates)).toEqual(["EUR"]);
+    expect(JSON.parse(JSON.stringify(rates))).toEqual({ EUR: 0.9 });
+  });
+});
 
 describe("convertRate", () => {
   it("multiplies by a numeric rate", () => {
