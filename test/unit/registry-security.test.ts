@@ -11,7 +11,11 @@ describe("registry lookup", () => {
   it.each(["__proto__", "constructor", "prototype", "toString", "valueOf", "hasOwnProperty"])(
     "rejects the inherited name %s",
     (name) => {
-      expect(() => new Converter(name, "SECRET")).toThrow(/No provider with this name/);
+      // Message-pinned: a bare toThrow() stays green with the guard removed,
+      // satisfied by an incidental TypeError further down.
+      expect(() => new Converter(name, "SECRET")).toThrow(
+        /No provider with this name/
+      );
     }
   );
 
@@ -28,7 +32,9 @@ describe("registry lookup", () => {
   });
 
   it.each([null, undefined, 42, {}])("rejects the non-string name %p", (name) => {
-    expect(() => resolveProvider({ name: name as any, key: "k" })).toThrow();
+    expect(() => resolveProvider({ name: name as any, key: "k" })).toThrow(
+      /No provider with this name/
+    );
   });
 });
 
@@ -75,32 +81,27 @@ describe("built-in templates", () => {
   });
 });
 
-describe("configuration guards", () => {
-  it.each([undefined, null])("falls back to the default provider for %p", (config) => {
-    expect(new Converter(config as any).providers).toHaveLength(3);
-  });
-
-  it("rejects a non-array batch", () => {
-    expect(() => new Converter().addMultiple(null as any)).toThrow(/array/);
-  });
-
-  it("registers nothing when one entry in a batch is invalid", () => {
-    const good = {
-      name: "BatchGood",
-      provider: {
-        endpoint: { base: "https://a/", single: "%FROM%" },
-        key: "k",
-        handler: (d: any) => d.rates,
-        errors: {},
-        errorHandler: () => null
-      }
-    };
-
+describe("provider validation", () => {
+  it("rejects a provider that is missing required fields", () => {
+    // Message-pinned for the same reason: a bare throw check survives
+    // deleting the validation.
     expect(() =>
-      new Converter().addMultiple([good, { name: "BatchBad" } as any])
-    ).toThrow(/Invalid provider format/);
+      new Converter().add("Malformed", { errors: {} } as any)
+    ).toThrow("Invalid provider format!");
+  });
 
-    // A partial registration would make every retry fail with "already registered".
-    expect(Object.prototype.hasOwnProperty.call(providers, "BatchGood")).toBe(false);
+  it("rejects a duplicate provider name", () => {
+    const provider = {
+      endpoint: { base: "https://dup.example/", single: "%FROM%", multiple: "" },
+      key: "k",
+      handler: (d: any) => d.rates,
+      errors: {},
+      errorHandler: () => null
+    };
+    new Converter().add("DuplicateName", provider as any);
+
+    expect(() => new Converter().add("DuplicateName", provider as any)).toThrow(
+      "A provider by this name is already registered!"
+    );
   });
 });

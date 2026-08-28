@@ -387,6 +387,18 @@ export class Converter {
       ));
 
       if (!err) {
+        // Some vendors truncate an unrecognised code to a valid prefix and answer
+        // for that instead: exchangerate-api turns "CNYqqqwwC" into "CNY".
+        const echoed = data && (data.base || data.source);
+        if (
+          typeof echoed === "string" &&
+          echoed.toLowerCase() !== from.toLowerCase()
+        ) {
+          throw new Error(
+            `Provider answered for base '${echoed}', not the requested '${from}'.`
+          );
+        }
+
         const rates = provider.handler(data);
         if (rates && typeof rates === "object") {
           Object.defineProperty(rates, RATES_BASE, {
