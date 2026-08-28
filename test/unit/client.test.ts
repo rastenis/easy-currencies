@@ -90,6 +90,46 @@ describe("createClient", () => {
     expect(err.code).toBe("ECONNREFUSED");
   });
 
+  describe("error shapes fetch can produce", () => {
+    const realFetch = global.fetch;
+    afterEach(() => {
+      global.fetch = realFetch;
+    });
+
+    const rejectWith = (value: any) => {
+      global.fetch = jest.fn(() => Promise.reject(value)) as any;
+      return createClient().get("http://example.invalid/");
+    };
+
+    it("maps an AbortError to a timeout code", async () => {
+      const abort = Object.assign(new Error("aborted"), { name: "AbortError" });
+
+      await expect(rejectWith(abort)).rejects.toMatchObject({ code: "ETIMEDOUT" });
+    });
+
+    it("reads a code carried directly on the error", async () => {
+      const err = Object.assign(new Error("socket hang up"), { code: "ECONNRESET" });
+
+      await expect(rejectWith(err)).rejects.toMatchObject({ code: "ECONNRESET" });
+    });
+
+    it("prefers the cause's code over one on the error", async () => {
+      const err = Object.assign(new Error("fetch failed"), {
+        code: "OUTER",
+        cause: { code: "ENOTFOUND" }
+      });
+
+      await expect(rejectWith(err)).rejects.toMatchObject({ code: "ENOTFOUND" });
+    });
+
+    it("falls back to a generic message when the rejection carries none", async () => {
+      await expect(rejectWith({})).rejects.toMatchObject({
+        message: "fetch failed",
+        code: undefined
+      });
+    });
+  });
+
   it("aborts a hung request once the timeout elapses", async () => {
     serve(() => {
       /* never responds */
