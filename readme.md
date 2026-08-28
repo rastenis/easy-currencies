@@ -2,13 +2,12 @@
 
 [![npm version](http://img.shields.io/npm/v/easy-currencies.svg?style=flat)](https://npmjs.org/package/easy-currencies "View this project on npm")
 [![CI](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml/badge.svg)](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/rastenis/easy-currencies/badge.svg?branch=master)](https://coveralls.io/github/rastenis/easy-currencies?branch=master)
 
-Convert currencies with ease! Five exchange rate providers to choose from, others easily implementable.
+Convert currencies with ease! Six exchange rate providers to choose from, others easily implementable.
 
 ## Features
 
-- Easily convert currencies using one of the five built-in API providers
+- Easily convert currencies using one of the six built-in API providers
 - Two modes of operation:
   - Easy mode - no configuration or API keys required at all
   - Custom mode - choose one or more providers, use key-gated providers.
@@ -23,11 +22,14 @@ $ npm install easy-currencies
 
 ## Usage (Easy/chain mode)
 
-Easy/chain mode does not require initialization, and thus uses the default, no API key-required provider (exchangeratesapi.io)
+Easy/chain mode does not require initialization, and thus uses the default, no API key-required provider (api.exchangerate-api.com)
 
 ```js
 // CommonJS
 const { Convert } = require("easy-currencies");
+```
+
+```js
 // ES6
 import { Convert } from "easy-currencies";
 
@@ -60,13 +62,13 @@ const convert = await Convert().from("USD").fetch();
 
 console.log(convert.rates);
 // {
-//   CAD: 1.3590288853,
-//   HKD: 7.750132908,
-//   ISK: 139.4648236754,
-//   PHP: 49.5286195286,
-//   DKK: 6.6004784689,
-//   HUF: 314.9831649832,
 //   USD: 1,
+//   EUR: 0.858,
+//   GBP: 0.736,
+//   CAD: 1.39,
+//   HKD: 7.84,
+//   DKK: 6.42,
+//   HUF: 312.8,
 //   ...
 // }
 ```
@@ -107,7 +109,7 @@ import { Converter } from "easy-currencies";
 
 const converter = new Converter(
   { name: "OpenExchangeRates", key: "API_KEY" },
-  { name: "AlphaVantage", key: "API_KEY" }
+  { name: "AlphaVantage", key: "API_KEY" },
   { name: "Fixer", key: "API_KEY" }
 );
 const value = await converter.convert(15, "USD", "EUR");
@@ -116,13 +118,18 @@ console.log(value); // converted value
 
 ## Supported providers and API keys
 
-The list of supoprted exchange rate providers is as follows:
+The first column is the exact name to pass to `new Converter()`.
 
-1. [ExchangeRatesAPI](https://exchangeratesapi.io/) (default, no API key required)
-2. [CurrencyLayer](https://currencylayer.com/) (requires an api key with base currency supoprt)
-3. [OpenExchangeRates](https://openexchangerates.org/)
-4. [AlphaVantage](https://www.alphavantage.co/)
-5. [Fixer](https://fixer.io/) (requires an api key with base currency supoprt)
+| Name                 | Service                                                   | API key                              |
+| -------------------- | --------------------------------------------------------- | ------------------------------------ |
+| `ExchangeRateAPI`    | [exchangerate-api.com](https://www.exchangerate-api.com/) | not required (default)               |
+| `ExchangeRatesAPIIO` | [exchangeratesapi.io](https://exchangeratesapi.io/)       | required                             |
+| `CurrencyLayer`      | [currencylayer.com](https://currencylayer.com/)           | required, with base currency support |
+| `OpenExchangeRates`  | [openexchangerates.org](https://openexchangerates.org/)   | required                             |
+| `AlphaVantage`       | [alphavantage.co](https://www.alphavantage.co/)           | required                             |
+| `Fixer`              | [fixer.io](https://fixer.io/)                             | required, with base currency support |
+
+`ExchangeRateAPI` and `ExchangeRatesAPIIO` are different services with confusingly similar names.
 
 ## Using proxy
 
@@ -141,7 +148,26 @@ converter.setProxyConfiguration({
 
 ## API
 
-Check out the [api reference docs.](https://rastenis.github.io/easy-currencies/)
+`Converter`:
+
+- `new Converter(...providers)`
+- `convert(amount, from, to, rates?)`
+- `getRates(from, to, multiple?)`
+- `convertRate(amount, to, rates)`
+- `add(name, provider, setActive?)`
+- `addMultiple(providers, setActive?)`
+- `remove(provider)`
+- `setProxyConfiguration({ host, port, auth })`
+
+`Convert(amount?)`, chainable:
+
+- `.from(currency)`
+- `.amount(value)`
+- `.fetch()`
+- `.rates`
+- `.to(currency)`
+
+Full type signatures are in [etc/easy-currencies.api.md](etc/easy-currencies.api.md).
 
 The list of configured (active) providers can be accessed like so:
 
@@ -168,6 +194,25 @@ console.log(converter.providers);
  *  errorHandler: function(data) {
  *    return data.status;
  *  }
+ * },
+ * // the automatically inserted fallback provider (see below)
+ * {
+ *  endpoint: {
+ *    base: "https://api.exchangerate-api.com/v4/latest/",
+ *    single: "%FROM%",
+ *    multiple: "%FROM%"
+ *  },
+ *  key: undefined,
+ *  handler: function(data) {
+ *    return data.rates;
+ *  },
+ *  errors: {
+ *    400: "Malformed query.",
+ *    404: "Currency not found"
+ *  },
+ *  errorHandler: function(data) {
+ *    return data.status;
+ *  }
  * }]
  */
 ```
@@ -179,7 +224,7 @@ import { Converter } from "easy-currencies";
 
 const converter = new Converter("OpenExchangeRates", "API_KEY");
 
-console.log(converter.activeProvider()); // ...provider data
+console.log(converter.config.activeProvider()); // ...provider data
 ```
 
 ### Automatic provider fallbacks
@@ -207,16 +252,16 @@ converter.add("MyProvider", {
     multiple: "&source=%FROM%&currencies=%TO%" // the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by ','
   },
   key: "API_KEY", // your api key
-  handler: function(data) {
+  handler: function (data) {
     // the function that takes the JSON data returned by the API and returns the rate key-value object
     return data.rates;
   },
   errors: {
     // key-value object of common errors and their text representations
-    101: "Invalid API key!"
+    101: "Invalid API key!",
     201: "Invalid base currency!"
   },
-  errorHandler: function(data) {
+  errorHandler: function (data) {
     // the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)
     return data.error.code;
   }
@@ -230,7 +275,7 @@ import { Converter } from "easy-currencies";
 
 const converter = new Converter();
 
-converter.add([
+converter.addMultiple([
   { name: "Name1", provider: provider1 },
   { name: "Name2", provider: provider2 }
 ]);
