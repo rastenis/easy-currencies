@@ -112,7 +112,3 @@ jobs:
           node scripts/patch-coverage.js >> coverage-comment.md || true
           # Edit the previous comment instead of adding one per push.
           gh pr comment "$PR" --body-file coverage-comment.md --edit-last --create-if-none
-
-      - uses: coverallsapp/github-action@v2
-        with:
-          file: ./coverage/lcov.info
