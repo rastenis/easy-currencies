@@ -6,8 +6,8 @@ test("Provider operations: Initializing and getting active.", async () => {
 
   const value = converter.providers;
 
-  // expect only one active provider + the base fallback provider
-  expect(value.length).toEqual(2);
+  // one configured provider + the three implicit keyless fallbacks
+  expect(value.length).toEqual(4);
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
@@ -25,8 +25,8 @@ test("Provider operations: Initializing via ProviderReference", async () => {
 
   const value = converter.providers;
 
-  // expect only one active provider + the base fallback provider
-  expect(value.length).toEqual(2);
+  // one configured provider + the three implicit keyless fallbacks
+  expect(value.length).toEqual(4);
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
@@ -62,7 +62,7 @@ test("Provider operations: Adding provider - active.", async () => {
 
   const value = converter.providers;
 
-  expect(value.length).toEqual(3);
+  expect(value.length).toEqual(5);
 
   // expect given provider (with SetActive)
   expect(value[0]).toEqual(newProvider);
@@ -96,10 +96,10 @@ test("Provider operations: Adding provider - inactive.", async () => {
 
   const value = converter.providers;
 
-  expect(value.length).toEqual(3);
+  expect(value.length).toEqual(5);
 
-  // expect given provider (with SetActive)
-  expect(value[2]).toEqual(newProvider);
+  // appended after the implicit fallbacks
+  expect(value[value.length - 1]).toEqual(newProvider);
 
   // expect the provider to be registered in the register map
   expect(providers["MyProvider5"]).toBeDefined();
@@ -148,11 +148,11 @@ test("Provider operations: Adding multiple providers.", async () => {
 
   const value = converter.providers;
 
-  expect(value.length).toEqual(4);
+  expect(value.length).toEqual(6);
 
   // expect given provider (with SetActive)
-  expect(value[2]).toEqual(newProvider1);
-  expect(value[3]).toEqual(newProvider2);
+  expect(value[value.length - 2]).toEqual(newProvider1);
+  expect(value[value.length - 1]).toEqual(newProvider2);
 
   // expect the provider to be registered in the register map
   expect(providers["MyProvider1"]).toBeDefined();

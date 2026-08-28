@@ -120,16 +120,26 @@ console.log(value); // converted value
 
 The first column is the exact name to pass to `new Converter()`.
 
-| Name                 | Service                                                   | API key                              |
-| -------------------- | --------------------------------------------------------- | ------------------------------------ |
-| `ExchangeRateAPI`    | [exchangerate-api.com](https://www.exchangerate-api.com/) | not required (default)               |
-| `ExchangeRatesAPIIO` | [exchangeratesapi.io](https://exchangeratesapi.io/)       | required                             |
-| `CurrencyLayer`      | [currencylayer.com](https://currencylayer.com/)           | required, with base currency support |
-| `OpenExchangeRates`  | [openexchangerates.org](https://openexchangerates.org/)   | required                             |
-| `AlphaVantage`       | [alphavantage.co](https://www.alphavantage.co/)           | required                             |
-| `Fixer`              | [fixer.io](https://fixer.io/)                             | required, with base currency support |
-| `Frankfurter`        | [frankfurter.dev](https://frankfurter.dev/)               | not required, ECB rates only         |
-| `FloatRates`         | [floatrates.com](https://www.floatrates.com/)             | not required                         |
+The three keyless providers need no signup and are **used by default**: a
+`new Converter()` tries them in the order below, so a conversion keeps working
+when one of them is down. Nothing to configure.
+
+| Name              | Service                                                   | API key      |
+| ----------------- | --------------------------------------------------------- | ------------ |
+| `ExchangeRateAPI` | [exchangerate-api.com](https://www.exchangerate-api.com/) | not required |
+| `FloatRates`      | [floatrates.com](https://www.floatrates.com/)             | not required |
+| `Frankfurter`     | [frankfurter.dev](https://frankfurter.dev/)               | not required, ECB currencies only |
+
+The rest need a key from the provider. Naming one puts it first, ahead of the
+keyless providers, which stay on as fallbacks.
+
+| Name                 | Service                                                 | API key                              |
+| -------------------- | ------------------------------------------------------- | ------------------------------------ |
+| `ExchangeRatesAPIIO` | [exchangeratesapi.io](https://exchangeratesapi.io/)     | required                             |
+| `CurrencyLayer`      | [currencylayer.com](https://currencylayer.com/)         | required, with base currency support |
+| `OpenExchangeRates`  | [openexchangerates.org](https://openexchangerates.org/) | required                             |
+| `AlphaVantage`       | [alphavantage.co](https://www.alphavantage.co/)         | required                             |
+| `Fixer`              | [fixer.io](https://fixer.io/)                           | required, with base currency support |
 
 `ExchangeRateAPI` and `ExchangeRatesAPIIO` are different services with confusingly similar names.
 
@@ -197,7 +207,7 @@ console.log(converter.providers);
  *    return data.status;
  *  }
  * },
- * // the automatically inserted fallback provider (see below)
+ * // the keyless providers, added automatically as fallbacks (see below)
  * {
  *  endpoint: {
  *    base: "https://api.exchangerate-api.com/v4/latest/",
@@ -215,7 +225,9 @@ console.log(converter.providers);
  *  errorHandler: function(data) {
  *    return data.status;
  *  }
- * }]
+ * },
+ * { // FloatRates, endpoint https://www.floatrates.com/daily/ },
+ * { // Frankfurter, endpoint https://api.frankfurter.dev/v1/latest?base= }]
  */
 ```
 
