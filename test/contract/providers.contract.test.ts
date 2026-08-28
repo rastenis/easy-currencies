@@ -149,6 +149,45 @@ describe("provider fallback", () => {
     expect(mock.urls()).toHaveLength(1);
   });
 
+  it("falls back when the transport fails", async () => {
+    const { converter, mock } = withFallback(
+      transportError("ECONNREFUSED"),
+      response({ rates: { EUR: 0.9 } })
+    );
+
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).resolves.toBeCloseTo(
+      EXPECTED,
+      10
+    );
+    expect(mock.urls()).toHaveLength(2);
+  });
+
+  it("surfaces the transport error once no provider remains", async () => {
+    const { converter } = isolated(
+      PROVIDER_FIXTURES[0],
+      transportError("ECONNREFUSED")
+    );
+
+    // The original error reaches the caller, with its message intact, instead
+    // of being reported as an empty response.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
+      /ECONNREFUSED/
+    );
+  });
+
+  it("falls back on an HTTP error the provider does not recognise", async () => {
+    const { converter, mock } = withFallback(
+      httpError(500),
+      response({ rates: { EUR: 0.9 } })
+    );
+
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).resolves.toBeCloseTo(
+      EXPECTED,
+      10
+    );
+    expect(mock.urls()).toHaveLength(2);
+  });
+
   it("throws once the fallback chain is exhausted", async () => {
     const { converter, mock } = withFallback(
       response({ error: { code: 101 } }),
@@ -165,27 +204,6 @@ describe("provider fallback", () => {
 describe("known defects", () => {
   // Each test records current, wrong behaviour. When one fails, the underlying
   // bug has been fixed and the test should be inverted to assert the fix.
-
-  it("erases transport failures and reports them as empty data", async () => {
-    const { converter } = isolated(PROVIDER_FIXTURES[0], transportError("ECONNREFUSED"));
-
-    // Should surface ECONNREFUSED. fetchRates passes err.response (undefined)
-    // to the errorHandler, which throws, and the original error is lost.
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
-      /No data returned for rate fetch/
-    );
-  });
-
-  it("does not fall back when the transport fails", async () => {
-    const converter = freshConverter("CurrencyLayer", "K");
-    const mock = mockClient(transportError(), response({ rates: { EUR: 0.9 } }));
-    converter.config.setClient(mock.client);
-
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBeTruthy();
-
-    // A transient network blip should try the next provider; it never does.
-    expect(mock.urls()).toHaveLength(1);
-  });
 
   it("leaves ExchangeRatesAPIIO unable to map any of its documented errors", async () => {
     const { converter } = isolated(

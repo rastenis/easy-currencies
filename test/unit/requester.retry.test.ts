@@ -89,6 +89,55 @@ describe("429 handling", () => {
   });
 });
 
+describe("transport failures", () => {
+  const networkError = () => Object.assign(new Error("connect ECONNREFUSED"), {
+    code: "ECONNREFUSED",
+    config: { url: "https://api.example.com/rate?access_key=SUPERSECRET" }
+  });
+
+  it("classifies a rejection without a response as handled, so callers fall back", async () => {
+    const { client } = mockClient(networkError());
+
+    await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
+      handled: true
+    });
+  });
+
+  it("preserves the error code", async () => {
+    const { client } = mockClient(networkError());
+
+    await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
+      error: expect.objectContaining({ code: "ECONNREFUSED" })
+    });
+  });
+
+  it("does not carry the request URL, which embeds the API key", async () => {
+    const { client } = mockClient(networkError());
+
+    const [err] = await fetchRates(client, provider, query).catch((e) => [e]);
+
+    // Callers log these; the raw axios error would write the key to their logs.
+    expect(JSON.stringify(err) + String((err as any).error)).not.toContain(
+      "SUPERSECRET"
+    );
+  });
+
+  it("classifies an unrecognised HTTP failure as handled rather than crashing", async () => {
+    // A provider that reads errors from the response body sees nothing in an
+    // HTTP 500, so previously execution fell through to `result.data` on an
+    // undefined result.
+    const bodyErrorProvider = {
+      ...provider,
+      errorHandler: (data: any) => (data && data.error ? data.error.code : null)
+    };
+    const { client } = mockClient(httpError(500));
+
+    await expect(fetchRates(client, bodyErrorProvider, query)).rejects.toMatchObject({
+      handled: true
+    });
+  });
+});
+
 describe("error classification", () => {
   it("marks errors present in the provider's map as handled", async () => {
     const { client } = mockClient(response({ status: 101 }));
