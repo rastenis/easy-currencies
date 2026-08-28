@@ -53,6 +53,28 @@ describe("createClient", () => {
     });
   });
 
+  it("exposes response headers, lower-cased", async () => {
+    serve((_req, res) => {
+      res.writeHead(200, { "Content-Type": "application/json", "X-Mixed-Case": "v" });
+      res.end("{}");
+    });
+
+    const result = await createClient().get(base);
+
+    expect(result.headers).toMatchObject({ "x-mixed-case": "v" });
+  });
+
+  it("exposes headers on a failure too, so Retry-After survives", async () => {
+    serve((_req, res) => {
+      res.writeHead(429, { "Retry-After": "1", "Content-Type": "application/json" });
+      res.end("{}");
+    });
+
+    await expect(createClient().get(base)).rejects.toMatchObject({
+      response: { status: 429, headers: { "retry-after": "1" } }
+    });
+  });
+
   it("parses a JSON body regardless of content-type", async () => {
     // Some providers serve JSON as text/plain.
     serve((_req, res) => {

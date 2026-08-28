@@ -19,6 +19,8 @@
 export interface HttpResponse {
   status: number;
   data: any;
+  /** Lower-cased response header names. Needed for Retry-After on a 429. */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -72,15 +74,20 @@ export function createClient(options: ClientOptions = {}): HttpClient {
         data = undefined;
       }
 
+      const headers: Record<string, string> = {};
+      response.headers.forEach((value, name) => {
+        headers[name.toLowerCase()] = value;
+      });
+
       if (!response.ok) {
         const error: HttpError = new Error(
           `Request failed with status code ${response.status}`
         );
-        error.response = { status: response.status, data };
+        error.response = { status: response.status, data, headers };
         throw error;
       }
 
-      return { status: response.status, data };
+      return { status: response.status, data, headers };
     }
   };
 }
