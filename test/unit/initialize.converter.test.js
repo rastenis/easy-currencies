@@ -22,7 +22,7 @@ test("Initializes providers properly (single provider).", async () => {
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
   // second getter
@@ -40,7 +40,7 @@ test("Initializes providers properly (multiple providers).", async () => {
 
   // expect multiple providers
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
   expect(value[1].endpoint.base).toBe(

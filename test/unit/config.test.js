@@ -11,7 +11,7 @@ test("Provider operations: Initializing and getting active.", async () => {
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
 
@@ -30,7 +30,7 @@ test("Provider operations: Initializing via ProviderReference", async () => {
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
 

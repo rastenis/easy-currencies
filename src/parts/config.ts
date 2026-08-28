@@ -74,7 +74,11 @@ export class Config {
    */
   private addProviders(providers: Provider[], setActive: boolean): void {
     providers = providers.filter((p) => {
-      return !this._active.find((a) => a == p);
+      // Providers are copied per instance now, so object identity no longer
+      // identifies a duplicate; the endpoint does.
+      return !this._active.find(
+        (a) => a === p || a.endpoint.base === p.endpoint.base
+      );
     });
 
     if (setActive) {
