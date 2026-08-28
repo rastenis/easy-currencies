@@ -9,7 +9,7 @@ npm install    # also builds, via the prepare script
 npm test       # offline suite; no API keys needed
 ```
 
-Node 20 or newer. The offline suite never touches the network, so it passes on
+Node 18 or newer. The offline suite never touches the network, so it passes on
 forks, which receive no secrets.
 
 ## If CI fails with "You have changed the API signature"
