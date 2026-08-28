@@ -41,6 +41,12 @@ jobs:
       # Regenerate with `npm run api:update` and commit the diff to approve it.
       - run: npm run api:check
 
+      # A correct .api.md does not mean the published tarball resolves.
+      # These check the artifact itself: packaging correctness, and TypeScript
+      # module resolution under node10 / node16 / bundler.
+      - run: npm run lint:package
+      - run: npm run check:package
+
   coverage:
     runs-on: ubuntu-latest
     permissions:

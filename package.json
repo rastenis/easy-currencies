@@ -3,6 +3,7 @@
   "version": "1.8.3",
   "description": "A tool for easy conversion of currencies.",
   "main": "dist/index.js",
+  "type": "commonjs",
   "engines": {
     "node": ">=20"
   },
@@ -16,7 +17,9 @@
     "test:all": "jest --passWithNoTests",
     "test:coverage": "jest --selectProjects offline --coverage",
     "api:check": "npm run build && api-extractor run",
-    "api:update": "npm run build && api-extractor run --local"
+    "api:update": "npm run build && api-extractor run --local",
+    "lint:package": "publint",
+    "check:package": "attw --pack ."
   },
   "repository": {
     "type": "git",
@@ -38,12 +41,14 @@
   },
   "homepage": "https://github.com/Scharkee/easy-currencies#readme",
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@microsoft/api-extractor": "^7.59.0",
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.2",
     "dotenv": "^16.4.5",
     "jest": "^29.7.0",
+    "publint": "^0.3.24",
     "ts-jest": "^29.1.4",
     "typedoc": "^0.25.13",
     "typescript": "^5.4.5"
