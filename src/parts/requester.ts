@@ -24,14 +24,13 @@ export interface RetryOptions {
 
 /**
  * How a rate fetch failed. `handled` says whether the caller may fall back;
- * `transient` says whether the provider keeps its place. A blip is not a reason
- * to drop a provider for the process's life; an invalid key is.
+ * Every provider failure is recoverable by trying the next provider; the caller
+ * never removes one from the chain.
  */
 export interface FetchRatesError {
   /** False means fatal: the caller rethrows rather than trying another provider. */
   handled: boolean;
   /** True means try the next provider, but keep this one for later calls. */
-  transient?: boolean;
   error: unknown;
 }
 
@@ -141,7 +140,7 @@ export async function fetchRates(
       // never fell back.
       const failure: FetchRatesError = mapped
         ? { handled: true, error: mapped }
-        : { handled: true, transient: true, error };
+        : { handled: true, error };
       throw failure;
     }
 
@@ -164,7 +163,7 @@ function normalize(value: number | undefined, fallback: number): number {
 
 /** The rejection shape for a failure that should not cost the provider its place. */
 function transient(error: Error): FetchRatesError {
-  return { handled: true, transient: true, error };
+  return { handled: true, error };
 }
 
 /** The response of an HTTP failure, or undefined for anything else thrown. */
