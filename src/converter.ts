@@ -16,6 +16,15 @@ export interface rateObject {
 }
 
 /**
+ * Marks a rate map with the base currency it was fetched for.
+ *
+ * A symbol, so it never collides with a currency code and never appears in
+ * Object.keys or JSON. Rates built by hand carry no marker and are accepted
+ * as before.
+ */
+export const RATES_BASE = Symbol.for("easy-currencies.ratesBase");
+
+/**
  * Regular converter class definition.
  *
  * @export
@@ -102,6 +111,16 @@ export class Converter {
   ): Promise<number> => {
     // Returining conversion from provided rates
     if (typeof rates !== "undefined") {
+      const base = rates[RATES_BASE];
+      if (
+        typeof base === "string" &&
+        typeof from === "string" &&
+        base.toLowerCase() !== from.toLowerCase()
+      ) {
+        throw new Error(
+          `Rates were fetched for base '${base}', but conversion asked for '${from}'.`
+        );
+      }
       return this.convertRate(amount, to, rates);
     }
 
@@ -180,7 +199,15 @@ export class Converter {
     // if the error is in the list, but there are no backup providers, then throw.
     // if the error is in the list and there is a backup, log the error and continue.
     if (!err) {
-      return provider.handler(data);
+      const rates = provider.handler(data);
+      if (rates && typeof rates === "object") {
+        Object.defineProperty(rates, RATES_BASE, {
+          value: from,
+          enumerable: false,
+          configurable: true
+        });
+      }
+      return rates;
     }
 
     // unrecognized error

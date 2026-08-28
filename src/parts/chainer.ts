@@ -30,6 +30,8 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentFrom: string | undefined = undefined;
   let _currentTo: string | undefined = undefined;
   let _currentRates: any | undefined = undefined;
+  // Base currency the cached rates were fetched for.
+  let _ratesBase: string | undefined = undefined;
 
   // local converter
   const _converter = new Converter();
@@ -55,6 +57,7 @@ export function Chainer(amount: number | undefined = undefined) {
   async function _fetch() {
     // fetching rates for the base currency
     _currentRates = await _converter.getRates(<string>_currentFrom, "", true);
+    _ratesBase = _currentFrom;
     return chainable;
   }
 
@@ -79,6 +82,12 @@ export function Chainer(amount: number | undefined = undefined) {
    * @returns chainable object
    */
   function _from(from: string) {
+    // Cached rates belong to the previous base. Keeping them would silently
+    // convert with the wrong ones, so drop them and let .to() refetch.
+    if (_ratesBase !== undefined && from !== _ratesBase) {
+      _currentRates = undefined;
+      _ratesBase = undefined;
+    }
     _currentFrom = from;
     return chainable;
   }
