@@ -55,6 +55,7 @@ export class Converter {
     convert: (amount: number, from: string, to: string, rates?: any) => Promise<number>;
     convertRate: (amount: number, to: string, rates?: any) => number;
     getRates: (from: string, to: string, multiple?: boolean) => Promise<rateObject>;
+    onError: (error: unknown) => void;
     get providers(): Provider[];
     // (undocumented)
     remove: Config["remove"];
