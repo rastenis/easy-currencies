@@ -131,20 +131,30 @@ The first column is the exact name to pass to `new Converter()`.
 
 `ExchangeRateAPI` and `ExchangeRatesAPIIO` are different services with confusingly similar names.
 
-## Using proxy
+## Using a proxy or a custom client
+
+Requests go through the global fetch, which has no proxy option. Supply your own
+client to proxy, or to add an agent, retries or instrumentation.
 
 ```js
 import { Converter } from "easy-currencies";
+import { ProxyAgent } from "undici";
+
+const dispatcher = new ProxyAgent("http://127.0.0.1:8080");
 
 const converter = new Converter();
-converter.setProxyConfiguration({
-  host: "127.0.0.1",
-  port: 8080,
-  auth: { username: "user", password: "pass" }
+converter.setClient({
+  get: (url) =>
+    fetch(url, { dispatcher }).then(async (r) => ({
+      status: r.status,
+      data: await r.json()
+    }))
 });
-
-// Further usage will be proxied!
 ```
+
+A client is `{ get(url) }` resolving to `{ status, data }`. Reject with an error
+carrying `response: { status, data }` for HTTP failures, so providers can map
+their error codes.
 
 ## API
 
@@ -157,7 +167,7 @@ converter.setProxyConfiguration({
 - `add(name, provider, setActive?)`
 - `addMultiple(providers, setActive?)`
 - `remove(provider)`
-- `setProxyConfiguration({ host, port, auth })`
+- `setClient(client)`
 
 `Convert(amount?)`, chainable:
 
