@@ -82,6 +82,7 @@ export interface HttpError extends Error {
 export interface HttpResponse {
     // (undocumented)
     data: any;
+    headers?: Record<string, string>;
     // (undocumented)
     status: number;
 }
