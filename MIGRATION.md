@@ -1,29 +1,23 @@
 # Migrating from 1.x to 2.0
 
-Most code needs no change. `Convert(15).from("USD").to("EUR")` and
-`new Converter(name, key).convert(...)` work exactly as before.
+`Convert(15).from("USD").to("EUR")` and `new Converter(name, key).convert(...)`
+are unchanged. Everything else that changed is below.
 
-Everything that does change is listed below, worst first.
+## Node 18+
 
-## Node 18 or newer is required
+2.0 uses the global `fetch`. Node 16 fails with `fetch is not defined`.
 
-2.0 uses the global `fetch` instead of axios, which makes the package
-dependency-free. `fetch` landed in Node 18, so Node 16 and earlier will fail
-with `fetch is not defined`.
-
-Staying on Node 16 is a valid reason to stay on 1.x, which is still supported.
-If you need 2.0 on Node 16, polyfill before the first conversion:
+Staying on Node 16 is a valid reason to stay on 1.x. To use 2.0 there, polyfill
+before the first conversion:
 
 ```js
 const { fetch } = require("undici"); // undici@^5 supports Node 16
 globalThis.fetch = fetch;
 ```
 
-## `setProxyConfiguration` is gone
+## `setProxyConfiguration` removed
 
-`fetch` has no proxy option, so a fixed `{host, port, auth}` object cannot be
-honoured. Supply a client instead — which also covers custom agents, retries and
-instrumentation.
+`fetch` has no proxy option. Pass a client instead.
 
 ```js
 // 1.x
@@ -42,18 +36,15 @@ converter.setClient({
 });
 ```
 
-A client is `{ get(url) }` resolving to `{ status, data, headers? }`. For an
-HTTP failure, reject with an error carrying `response: { status, data, headers }`
-so providers can map their error codes, and for a transport failure reject with
-an error carrying `code`. `createClient({ timeout })` is exported if you only
-want to change the timeout.
+A client is `{ get(url) }` resolving to `{ status, data, headers? }`. Reject with
+an error carrying `response: { status, data, headers }` for an HTTP failure, or
+`code` for a transport failure.
 
-`setClient` also moved onto `Converter`; `converter.config.setClient` still works.
+To change only the timeout: `converter.setClient(createClient({ timeout: 30000 }))`.
 
 ## Errors are `Error` objects
 
-1.x threw bare strings and numbers, so `catch (e) { log(e.message) }` logged
-`undefined`.
+1.x threw strings and numbers, so `e.message` was `undefined`.
 
 ```js
 try {
@@ -66,19 +57,17 @@ try {
 }
 ```
 
-The original value is preserved on `e.cause`. Anything comparing a caught value
-with `===` against a string needs updating.
+The original value is on `e.cause`. Update any `===` comparison against a string.
 
-## Currency codes must be alphanumeric
+## Currency codes must match `/^[A-Za-z0-9]{1,16}$/`
 
-Codes are checked against `/^[A-Za-z0-9]{1,16}$/` before a request is built, and
-are percent-encoded. This closes a path-traversal hole: `from: ".."` used to
-climb the URL and return a 404 that looked like "Currency not found".
+Codes are validated and percent-encoded before a request is built. This closes a
+path traversal: `from: ".."` used to climb the URL.
 
-Every code the bundled providers accept passes — including `USDT`, `1INCH`, `0G`
-and lower-case input. Only values that were never valid currencies are rejected.
+`USDT`, `1INCH`, `0G` and lowercase input all pass. Only values that were never
+currencies are rejected.
 
-## Deep imports no longer resolve
+## Deep imports removed
 
 ```js
 // 1.x, worked by accident:
@@ -86,22 +75,21 @@ and lower-case input. Only values that were never valid currencies are rejected.
 const { providers } = require("easy-currencies");
 ```
 
-`package.json` now has an `exports` map, so only the package root resolves.
-Everything previously reachable that way is exported from the root, including the
-types: `Provider`, `Providers`, `ProviderReference`, `UserDefinedProvider`,
-`ProviderErrors`, `Config`, `rateObject`, `chainableConverter`, `HttpClient`,
-`HttpResponse`, `HttpError`, `ClientOptions`.
+`package.json` now has an `exports` map. Everything is exported from the root,
+including the types: `Provider`, `Providers`, `ProviderReference`,
+`UserDefinedProvider`, `ProviderErrors`, `Config`, `rateObject`,
+`chainableConverter`, `HttpClient`, `HttpResponse`, `HttpError`, `ClientOptions`.
 
-## Removed names
+## Renamed and removed
 
-| Removed | Use instead |
+| Removed | Use |
 | --- | --- |
-| `converter.addProvider` | `converter.add` (it was the same function) |
-| `converter.addMultipleProviders` | `converter.addMultiple` (same function) |
-| `ProxyConfiguration` type | `HttpClient` |
-| `Provider.endpoint.multiple` | nothing — it was never read |
+| `converter.addProvider` | `converter.add` |
+| `converter.addMultipleProviders` | `converter.addMultiple` |
+| `ProxyConfiguration` | `HttpClient` |
+| `Provider.endpoint.multiple` | nothing, it was never read |
 
-Custom providers no longer need a `multiple` template:
+Custom providers drop the `multiple` template:
 
 ```js
 const provider = {
@@ -114,19 +102,13 @@ const provider = {
 };
 ```
 
-## Behaviour that changed without an API change
+## Behaviour changes with no API change
 
-- **Requests time out after 10 seconds.** 1.x waited forever, so a hung vendor
-  hung the caller and the fallback never fired. Adjust with
-  `converter.setClient(createClient({ timeout: 30000 }))`.
-- **A rate of zero, a negative rate, `Infinity`, or a string with trailing
-  garbage is rejected** instead of being multiplied into a plausible wrong
-  amount. So is a non-finite amount, which used to return `NaN`.
-- **A transient failure no longer drops a provider.** Only a permanent fault — a
-  bad key, say — removes one from the rotation, so a single network blip no
-  longer strips the chain for the life of the process.
-- **`console.error` is no longer written unconditionally.** Set
-  `converter.onError = () => {}` to silence it, or route it into your logger.
-- **A provider that answers for a different base currency is rejected.** Some
-  vendors truncate an unrecognised code to a valid prefix and answer for that
-  instead.
+| Change | What to do |
+| --- | --- |
+| Requests time out after 10s. 1.x waited forever. | `setClient(createClient({ timeout }))` to adjust |
+| Zero, negative, `Infinity` and garbage rates are rejected | nothing, these produced wrong amounts before |
+| A non-finite amount throws instead of returning `NaN` | nothing |
+| A transient failure no longer drops a provider | nothing, only permanent faults evict now |
+| `console.error` is no longer unconditional | `converter.onError = () => {}` to silence |
+| A provider answering for a different base is rejected | nothing, this caught vendors truncating codes |
