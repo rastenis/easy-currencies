@@ -28,7 +28,7 @@ export interface ProviderFixture {
 // Distinct per provider, so a key leaking between instances is visible rather than silently equal.
 const key = (name: string) => `KEY_${name.toUpperCase()}`;
 
-const NO_RATE = /No data returned for rate fetch|No 'EUR' present in rates/;
+const NO_RATE = /Provider returned no usable rates|No data returned for rate fetch|No 'EUR' present in rates/;
 
 export const PROVIDER_FIXTURES: ProviderFixture[] = [
   {
