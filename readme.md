@@ -141,7 +141,7 @@ converter.setProxyConfiguration({
 
 ## API
 
-Check out the [api reference docs.](https://scharkee.github.io/easy-currencies/)
+Check out the [api reference docs.](https://rastenis.github.io/easy-currencies/)
 
 The list of configured (active) providers can be accessed like so:
 
@@ -240,4 +240,4 @@ converter.add([
 
 Submit bugs and feature requests through the project's issue tracker:
 
-[![Issues](http://img.shields.io/github/issues/Scharkee/easy-currencies.svg)](https://github.com/Scharkee/easy-currencies/issues)
+[![Issues](http://img.shields.io/github/issues/rastenis/easy-currencies.svg)](https://github.com/rastenis/easy-currencies/issues)
