@@ -3,6 +3,7 @@
   "version": "1.8.3",
   "description": "A tool for easy conversion of currencies.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "commonjs",
   "engines": {
     "node": ">=20"
@@ -11,7 +12,7 @@
     "build": "tsc",
     "prepare": "npm run build",
     "docs": "typedoc && cp ./_config.yml docs/_config.yml",
-    "prepublishOnly": "npm test",
+    "prepublishOnly": "npm run build && npm test && npm run api:check",
     "test": "jest --selectProjects offline",
     "test:live": "jest --selectProjects live --passWithNoTests --runInBand",
     "test:all": "jest --passWithNoTests",
@@ -19,7 +20,9 @@
     "api:check": "npm run build && api-extractor run",
     "api:update": "npm run build && api-extractor run --local",
     "lint:package": "publint",
-    "check:package": "attw --pack ."
+    "check:package": "attw --pack .",
+    "pretest": "npm run build",
+    "smoke:pack": "node scripts/smoke-test-tarball.js"
   },
   "repository": {
     "type": "git",

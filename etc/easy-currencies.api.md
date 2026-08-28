@@ -6,14 +6,37 @@
 
 import { AxiosInstance } from 'axios';
 
-// Warning: (ae-forgotten-export) The symbol "chainableConverter" needs to be exported by the entry point index.d.ts
-//
+// @public
+export interface chainableConverter {
+    // (undocumented)
+    amount: (val: number) => chainableConverter;
+    // (undocumented)
+    fetch: () => Promise<chainableConverter>;
+    // (undocumented)
+    from: (from: string) => chainableConverter;
+    // (undocumented)
+    rates: rateObject;
+    // (undocumented)
+    to: (to: string) => Promise<number>;
+}
+
+// @public
+export class Config {
+    constructor(...config: ProviderReference[] | undefined[] | string[]);
+    activeProvider(): Provider;
+    add: (name: string, provider: Provider, setActive?: boolean) => void;
+    addMultiple: (newProviders: UserDefinedProvider[], setActive?: boolean) => void;
+    getClient: () => AxiosInstance;
+    get providers(): Provider[];
+    remove: (provider: Provider) => void;
+    setClient: (client: AxiosInstance) => void;
+}
+
 // @public
 export function Convert(amount?: number | undefined): chainableConverter;
 
 // @public
 export class Converter {
-    // Warning: (ae-forgotten-export) The symbol "ProviderReference" needs to be exported by the entry point index.d.ts
     constructor(...config: ProviderReference[] | undefined[] | string[]);
     // (undocumented)
     get active(): Provider[];
@@ -25,24 +48,78 @@ export class Converter {
     addMultipleProviders: Config["addMultiple"];
     // (undocumented)
     addProvider: Config["add"];
-    // Warning: (ae-forgotten-export) The symbol "Config" needs to be exported by the entry point index.d.ts
     config: Config;
     convert: (amount: number, from: string, to: string, rates?: any) => Promise<number>;
     convertRate: (amount: number, to: string, rates?: any) => number;
-    // Warning: (ae-forgotten-export) The symbol "rateObject" needs to be exported by the entry point index.d.ts
     getRates: (from: string, to: string, multiple?: boolean) => Promise<rateObject>;
-    // Warning: (ae-forgotten-export) The symbol "Provider" needs to be exported by the entry point index.d.ts
     get providers(): Provider[];
     // (undocumented)
     remove: Config["remove"];
-    // Warning: (ae-forgotten-export) The symbol "ProxyConfiguration" needs to be exported by the entry point index.d.ts
     setProxyConfiguration: (proxyConfiguration: ProxyConfiguration) => void;
 }
 
-// Warning: (ae-forgotten-export) The symbol "Providers" needs to be exported by the entry point index.d.ts
-//
+// @public
+export interface Provider {
+    endpoint: {
+        base: string;
+        single: string;
+        multiple: string;
+    };
+    errorHandler: (data: any) => number | string | null;
+    errors: ProviderErrors;
+    handler: Function;
+    key: any;
+}
+
+// @public
+export interface ProviderErrors {
+    // (undocumented)
+    [code: string]: string;
+}
+
+// @public
+export interface ProviderReference {
+    // (undocumented)
+    key: any;
+    // (undocumented)
+    name: string;
+}
+
+// @public
+export interface Providers {
+    // (undocumented)
+    [name: string]: Provider;
+}
+
 // @public
 export const providers: Providers;
+
+// @public
+export interface ProxyConfiguration {
+    // (undocumented)
+    auth: {
+        username: string;
+        password: string;
+    };
+    // (undocumented)
+    host: string;
+    // (undocumented)
+    port: number;
+}
+
+// @public
+export interface rateObject {
+    // (undocumented)
+    [currencyName: string]: number;
+}
+
+// @public
+export interface UserDefinedProvider {
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    provider: Provider;
+}
 
 // (No @packageDocumentation comment for this package)
 

@@ -3,6 +3,21 @@
 
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
 
+  // api-extractor analyses with its own bundled TypeScript, which disagrees
+  // with this project's @types/node. Scoped here so the project tsconfig -
+  // which ts-jest also reads - stays strict.
+  "compiler": {
+    "overrideTsconfig": {
+      "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true
+      }
+    }
+  },
+
   "apiReport": {
     "enabled": true,
     "reportFolder": "<projectFolder>/etc/",
@@ -16,8 +31,9 @@
   "messages": {
     "extractorMessageReporting": {
       "default": { "logLevel": "warning" },
-      // The public API intentionally exposes types declared in other modules.
-      "ae-forgotten-export": { "logLevel": "none" },
+      // A type in a public signature that is not exported cannot be named by
+      // consumers, and would appear in the report as an opaque reference.
+      "ae-forgotten-export": { "logLevel": "error" },
       "ae-missing-release-tag": { "logLevel": "none" }
     },
     "tsdocMessageReporting": {
