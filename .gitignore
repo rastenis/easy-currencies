@@ -59,4 +59,7 @@ dist
 .yarn-integrity
 
 # dotenv environment variables file
-.envtemp
+.env
+
+# API Extractor scratch output; only etc/ is committed
+temp
