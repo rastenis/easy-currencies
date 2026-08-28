@@ -83,7 +83,8 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
           : response(handled!.payload);
         const { converter } = isolated(fixture, outcome);
 
-        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
+        // 2.0: thrown as a real Error, with the vendor's value on `cause`.
+        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
           handled!.message
         );
       }
@@ -98,8 +99,8 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
           : response(unhandled!.payload);
         const { converter } = isolated(fixture, outcome);
 
-        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
-          unhandled!.error
+        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toMatchObject(
+          { cause: unhandled!.error }
         );
       }
     );
@@ -147,7 +148,9 @@ describe("provider fallback", () => {
   it("does not fall back on an unhandled error", async () => {
     const { converter, mock } = withFallback(response({ error: { code: 999 } }));
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(999);
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toMatchObject({
+      cause: 999
+    });
     expect(mock.urls()).toHaveLength(1);
   });
 
@@ -197,7 +200,11 @@ describe("provider fallback", () => {
       httpError(404)
     );
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBeDefined();
+    // 2.0 throws Error objects; the message depends on which fallback
+    // surfaces, so pin the type rather than the wording.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBeInstanceOf(
+      Error
+    );
 
     // Walked past the first provider; the exact depth depends on which of the
     // fallbacks recognises a 404.
@@ -215,7 +222,8 @@ describe("known defects", () => {
       response({ Information: "API rate limit reached" })
     );
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
+    // 2.0: thrown as a real Error rather than the bare message string.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
       "API rate limit reached."
     );
   });

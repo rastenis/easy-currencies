@@ -25,6 +25,90 @@ export interface rateObject {
 export const RATES_BASE = Symbol.for("easy-currencies.ratesBase");
 
 /**
+ * How `fetchRates` describes a provider failure. `transient` distinguishes a
+ * blip, where the provider stays in the list, from a permanent fault such as a
+ * bad key, where it is dropped. Missing means false.
+ */
+interface ProviderFailure {
+  handled: boolean;
+  transient?: boolean;
+  error: unknown;
+}
+
+/** A rejection that is not contract-shaped is a bug, not a provider failure, and must not trigger fallback. */
+function isProviderFailure(value: unknown): value is ProviderFailure {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as ProviderFailure).handled === "boolean"
+  );
+}
+
+/**
+ * Providers describe failures with strings and numeric codes; consumers write
+ * `catch (e) { log(e.message) }`. Wrap so that reads something, keeping the
+ * original on `cause`.
+ */
+function asError(value: unknown): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+
+  const message =
+    typeof value === "string" && value.length > 0
+      ? value
+      : `Rate provider failed: ${String(value)}`;
+
+  const error = new Error(message);
+  (error as any).cause = value;
+  return error;
+}
+
+/** Describes a rejected rate without dumping the whole object into the message. */
+function describeRate(value: unknown): string {
+  if (typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  if (value === null || typeof value !== "object") {
+    return String(value);
+  }
+  return Array.isArray(value) ? "an array" : "an object";
+}
+
+/** A currency library must never hand back NaN. */
+function requireAmount(amount: unknown): number {
+  if (typeof amount !== "number" || !Number.isFinite(amount)) {
+    throw new Error(
+      `Conversion amount must be a finite number, received ${describeRate(
+        amount
+      )}.`
+    );
+  }
+  return amount;
+}
+
+/**
+ * Asserts that a currency argument is a non-empty string.
+ *
+ * Without this, a missing currency reached the vendor as the literal
+ * `undefined` and came back as a confusing "Currency not found".
+ *
+ * @param {unknown} currency - the value to check
+ * @param {string} label - the parameter name, so the error says which is missing
+ * @returns {string} - the validated currency
+ */
+function requireCurrency(currency: unknown, label: string): string {
+  if (typeof currency !== "string" || currency.trim().length === 0) {
+    throw new Error(
+      `The '${label}' currency must be a non-empty string, received ${describeRate(
+        currency
+      )}.`
+    );
+  }
+  return currency;
+}
+
+/**
  * Regular converter class definition.
  *
  * @export
@@ -38,6 +122,25 @@ export class Converter {
    * @memberof Converter
    */
   config: Config;
+
+  /**
+   * Called with each handled provider error before the next provider is tried.
+   *
+   * A library does not own the consumer's stderr, so this is the single point
+   * where that reporting happens. It defaults to the previous behaviour;
+   * assign your own to route the errors elsewhere, or assign a no-op to
+   * silence them entirely.
+   *
+   * @example
+   * const converter = new Converter();
+   * converter.onError = () => {};                 // silence
+   * converter.onError = (e) => logger.warn(e);    // or route
+   *
+   * @memberof Converter
+   */
+  onError: (error: unknown) => void = (error: unknown) => {
+    console.error(error);
+  };
 
   /**
    * Creates an instance of Converter.
@@ -116,6 +219,7 @@ export class Converter {
    * @param {string} from - base currency
    * @param {string} to - conversion currency
    * @param {any} rates - conversion rates, if they were pre-fetched
+   * @throws {Error} - if the amount is not finite, or a currency is missing
    * @returns {Promise<number>} - converted amount
    */
   convert = async (
@@ -124,6 +228,12 @@ export class Converter {
     to: string,
     rates: any = undefined
   ): Promise<number> => {
+    // Validating before anything is requested: an unset amount used to come
+    // back as NaN, and an unset currency reached the vendor as "undefined".
+    requireAmount(amount);
+    requireCurrency(from, "from");
+    requireCurrency(to, "to");
+
     // Returining conversion from provided rates
     if (typeof rates !== "undefined") {
       const base = rates[RATES_BASE];
@@ -143,7 +253,7 @@ export class Converter {
     const [err, data] = await _to(this.getRates(from, to, false));
 
     if (err) {
-      throw err;
+      throw asError(err);
     }
 
     if (!data || Object.keys(data).length == 0) {
@@ -156,91 +266,141 @@ export class Converter {
 
   /**
    * Performs safe multiplication to get the result amount.
+   *
+   * A usable rate is finite and greater than zero; anything else multiplies
+   * into a plausible-looking wrong amount.
+   *
    * @param {number} amount - amount to be converted
    * @param {string} to - conversion currency
    * @param {any} rates - conversion rates, if they were pre-fetched
-   * @returns
+   * @throws {Error} - if the amount, the currency, the rates or the rate is invalid
+   * @returns {number} - converted amount
    */
   convertRate = (
     amount: number,
     to: string,
     rates: any = undefined
   ): number => {
-    const keys = Object.keys(rates);
-    const rateKey = keys.find(key => key.toLowerCase() === to.toLowerCase());
-    const rate = rateKey ? rates[rateKey] : undefined;
+    requireAmount(amount);
+    requireCurrency(to, "to");
 
-    if (!rate) {
-      throw new Error(`No '${to}' present in rates: ${JSON.stringify(rates, null, 2)}`);
+    if (typeof rates !== "object" || rates === null) {
+      throw new Error(
+        `Rates must be an object mapping currency to rate, received ${describeRate(
+          rates
+        )}.`
+      );
     }
 
-    const numericRate = parseFloat(rate);
-    if (isNaN(numericRate)) {
-      throw new Error(`Invalid rate value for '${to}': ${rate}`);
+    const keys = Object.keys(rates);
+    const rateKey = keys.find(key => key.toLowerCase() === to.toLowerCase());
+
+    // Truthiness would report a present-but-zero rate as missing.
+    if (rateKey === undefined) {
+      // The full table is ~4KB in production.
+      throw new Error(
+        `No '${to}' present in rates (${keys.length} rate${
+          keys.length === 1 ? "" : "s"
+        } available).`
+      );
+    }
+
+    const raw = rates[rateKey];
+
+    // Number(["0.9"]) === 0.9, so check the type before the value.
+    const numericRate =
+      typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN;
+
+    if (!Number.isFinite(numericRate) || numericRate <= 0) {
+      throw new Error(
+        `Invalid rate value for '${to}': expected a finite number greater than zero, received ${describeRate(
+          raw
+        )}.`
+      );
     }
 
     return amount * numericRate;
   };
 
   /**
-   * Rate fetch function
+   * Rate fetch function.
+   *
+   * Walks a snapshot of the chain, so concurrent calls do not shrink each
+   * other's list. Only a permanent fault removes a provider from the shared
+   * list; a transient one is skipped for this call.
+   *
    * @param {string} from - base currency
    * @param {string} to - conversion currency
    * @param {boolean} multiple - determines conversion mode
-   * @returns
+   * @throws {Error} - if a currency is missing, or every provider failed
+   * @returns {Promise<rateObject>} - the fetched rates
    */
   getRates = async (
     from: string,
     to: string,
     multiple: boolean = false
   ): Promise<rateObject> => {
-    // Getting the current active provider
-    const provider = this.config.activeProvider();
+    requireCurrency(from, "from");
+
+    // In multiple mode the whole table is fetched for the base currency, so
+    // there is no target currency to validate.
+    if (!multiple) {
+      requireCurrency(to, "to");
+    }
+
+    // Per-call snapshot of the fallback chain.
+    const chain = [...this.config.providers];
+
+    if (chain.length === 0) {
+      throw new Error("No rate providers are configured.");
+    }
 
     // Getting the client
     const client = this.config.getClient();
 
-    // Fetching conversion rates from the active provider.
-    const [err, data] = await (<any>_to(
-      fetchRates(client, provider, {
-        FROM: from,
-        TO: to,
-        multiple: multiple
-      })
-    ));
+    let lastError: Error = new Error("No rate providers were tried.");
 
-    // error handling:
-    // if the error is not in the registered list of errors (is undefined), then throw.
-    // if the error is in the list, but there are no backup providers, then throw.
-    // if the error is in the list and there is a backup, log the error and continue.
-    if (!err) {
-      const rates = provider.handler(data);
-      if (rates && typeof rates === "object") {
-        Object.defineProperty(rates, RATES_BASE, {
-          value: from,
-          enumerable: false,
-          configurable: true
-        });
+    for (let index = 0; index < chain.length; index++) {
+      const provider = chain[index];
+
+      const [err, data] = await (<any>_to(
+        fetchRates(client, provider, {
+          FROM: from,
+          TO: to,
+          multiple: multiple
+        })
+      ));
+
+      if (!err) {
+        const rates = provider.handler(data);
+        if (rates && typeof rates === "object") {
+          Object.defineProperty(rates, RATES_BASE, {
+            value: from,
+            enumerable: false,
+            configurable: true
+          });
+        }
+        return rates;
       }
-      return rates;
+
+      // A rejection that does not follow the failure contract was not
+      // classified by the requester, so there is nothing to fall back for.
+      if (!isProviderFailure(err) || !err.handled) {
+        throw asError(isProviderFailure(err) ? err.error : err);
+      }
+
+      this.onError(err.error);
+
+      // The last provider is never removed: a converter with an empty list
+      // is dead for the rest of the process, which is worse than the fault.
+      if (!err.transient && this.config.providers.length > 1) {
+        this.config.remove(provider);
+      }
+
+      lastError = asError(err.error);
     }
 
-    // unrecognized error
-    if (!err.handled) {
-      throw err.error;
-    }
-
-    // logging existing error
-    console.error(err.error);
-
-    if (this.config.providers.length <= 1) {
-      throw err.error;
-    }
-
-    // removing current provider from active list
-    this.config.remove(provider);
-
-    // Retrying...
-    return this.getRates(from, to, multiple);
+    // Every provider in the snapshot failed.
+    throw lastError;
   };
 }

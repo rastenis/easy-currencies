@@ -4,6 +4,10 @@ test("Provider operations: Initializing and getting active.", async () => {
   // default initialization
   const converter = new Converter("CurrencyLayer", "key");
 
+  // activeProvider is public API. Converter no longer calls it — it snapshots
+  // the whole chain per call — so it needs covering here.
+  expect(converter.config.activeProvider()).toBe(converter.providers[0]);
+
   const value = converter.providers;
 
   // one configured provider + the three implicit keyless fallbacks
