@@ -14,35 +14,18 @@ export interface Query {
   multiple: boolean;
 }
 
-/**
- * Retry tuning. Both values default to the historical behaviour, so omitting
- * the argument keeps the schedule a 1.x consumer already sees.
- *
- * @export
- * @interface RetryOptions
- */
+/** Retry tuning. Defaults preserve the 1.x schedule. */
 export interface RetryOptions {
   /** Retries after the initial request before giving up. Defaults to 5. */
   maxRetries?: number;
-  /**
-   * Upper bound, in milliseconds, on a wait before jitter: the doubling backoff
-   * is clamped here and then given up to 1000ms of jitter, while a Retry-After
-   * is clamped here exactly. Defaults to 16000, the largest delay the default
-   * schedule reaches.
-   */
+  /** Upper bound in ms on a wait before jitter. Defaults to 16000. */
   maxDelay?: number;
 }
 
 /**
- * How a rate fetch failed.
- *
- * `handled` says whether the caller may fall back to another provider;
- * `transient` says whether the provider deserves to keep its place in the
- * rotation. A rate limit or a network blip is not a reason to drop a provider
- * for the rest of the process's life, while an invalid API key is.
- *
- * @export
- * @interface FetchRatesError
+ * How a rate fetch failed. `handled` says whether the caller may fall back;
+ * `transient` says whether the provider keeps its place. A blip is not a reason
+ * to drop a provider for the process's life; an invalid key is.
  */
 export interface FetchRatesError {
   /** False means fatal: the caller rethrows rather than trying another provider. */
@@ -86,9 +69,8 @@ export async function fetchRates(
     let err: unknown;
     let result: HttpResponse | undefined;
 
-    // Not `_to`: a client that rejects with a falsy value (a bare string, 0,
-    // null) is indistinguishable from success once the reason is the only
-    // signal, and the old code then read `.data` off a null result.
+    // Not `_to`: a falsy rejection reason is indistinguishable from success,
+    // and the old code then read `.data` off a null result.
     try {
       result = await client.get(formatUrl(provider, query));
     } catch (e) {
@@ -100,9 +82,7 @@ export async function fetchRates(
 
     if (failed && response?.status === 429) {
       if (attempt >= maxRetries) {
-        // A rate limit is the textbook reason to try somebody else, and it says
-        // nothing about the provider's health, so the provider stays in the
-        // rotation.
+        // A rate limit says nothing about the provider's health.
         throw transient(
           new Error(
             `Request to the provider failed: rate limited, giving up after ${
