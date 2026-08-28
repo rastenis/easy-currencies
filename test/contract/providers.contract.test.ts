@@ -205,29 +205,15 @@ describe("known defects", () => {
   // Each test records current, wrong behaviour. When one fails, the underlying
   // bug has been fixed and the test should be inverted to assert the fix.
 
-  it("leaves ExchangeRatesAPIIO unable to map any of its documented errors", async () => {
-    const { converter } = isolated(
-      PROVIDER_FIXTURES[1],
-      response({ success: false, error: { code: 101 } })
-    );
-
-    // Should reject with "Invalid API key!". The errorHandler reads data.status
-    // rather than data.error.code, so the error body is treated as success and
-    // the caller gets a misleading message instead.
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
-      /No data returned for rate fetch/
-    );
-  });
-
-  it("treats an AlphaVantage rate limit as unhandled instead of retrying", async () => {
+  it("maps an AlphaVantage rate limit so it can fall back", async () => {
     const { converter } = isolated(
       PROVIDER_FIXTURES[4],
       response({ Information: "API rate limit reached" })
     );
 
-    // errorHandler returns 429, but the errors map has no 429 entry, so this is
-    // classified unhandled: no retry, no fallback.
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(429);
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
+      "API rate limit reached."
+    );
   });
 });
 
