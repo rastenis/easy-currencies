@@ -1,7 +1,7 @@
 import { _to, sleep, checkIfProvider, checkIfUserDefinedProvider } from "../../src/parts/utils";
 
 const provider = {
-  endpoint: { base: "b", single: "s", multiple: "m" },
+  endpoint: { base: "b", single: "s" },
   key: "k",
   handler: () => ({}),
   errors: {},

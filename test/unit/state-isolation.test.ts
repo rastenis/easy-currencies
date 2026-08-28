@@ -20,7 +20,7 @@ function load() {
 
 function customProvider(): Provider {
   return {
-    endpoint: { base: "https://custom.example.com/", single: "%FROM%-%TO%", multiple: "" },
+    endpoint: { base: "https://custom.example.com/", single: "%FROM%-%TO%" },
     key: "ck",
     handler: (data: any) => data.rates,
     errors: {},

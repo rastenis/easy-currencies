@@ -47,10 +47,6 @@ export class Converter {
     add: Config["add"];
     // (undocumented)
     addMultiple: Config["addMultiple"];
-    // (undocumented)
-    addMultipleProviders: Config["addMultiple"];
-    // (undocumented)
-    addProvider: Config["add"];
     config: Config;
     convert: (amount: number, from: string, to: string, rates?: any) => Promise<number>;
     convertRate: (amount: number, to: string, rates?: any) => number;
@@ -93,7 +89,6 @@ export interface Provider {
     endpoint: {
         base: string;
         single: string;
-        multiple: string;
     };
     errorHandler: (data: any) => number | string | null;
     errors: ProviderErrors;

@@ -24,8 +24,7 @@ function fakeProvider(name: string): Provider {
     key: `key-${name}`,
     endpoint: {
       base: `https://${name}.example.com/`,
-      single: "%FROM%-%TO%",
-      multiple: ""
+      single: "%FROM%-%TO%"
     },
     handler: (data: any) => data.rates,
     errors: {},

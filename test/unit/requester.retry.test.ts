@@ -24,7 +24,7 @@ const sleepMock = sleep as unknown as jest.Mock;
 const query: Query = { FROM: "USD", TO: "EUR", multiple: false };
 
 const provider: Provider = {
-  endpoint: { base: "https://api.example.com", single: "/rate", multiple: "" },
+  endpoint: { base: "https://api.example.com", single: "/rate" },
   key: "k",
   handler: (data: any) => data.rates,
   errors: { 101: "Invalid API key!" },
