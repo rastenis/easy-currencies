@@ -25,9 +25,10 @@ export interface RetryOptions {
   /** Retries after the initial request before giving up. Defaults to 5. */
   maxRetries?: number;
   /**
-   * Upper bound, in milliseconds, on a single wait — both the doubling backoff
-   * and a Retry-After the server asked for. Defaults to 16000, the largest
-   * delay the default schedule reaches.
+   * Upper bound, in milliseconds, on a wait before jitter: the doubling backoff
+   * is clamped here and then given up to 1000ms of jitter, while a Retry-After
+   * is clamped here exactly. Defaults to 16000, the largest delay the default
+   * schedule reaches.
    */
   maxDelay?: number;
 }
