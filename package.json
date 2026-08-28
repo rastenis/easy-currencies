@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "commonjs",
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -26,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Scharkee/easy-currencies.git"
+    "url": "git+https://github.com/rastenis/easy-currencies.git"
   },
   "keywords": [
     "currency",
@@ -37,12 +40,12 @@
     "api",
     "converter"
   ],
-  "author": "Scharkee",
+  "author": "rastenis",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Scharkee/easy-currencies/issues"
+    "url": "https://github.com/rastenis/easy-currencies/issues"
   },
-  "homepage": "https://github.com/Scharkee/easy-currencies#readme",
+  "homepage": "https://github.com/rastenis/easy-currencies#readme",
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@microsoft/api-extractor": "^7.59.0",
