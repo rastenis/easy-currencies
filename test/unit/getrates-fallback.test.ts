@@ -101,8 +101,8 @@ describe("handled + transient", () => {
   });
 });
 
-describe("handled + permanent", () => {
-  it("removes the failed provider from the active list", async () => {
+describe("a provider failure never shrinks the chain", () => {
+  it("keeps the failed provider after falling back", async () => {
     const { converter, chain } = converterWith(2);
     mockFetch
       .mockImplementationOnce(
@@ -112,31 +112,27 @@ describe("handled + permanent", () => {
 
     await converter.convert(15, "USD", "EUR");
 
-    expect(converter.providers).toEqual([chain[1]]);
+    // Eviction meant one bad currency, which every provider reports, stripped
+    // the chain for the life of the process.
+    expect(converter.providers).toEqual(chain);
   });
 
-  it("never empties the chain, so the converter stays usable", async () => {
+  it("keeps the chain intact when every provider fails", async () => {
     const { converter, chain } = converterWith(2);
     mockFetch.mockImplementation(failure({ handled: true, error: "Invalid API key!" }));
 
     await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow();
 
-    // Both failed permanently, but the last one is kept: a converter with no
-    // providers is dead for the rest of the process.
-    expect(converter.providers).toEqual([chain[1]]);
+    expect(converter.providers).toEqual(chain);
   });
 
-  it("treats an explicit transient: false the same way", async () => {
-    const { converter, chain } = converterWith(2);
-    mockFetch
-      .mockImplementationOnce(
-        failure({ handled: true, transient: false, error: "Invalid API key!" })
-      )
-      .mockImplementationOnce(success());
+  it("tries every provider in the chain before giving up", async () => {
+    const { converter } = converterWith(3);
+    mockFetch.mockImplementation(failure({ handled: true, error: "Invalid API key!" }));
 
-    await converter.convert(15, "USD", "EUR");
+    await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow();
 
-    expect(converter.providers).toEqual([chain[1]]);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 });
 

@@ -51,7 +51,7 @@ it("serves two simultaneous conversions through the fallback", async () => {
   expect((results[1] as PromiseFulfilledResult<number>).value).toBeCloseTo(18, 10);
 });
 
-it("removes the permanently failed provider exactly once", async () => {
+it("leaves the chain intact however many callers race", async () => {
   const { converter, initialCount } = racingConverter();
 
   await Promise.all([
@@ -59,9 +59,8 @@ it("removes the permanently failed provider exactly once", async () => {
     converter.convert(20, "USD", "EUR")
   ]);
 
-  // Exactly one removal, however many concurrent callers raced.
-  expect(converter.providers).toHaveLength(initialCount - 1);
-  expect(converter.providers[0].endpoint.base).toContain("exchangerate-api.com");
+  // No caller mutates the shared chain, so concurrency cannot shrink it.
+  expect(converter.providers).toHaveLength(initialCount);
 });
 
 it("scales to more than two concurrent callers", async () => {

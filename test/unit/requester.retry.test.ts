@@ -110,14 +110,16 @@ describe("429 handling", () => {
     });
   });
 
-  it("does not retry non-429 failures", async () => {
+  it("does not retry a non-429 failure, but leaves it recoverable", async () => {
     const { client, get } = mockClient(httpError(500));
 
     // The 500 reaches the provider's errorHandler, which does not recognise it,
     // so it surfaces unhandled rather than being retried or swallowed.
-    await expect(fetchRates(client, provider, query)).rejects.toEqual({
-      handled: false,
-      error: 500
+    // Transient, not fatal: a 500 the provider does not enumerate says nothing
+    // about the providers behind it, so the caller must be free to try them.
+    await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
+      handled: true,
+      transient: true
     });
 
     expect(get).toHaveBeenCalledTimes(1);
@@ -414,11 +416,12 @@ describe("error classification", () => {
     expect(await failureOf(client)).not.toHaveProperty("transient");
   });
 
-  it("marks errors absent from the provider's map as unhandled", async () => {
+  it("marks errors absent from the provider's map as transient", async () => {
     const { client } = mockClient(response({ status: 999 }));
 
-    await expect(fetchRates(client, provider, query)).rejects.toEqual({
-      handled: false,
+    await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
+      handled: true,
+      transient: true,
       error: 999
     });
   });

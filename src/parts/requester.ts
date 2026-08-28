@@ -112,18 +112,36 @@ export async function fetchRates(
     }
 
     // resolving error
-    const error = provider.errorHandler(
-      failed ? response : (result as HttpResponse).data
-    );
+    // Providers read fields off the body without guards, and the client sets
+    // data to undefined for an unparseable response, so a vendor serving an
+    // outage page makes the handler throw. That is this provider's failure,
+    // not a reason to abandon the ones behind it.
+    let error: number | string | null;
+    try {
+      error = provider.errorHandler(
+        failed ? response : (result as HttpResponse).data
+      );
+    } catch (e) {
+      throw transient(
+        e instanceof Error ? e : new Error(`Provider callback failed: ${String(e)}`)
+      );
+    }
 
     // returning either the meaning of the error (if registered in provider's definition), or the error itself.
     if (error) {
-      // A mapped error is a verdict on the provider itself (bad key, plan too
-      // small), so it is deliberately not transient: the caller may drop it.
-      // One the provider does not recognise is not ours to interpret at all.
-      const failure: FetchRatesError = provider.errors[error]
-        ? { handled: true, error: provider.errors[error] }
-        : { handled: false, error };
+      // Own-property lookup: an errorHandler returning "constructor" would
+      // otherwise find Object.prototype.constructor and read as a mapped error.
+      const mapped = Object.prototype.hasOwnProperty.call(provider.errors, error)
+        ? provider.errors[error]
+        : undefined;
+
+      // A code the provider does not enumerate is not a verdict on the chain.
+      // Treating it as fatal meant a 500 from any provider whose errorHandler
+      // reads the HTTP status ended the call outright, so the default chain
+      // never fell back.
+      const failure: FetchRatesError = mapped
+        ? { handled: true, error: mapped }
+        : { handled: true, transient: true, error };
       throw failure;
     }
 

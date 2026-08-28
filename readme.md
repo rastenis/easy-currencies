@@ -7,7 +7,7 @@ Convert currencies with ease! Eight exchange rate providers to choose from, othe
 
 ## Features
 
-- Easily convert currencies using one of the six built-in API providers
+- Easily convert currencies using one of the eight built-in API providers
 - Two modes of operation:
   - Easy mode - no configuration or API keys required at all
   - Custom mode - choose one or more providers, use key-gated providers.
@@ -150,25 +150,58 @@ keyless providers, which stay on as fallbacks.
 Requests go through the global fetch, which has no proxy option. Supply your own
 client to proxy, or to add an agent, retries or instrumentation.
 
+If you already use axios, an axios instance satisfies the client interface as
+is, including the rejection behaviour the fallback chain depends on:
+
 ```js
-import { Converter } from "easy-currencies";
+import axios from "axios";
+
+converter.setClient(axios.create({ proxy: { host: "127.0.0.1", port: 8080 } }));
+```
+
+To stay dependency-free, use an undici dispatcher. **A client must reject on an
+HTTP failure with the response attached.** `fetch` resolves on 4xx and 5xx, so a
+client that does not check `r.ok` silently disables provider error mapping, the
+429 retry and the fallback chain:
+
+```js
 import { ProxyAgent } from "undici";
 
 const dispatcher = new ProxyAgent("http://127.0.0.1:8080");
 
-const converter = new Converter();
 converter.setClient({
-  get: (url) =>
-    fetch(url, { dispatcher }).then(async (r) => ({
-      status: r.status,
-      data: await r.json()
-    }))
+  get: async (url) => {
+    const r = await fetch(url, { dispatcher });
+    let data;
+    try {
+      data = await r.json();
+    } catch {
+      data = undefined;
+    }
+    const headers = Object.fromEntries(r.headers);
+
+    if (!r.ok) {
+      const err = new Error(`Request failed with status code ${r.status}`);
+      err.response = { status: r.status, data, headers };
+      throw err;
+    }
+    return { status: r.status, data, headers };
+  }
 });
 ```
 
-A client is `{ get(url) }` resolving to `{ status, data }`. Reject with an error
-carrying `response: { status, data }` for HTTP failures, so providers can map
-their error codes.
+A client is `{ get(url) }` resolving to `{ status, data, headers? }`. `headers`
+is optional and enables `Retry-After` handling on a 429. TypeScript users passing
+`dispatcher` to `fetch` need `{ dispatcher } as any`; it is not in the DOM
+`RequestInit` type.
+
+To keep the built-in client and change only the timeout:
+
+```js
+import { createClient } from "easy-currencies";
+
+converter.setClient(createClient({ timeout: 30000 })); // default is 10000
+```
 
 ## API
 
@@ -206,7 +239,6 @@ console.log(converter.providers);
  *  endpoint: {
  *    base: "https://openexchangerates.org/api/latest.json?app_id=%KEY%",
  *    single: "&base=%FROM%",
- *    multiple: "&base=%FROM%"
  *  },
  *  key: "API_KEY",
  *  handler: function(data) {
@@ -224,7 +256,6 @@ console.log(converter.providers);
  *  endpoint: {
  *    base: "https://api.exchangerate-api.com/v4/latest/",
  *    single: "%FROM%",
- *    multiple: "%FROM%"
  *  },
  *  key: undefined,
  *  handler: function(data) {
@@ -274,8 +305,7 @@ converter.add("MyProvider", {
   // the name of the custom provider
   endpoint: {
     base: "http://myprovider.net/api/live?access_key=%KEY%", // the base endpoint of the conversion API, with %KEY% being the api key's slot
-    single: "&source=%FROM%", // the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation
-    multiple: "&source=%FROM%&currencies=%TO%" // the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by ','
+    single: "&source=%FROM%" // the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation
   },
   key: "API_KEY", // your api key
   handler: function (data) {

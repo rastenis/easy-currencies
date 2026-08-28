@@ -53,13 +53,29 @@ jobs:
       # an unattested tarball.
       - run: npm publish --access public --provenance
 
-      # Proves the attestation actually landed, rather than trusting the exit code.
+      # Audits the PUBLISHED package, not this repo's dependencies: running
+      # `npm audit signatures` here would report on devDependencies and say
+      # nothing about the tarball just pushed.
       - name: Verify the published attestation
-        run: npm audit signatures
+        run: |
+          DIR="$(mktemp -d)"
+          cd "$DIR"
+          npm init -y >/dev/null
+          npm i --no-audit --no-fund "easy-currencies@${GITHUB_REF_NAME#v}"
+          npm audit signatures
 
       # Merged PR titles become the release notes, so there is no changelog to
       # keep in sync.
+      # Generated notes are merged PR titles, which do not tell a consumer what
+      # to change. A file under .github/release-notes/ is prepended when present.
       - name: Create the GitHub Release
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        run: |
+          NOTES_FILE=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag \
+              --notes "$(cat "$NOTES_FILE")"
+          else
+            gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
         env:
           GH_TOKEN: ${{ github.token }}

@@ -127,6 +127,56 @@ function requireCurrency(currency: unknown, label: string): string {
 }
 
 /**
+ * Reads the rates out of a successful response.
+ *
+ * Returns the failure rather than throwing, so the caller can move to the next
+ * provider: a vendor answering for a different base, or a handler that trips on
+ * an unexpected shape, says nothing about the providers behind it.
+ */
+function readRates(
+  provider: Provider,
+  data: any,
+  from: string
+): [Error | null, rateObject] {
+  // Some vendors truncate an unrecognised code to a valid prefix and answer for
+  // that instead: exchangerate-api turns "CNYqqqwwC" into "CNY".
+  const echoed = data && (data.base || data.source);
+  if (typeof echoed === "string" && echoed.toLowerCase() !== from.toLowerCase()) {
+    return [
+      new Error(
+        `Provider answered for base '${echoed}', not the requested '${from}'.`
+      ),
+      {}
+    ];
+  }
+
+  let rates: any;
+  try {
+    rates = provider.handler(data);
+  } catch (e) {
+    return [asError(e), {}];
+  }
+
+  if (!rates || typeof rates !== "object") {
+    return [new Error("Provider returned no usable rates."), {}];
+  }
+
+  // A handler may return a frozen or memoised table; the marker is a
+  // convenience, not a reason to reject an otherwise usable response.
+  try {
+    Object.defineProperty(rates, RATES_BASE, {
+      value: from,
+      enumerable: false,
+      configurable: true
+    });
+  } catch {
+    /* not extensible */
+  }
+
+  return [null, rates];
+}
+
+/**
  * Regular converter class definition.
  *
  * @export
@@ -387,27 +437,16 @@ export class Converter {
       ));
 
       if (!err) {
-        // Some vendors truncate an unrecognised code to a valid prefix and answer
-        // for that instead: exchangerate-api turns "CNYqqqwwC" into "CNY".
-        const echoed = data && (data.base || data.source);
-        if (
-          typeof echoed === "string" &&
-          echoed.toLowerCase() !== from.toLowerCase()
-        ) {
-          throw new Error(
-            `Provider answered for base '${echoed}', not the requested '${from}'.`
-          );
+        // A provider answering wrongly, or a handler throwing on a shape it did
+        // not expect, is that provider's failure. Aborting here would give up on
+        // the healthy providers behind it.
+        const [failure, rates] = readRates(provider, data, from);
+        if (!failure) {
+          return rates;
         }
-
-        const rates = provider.handler(data);
-        if (rates && typeof rates === "object") {
-          Object.defineProperty(rates, RATES_BASE, {
-            value: from,
-            enumerable: false,
-            configurable: true
-          });
-        }
-        return rates;
+        this.onError(failure);
+        lastError = failure;
+        continue;
       }
 
       // A rejection that does not follow the failure contract was not
@@ -417,13 +456,6 @@ export class Converter {
       }
 
       this.onError(err.error);
-
-      // The last provider is never removed: a converter with an empty list
-      // is dead for the rest of the process, which is worse than the fault.
-      if (!err.transient && this.config.providers.length > 1) {
-        this.config.remove(provider);
-      }
-
       lastError = asError(err.error);
     }
 

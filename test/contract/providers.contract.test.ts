@@ -124,25 +124,31 @@ describe("provider fallback", () => {
     expect(mock.urls()[1]).toContain("exchangerate-api.com");
   });
 
-  it("drops the failed provider from the active list", async () => {
+  it("keeps the failed provider in the chain", async () => {
     const { converter } = withFallback(
       response({ error: { code: 101 } }),
       response({ rates: { EUR: 0.9 } })
     );
 
+    const before = converter.active.length;
+
     await converter.convert(AMOUNT, "USD", "EUR");
 
-    expect(converter.active).toHaveLength(IMPLICIT_FALLBACKS);
-    expect(converter.active[0].endpoint.base).toContain("exchangerate-api.com");
+    // A failure is about this call, not the provider's fitness: evicting meant
+    // one unknown currency stripped the chain for the life of the process.
+    expect(converter.active).toHaveLength(before);
   });
 
-  it("does not fall back on an unhandled error", async () => {
-    const { converter, mock } = withFallback(response({ error: { code: 999 } }));
+  it("falls back on a code the provider does not enumerate", async () => {
+    const { converter, mock } = withFallback(
+      response({ error: { code: 999 } }),
+      response({ rates: { EUR: 0.9 } })
+    );
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toMatchObject({
-      cause: 999
-    });
-    expect(mock.urls()).toHaveLength(1);
+    // Treating an unrecognised code as fatal meant a vendor 500 ended the call
+    // outright for every provider whose errorHandler reads the HTTP status.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).resolves.toBeDefined();
+    expect(mock.urls().length).toBeGreaterThan(1);
   });
 
   it("falls back when the transport fails", async () => {
