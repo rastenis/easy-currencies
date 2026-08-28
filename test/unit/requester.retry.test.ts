@@ -113,7 +113,12 @@ describe("429 handling", () => {
   it("does not retry non-429 failures", async () => {
     const { client, get } = mockClient(httpError(500));
 
-    await expect(fetchRates(client, provider, query)).rejects.toBeDefined();
+    // The 500 reaches the provider's errorHandler, which does not recognise it,
+    // so it surfaces unhandled rather than being retried or swallowed.
+    await expect(fetchRates(client, provider, query)).rejects.toEqual({
+      handled: false,
+      error: 500
+    });
 
     expect(get).toHaveBeenCalledTimes(1);
     expect(sleepMock).not.toHaveBeenCalled();

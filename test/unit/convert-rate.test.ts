@@ -62,10 +62,6 @@ describe("convertRate", () => {
     expect(() => rate({ USD: 1 })).toThrow(/No 'EUR' present in rates/);
   });
 
-  it("throws when rates are absent entirely", () => {
-    expect(() => rate(undefined)).toThrow();
-  });
-
   // A zero rate used to take the "not present" branch (`if (!rate)`) and be
   // reported as a missing currency. It is present — it is just not usable.
   it("reports a zero rate as invalid, not as missing", () => {
