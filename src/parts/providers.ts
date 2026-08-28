@@ -259,6 +259,47 @@ export const providers: Providers = Object.assign(Object.create(null), {
     errorHandler: function (data: any) {
       return data.error ? data.error.code : null;
     }
+  },
+  Frankfurter: {
+    // Keyless, ECB-sourced. `symbols` is deliberately not used: the API 404s on
+    // a symbol outside its 29-currency set, so narrowing the response would turn
+    // an unsupported target into an HTTP failure instead of a plain miss.
+    endpoint: {
+      base: "https://api.frankfurter.dev/v1/latest?base=",
+      single: "%FROM%",
+      multiple: "%FROM%"
+    },
+    key: undefined,
+    handler: function (data: any) {
+      return data.rates;
+    },
+    // Verified live: an unknown base returns 404 with {"message":"not found"}.
+    errors: { 404: "Currency not found or not supported by Frankfurter." },
+    errorHandler: function (data: any) {
+      return data.status;
+    }
+  },
+  FloatRates: {
+    // Keyless. The path segment is a currency code; the host accepts it in
+    // upper case, so no case transform is needed.
+    endpoint: {
+      base: "https://www.floatrates.com/daily/",
+      single: "%FROM%.json",
+      multiple: "%FROM%.json"
+    },
+    key: undefined,
+    handler: function (data: any) {
+      const map = {} as any;
+      Object.keys(data).map((key) => {
+        map[data[key].code] = parseFloat(data[key].rate);
+      });
+      return map;
+    },
+    // Verified live: an unknown currency returns 403 with an empty body.
+    errors: { 403: "Currency not found or not supported by FloatRates." },
+    errorHandler: function (data: any) {
+      return data.status;
+    }
   }
 });
 

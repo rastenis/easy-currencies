@@ -98,5 +98,33 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
     success: { rates: { EUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
     emptyResponse: NO_RATE
+  },
+  {
+    name: "Frankfurter",
+    url: "https://api.frankfurter.dev/v1/latest?base=USD",
+    // Real shape, trimmed: the body carries amount/base/date alongside `rates`.
+    success: { amount: 1.0, base: "USD", date: "2026-08-27", rates: { EUR: RATE } },
+    // Verified live: GET /v1/latest?base=XYZ -> 404 {"message":"not found"}.
+    handledError: { http: 404, payload: { message: "not found" }, message: "Currency not found or not supported by Frankfurter." },
+    emptyResponse: NO_RATE
+  },
+  {
+    name: "FloatRates",
+    url: "https://www.floatrates.com/daily/USD.json",
+    // Real shape, trimmed: keys are lower case, rates are strings.
+    success: {
+      eur: {
+        code: "EUR",
+        alphaCode: "EUR",
+        numericCode: "978",
+        name: "Euro",
+        rate: String(RATE),
+        date: "Thu, 27 Aug 2026 23:59:00 GMT",
+        inverseRate: "1.11111111"
+      }
+    },
+    // Verified live: GET /daily/XYZ.json -> 403 with an empty (unparseable) body.
+    handledError: { http: 403, message: "Currency not found or not supported by FloatRates." },
+    emptyResponse: NO_RATE
   }
 ];
