@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    name: test (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x, 22.x, 24.x]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # `npm ci` runs prepare -> tsc, so this also verifies the build.
+      - run: npm ci
+      # Offline suite only: no secrets, so this passes on fork PRs.
+      - run: npm test
+
+  coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - run: npm ci
+      - run: npm run test:coverage
+
+      # Renders the figures on the run page; `always()` so they still show when
+      # the coverage threshold is what failed the job.
+      - name: Coverage summary
+        if: always()
+        run: node scripts/coverage-summary.js >> "$GITHUB_STEP_SUMMARY"
+
+      # Forks get a read-only token, so skip there rather than failing the job;
+      # they still get the figures in the step summary above.
+      - name: Comment coverage on PR
+        if: >
+          always() && github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          node scripts/coverage-summary.js > coverage-comment.md
+          # Edit the previous comment instead of adding one per push.
+          gh pr comment "$PR" --body-file coverage-comment.md --edit-last --create-if-none
+
+      - uses: coverallsapp/github-action@v2
+        with:
+          file: ./coverage/lcov.info

@@ -1,9 +1,8 @@
 # easy-currencies
 
 [![npm version](http://img.shields.io/npm/v/easy-currencies.svg?style=flat)](https://npmjs.org/package/easy-currencies "View this project on npm")
-[![Status](https://travis-ci.com/Scharkee/easy-currencies.svg?branch=master)](https://travis-ci.com/scharkee/easy-currencies)
-[![Coverage Status](https://coveralls.io/repos/github/Scharkee/easy-currencies/badge.svg?branch=master)](https://coveralls.io/github/Scharkee/easy-currencies?branch=master)
-[![David](https://img.shields.io/david/scharkee/easy-currencies.svg)](https://david-dm.org/scharkee/easy-currencies)
+[![CI](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml/badge.svg)](https://github.com/rastenis/easy-currencies/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/rastenis/easy-currencies/badge.svg?branch=master)](https://coveralls.io/github/rastenis/easy-currencies?branch=master)
 
 Convert currencies with ease! Five exchange rate providers to choose from, others easily implementable.
 

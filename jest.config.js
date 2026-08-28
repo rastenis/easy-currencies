@@ -41,5 +41,12 @@ module.exports = {
       ]
     }
   ],
-  collectCoverageFrom: ["src/**/*.ts", "!src/index.ts"]
+  collectCoverageFrom: ["src/**/*.ts", "!src/index.ts"],
+  coverageReporters: ["text", "text-summary", "lcov", "json-summary"],
+
+  // A gate, not a dashboard: a PR that drops coverage fails here. Set a little
+  // below current levels so ordinary refactors don't trip it.
+  coverageThreshold: {
+    global: { statements: 95, branches: 90, functions: 95, lines: 95 }
+  }
 };
