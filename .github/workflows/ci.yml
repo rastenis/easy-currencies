@@ -26,6 +26,40 @@ jobs:
       # Offline suite only: no secrets, so this passes on fork PRs.
       - run: npm test
 
+  api-surface:
+    name: api surface
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - run: npm ci
+      # Fails when the public API differs from etc/easy-currencies.api.md.
+      # Regenerate with `npm run api:update` and commit the diff to approve it.
+      - run: npm run api:check
+
+      # The report says only THAT the API changed; show what, so a contributor
+      # does not have to reproduce the toolchain to find out.
+      - name: Show API diff
+        if: failure()
+        run: |
+          echo "The public API changed. To accept it: npm run api:update, then commit etc/easy-currencies.api.md"
+          git --no-pager diff --no-index --color=always \
+            etc/easy-currencies.api.md temp/easy-currencies.api.md || true
+
+      # A correct .api.md does not mean the published tarball resolves.
+      # These check the artifact itself: packaging correctness, and TypeScript
+      # module resolution under node10 / node16 / bundler.
+      - run: npm run lint:package
+      - run: npm run check:package
+      # Neither of the above executes the package; this installs and imports it.
+      - run: npm run smoke:pack
+
   coverage:
     runs-on: ubuntu-latest
     permissions:

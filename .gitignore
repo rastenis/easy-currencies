@@ -60,3 +60,6 @@ dist
 
 # dotenv environment variables file
 .env
+
+# API Extractor scratch output; only etc/ is committed
+temp

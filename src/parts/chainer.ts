@@ -6,7 +6,7 @@ import { _to } from "../parts/utils"
  *
  * @interface chainableConverter
  */
-interface chainableConverter {
+export interface chainableConverter {
   from: (from: string) => chainableConverter;
   to: (to: string) => Promise<number>;
   fetch: () => Promise<chainableConverter>;
