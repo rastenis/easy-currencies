@@ -1,16 +1,16 @@
 {
   "name": "easy-currencies",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "A tool for easy conversion of currencies.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "commonjs",
+  "engines": {
+    "node": ">=16"
+  },
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
