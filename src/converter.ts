@@ -232,10 +232,12 @@ export class Converter {
    * @memberof Converter
    */
   get providers(): Provider[] {
-    return this.config.providers;
+    // A copy: the readme tells callers to read this, and handing back the live
+    // array lets `providers.length = 0` empty the chain.
+    return [...this.config.providers];
   }
   get active(): Provider[] {
-    return this.config.providers;
+    return [...this.config.providers];
   }
 
   /*
@@ -296,7 +298,7 @@ export class Converter {
     requireCurrency(to, "to");
 
     // Returining conversion from provided rates
-    if (typeof rates !== "undefined") {
+    if (rates !== undefined && rates !== null) {
       const base = rates[RATES_BASE];
       if (
         typeof base === "string" &&

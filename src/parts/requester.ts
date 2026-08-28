@@ -309,8 +309,11 @@ function formatUrl(provider: Provider, query: Query): string {
   // "USD&access_key=x" adding a parameter, or "../.." traversing the path.
   const put = (value: string) => () => encodeURIComponent(value);
 
+  // Global patterns, not string patterns: a template using a token twice would
+  // otherwise ship the second one to the vendor literally. Kept as a regex
+  // rather than replaceAll so the emit stays ES2015 for older bundlers.
   return (provider.endpoint.base + provider.endpoint.single)
-    .replace("%FROM%", put(query.FROM))
-    .replace("%TO%", put(query.TO))
-    .replace("%KEY%", put(provider.key || ""));
+    .replace(/%FROM%/g, put(query.FROM))
+    .replace(/%TO%/g, put(query.TO))
+    .replace(/%KEY%/g, put(provider.key || ""));
 }
