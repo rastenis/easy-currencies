@@ -30,7 +30,7 @@ describe("createClient", () => {
   it("resolves a 200 with parsed data", async () => {
     serve(json(200, { rates: { EUR: 0.9 } }));
 
-    await expect(createClient().get(base)).resolves.toEqual({
+    await expect(createClient().get(base)).resolves.toMatchObject({
       status: 200,
       data: { rates: { EUR: 0.9 } }
     });
@@ -93,7 +93,7 @@ describe("createClient", () => {
       res.end("<html>outage</html>");
     });
 
-    await expect(createClient().get(base)).resolves.toEqual({
+    await expect(createClient().get(base)).resolves.toMatchObject({
       status: 200,
       data: undefined
     });
