@@ -1,0 +1,58 @@
+name: Release
+
+# Publishing happens here, not from a laptop. To release:
+#   npm version 1.9.0 && git push --follow-tags
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub Release
+      id-token: write # OIDC, for npm provenance
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # A tag that disagrees with package.json makes the tag useless as an
+      # answer to "what source is in this tarball".
+      - name: Check the tag matches package.json
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "tag $TAG does not match package.json $PKG"
+            exit 1
+          fi
+
+      - run: npm ci
+
+      # The same gates CI runs, against the exact tagged tree.
+      - run: npm test
+      - run: npm run api:check
+      - run: npm run lint:package
+      - run: npm run check:package
+      - run: npm run smoke:pack
+
+      # Trusted publishing needs a recent npm; it mints a short-lived token from
+      # the OIDC claim, so there is no NPM_TOKEN to leak or rotate.
+      - run: npm install -g npm@latest
+
+      - run: npm publish --access public
+
+      # Merged PR titles become the release notes, so there is no changelog to
+      # keep in sync.
+      - name: Create the GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
