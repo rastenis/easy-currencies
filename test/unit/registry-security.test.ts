@@ -52,9 +52,12 @@ describe("instance isolation", () => {
   it("still de-duplicates the auto-inserted fallback", () => {
     // Copies broke identity-based de-duplication; the endpoint identifies a
     // duplicate instead.
-    expect(new Converter().providers).toHaveLength(1);
-    expect(new Converter("ExchangeRateAPI").providers).toHaveLength(1);
-    expect(new Converter("Fixer", "k").providers).toHaveLength(2);
+    // Three keyless providers are added implicitly; naming one must not
+    // duplicate it.
+    expect(new Converter().providers).toHaveLength(3);
+    expect(new Converter("ExchangeRateAPI").providers).toHaveLength(3);
+    expect(new Converter("Frankfurter").providers).toHaveLength(3);
+    expect(new Converter("Fixer", "k").providers).toHaveLength(4);
   });
 });
 
