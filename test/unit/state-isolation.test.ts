@@ -6,8 +6,8 @@ import { Provider } from "../../src/parts/providers";
  * resolveProvider both mutates it and returns the shared object, so Converter
  * instances share provider state.
  *
- * These tests assert current, wrong behaviour. When one fails, the bug is fixed
- * and the test should be inverted to assert isolation.
+ * Instances must not share provider state: resolveProvider copies the template
+ * rather than handing back the shared object.
  */
 
 function load() {
@@ -28,7 +28,7 @@ function customProvider(): Provider {
   };
 }
 
-it("lets a second converter overwrite the first one's API key", async () => {
+it("keeps each converter's API key when two use the same provider", async () => {
   const Converter = load();
   const first = new Converter("Fixer", "KEY_ONE");
   new Converter("Fixer", "KEY_TWO");
@@ -38,9 +38,8 @@ it("lets a second converter overwrite the first one's API key", async () => {
 
   await first.convert(15, "USD", "EUR");
 
-  // The first converter sends the second converter's credentials.
-  expect(mock.url()).toContain("KEY_TWO");
-  expect(mock.url()).not.toContain("KEY_ONE");
+  expect(mock.url()).toContain("KEY_ONE");
+  expect(mock.url()).not.toContain("KEY_TWO");
 });
 
 it("refuses a provider name already registered by an unrelated instance", () => {

@@ -43,19 +43,18 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
   {
     name: "ExchangeRatesAPIIO",
     key: key("ExchangeRatesAPIIO"),
-    url: `http://api.exchangeratesapi.io/latest?access_key=${key(
+    url: `https://api.exchangeratesapi.io/latest?access_key=${key(
       "ExchangeRatesAPIIO"
     )}&base=USD&symbols=EUR`,
     success: { rates: { EUR: RATE } },
-    // Verified against the live endpoint: apilayer returns { error: { code } },
-    // but this provider's errorHandler reads data.status, so 101/105/201 are all
-    // unreachable — no error of any kind is recognised. See "known defects".
+    // Verified against the live endpoint: apilayer signals in the body.
+    handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
     emptyResponse: NO_RATE
   },
   {
     name: "CurrencyLayer",
     key: key("CurrencyLayer"),
-    url: `http://apilayer.net/api/live?access_key=${key("CurrencyLayer")}&source=USD`,
+    url: `https://apilayer.net/api/live?access_key=${key("CurrencyLayer")}&source=USD`,
     // Quotes are prefixed with the source currency.
     success: { quotes: { USDEUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
@@ -100,7 +99,7 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
   {
     name: "Fixer",
     key: key("Fixer"),
-    url: `http://data.fixer.io/api/latest?access_key=${key("Fixer")}&base=USD&symbols=EUR`,
+    url: `https://data.fixer.io/api/latest?access_key=${key("Fixer")}&base=USD&symbols=EUR`,
     success: { rates: { EUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
     emptyResponse: NO_RATE

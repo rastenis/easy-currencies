@@ -65,7 +65,11 @@ export class Config {
    */
   private addProviders(providers: Provider[], setActive: boolean): void {
     providers = providers.filter((p) => {
-      return !this._active.find((a) => a == p);
+      // Providers are copied per instance now, so object identity no longer
+      // identifies a duplicate; the endpoint does.
+      return !this._active.find(
+        (a) => a === p || a.endpoint.base === p.endpoint.base
+      );
     });
 
     if (setActive) {
@@ -103,15 +107,22 @@ export class Config {
     newProviders: UserDefinedProvider[],
     setActive: boolean = false
   ): void => {
-    // Duplicate check
+    if (!Array.isArray(newProviders)) {
+      throw new Error("Providers must be given as an array.");
+    }
+
+    // Validate the whole batch before registering any of it, so a bad entry
+    // cannot leave earlier ones half-registered and unusable on retry.
     newProviders.forEach((p) => {
       if (!checkIfUserDefinedProvider(p)) {
-        throw "Invalid provider format!";
+        throw new Error("Invalid provider format!");
       }
+      if (Object.prototype.hasOwnProperty.call(providers, p.name)) {
+        throw new Error("A provider by this name is already registered!");
+      }
+    });
 
-      if (providers[p.name]) {
-        throw "A provider by this name is already registered!";
-      }
+    newProviders.forEach((p) => {
       providers[p.name] = p.provider;
     });
 
@@ -175,7 +186,15 @@ export function resolveProviders(
     typeof configuration[0] !== "undefined" &&
     typeof configuration[0] !== "string"
   ) {
-    throw "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)";
+    throw new Error(
+      "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)"
+    );
+  }
+
+  // typeof null is "object", and the signature permits undefined[], so both
+  // reach resolveProvider and crash there without this.
+  if (configuration[0] === null || configuration[0] === undefined) {
+    return [providers.ExchangeRateAPI];
   }
 
   // returning single provider

@@ -22,7 +22,7 @@ test("Initializes providers properly (single provider).", async () => {
 
   // expect given provider
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
   // second getter
@@ -40,7 +40,7 @@ test("Initializes providers properly (multiple providers).", async () => {
 
   // expect multiple providers
   expect(value[0].endpoint.base).toBe(
-    "http://apilayer.net/api/live?access_key=%KEY%"
+    "https://apilayer.net/api/live?access_key=%KEY%"
   );
   expect(value[0].key).toBe("key");
   expect(value[1].endpoint.base).toBe(
@@ -60,7 +60,7 @@ test("Fails to initialize properly (invalid provider).", async () => {
     error = e;
   }
 
-  expect(error).toBe(
+  expect(error.message).toBe(
     "No provider with this name. Please use a provider from the supported providers list."
   );
 });
@@ -74,7 +74,7 @@ test("Fails to initialize properly (invalid provider object).", async () => {
     error = e;
   }
 
-  expect(error).toBe(
+  expect(error.message).toBe(
     "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)"
   );
 });
