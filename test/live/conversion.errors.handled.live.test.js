@@ -1,5 +1,5 @@
-const { Converter, Convert, utils } = require("../dist");
-const { _to } = require("../dist/parts/utils");
+const { Converter, Convert, utils } = require("../../src");
+const { _to } = require("../../src/parts/utils");
 
 /**
  * Invalid currencies

@@ -1,4 +1,4 @@
-const { Convert } = require("../dist");
+const { Convert } = require("../../src");
 
 test("Converts (chained) an amount of given currency.", async () => {
   // chainer (easy mode)

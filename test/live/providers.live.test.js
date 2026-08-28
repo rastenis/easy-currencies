@@ -1,4 +1,4 @@
-const { Converter } = require("../dist");
+const { Converter } = require("../../src");
 
 test("Converts an amount of given currency (ExchangeRateAPI).", async () => {
   const converter = new Converter("ExchangeRateAPI");

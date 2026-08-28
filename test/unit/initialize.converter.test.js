@@ -1,4 +1,4 @@
-const { Converter } = require("../dist");
+const { Converter } = require("../../src");
 
 test("Initializes providers properly (no provider).", async () => {
   // default initialization

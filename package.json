@@ -8,9 +8,11 @@
     "prepare": "npm run build",
     "docs": "typedoc && cp ./_config.yml docs/_config.yml",
     "prepublishOnly": "npm test",
-    "test": "jest --config jest.config.js --setupFiles dotenv/config",
-    "test:coverage": "jest --config jest.config.js --setupFiles dotenv/config --coverage",
-    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls"
+    "test": "jest --selectProjects offline",
+    "test:live": "jest --selectProjects live --passWithNoTests --runInBand",
+    "test:all": "jest --passWithNoTests",
+    "test:coverage": "jest --selectProjects offline --coverage",
+    "coveralls": "npm run test:coverage && cat ./coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",

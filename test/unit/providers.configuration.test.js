@@ -1,4 +1,4 @@
-const { providers } = require("../dist");
+const { providers } = require("../../src");
 
 /**
  * These APIs are untested due to being gated behind paywalls in order to choose base currency.
