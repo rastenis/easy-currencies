@@ -88,7 +88,7 @@ describe("configuration guards", () => {
     const good = {
       name: "BatchGood",
       provider: {
-        endpoint: { base: "https://a/", single: "%FROM%", multiple: "" },
+        endpoint: { base: "https://a/", single: "%FROM%" },
         key: "k",
         handler: (d: any) => d.rates,
         errors: {},

@@ -46,11 +46,10 @@ export interface Provider {
    * Endpoint configuration object for a provider:
    * The base template is the root of the access URL, with a place for access key in the form of %KEY% (if needed)
    * The single template is used for single currency conversions, requires a %FROM% and a %TO% to be present.
-   * The multiple template is currently unused.
-   * @type {{ base: string; single: string; multiple: string }}
+   * @type {{ base: string; single: string }}
    * @memberof Provider
    */
-  endpoint: { base: string; single: string; multiple: string };
+  endpoint: { base: string; single: string };
   /**
    * A function that returns a map of currencies from the data object returned by the client (response.data)
    *
@@ -123,8 +122,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRateAPI: {
     endpoint: {
       base: "https://api.exchangerate-api.com/v4/latest/",
-      single: "%FROM%",
-      multiple: "%FROM%"
+      single: "%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -138,8 +136,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRatesAPIIO: {
     endpoint: {
       base: "https://api.exchangeratesapi.io/latest?access_key=%KEY%",
-      single: "&base=%FROM%&symbols=%TO%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%&symbols=%TO%"
     },
     errors: {
       105: "A paid plan is required in order to use other base currencies!",
@@ -158,8 +155,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   CurrencyLayer: {
     endpoint: {
       base: "https://apilayer.net/api/live?access_key=%KEY%",
-      single: "&source=%FROM%",
-      multiple: "&source=%FROM%&currencies=%TO%"
+      single: "&source=%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -187,8 +183,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   OpenExchangeRates: {
     endpoint: {
       base: "https://openexchangerates.org/api/latest.json?app_id=%KEY%",
-      single: "&base=%FROM%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -204,8 +199,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   AlphaVantage: {
     endpoint: {
       base: "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
-      single: "&from_currency=%FROM%&to_currency=%TO%",
-      multiple: ""
+      single: "&from_currency=%FROM%&to_currency=%TO%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -245,8 +239,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   Fixer: {
     endpoint: {
       base: "https://data.fixer.io/api/latest?access_key=%KEY%",
-      single: "&base=%FROM%&symbols=%TO%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%&symbols=%TO%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -267,8 +260,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
     // an unsupported target into an HTTP failure instead of a plain miss.
     endpoint: {
       base: "https://api.frankfurter.dev/v1/latest?base=",
-      single: "%FROM%",
-      multiple: "%FROM%"
+      single: "%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -285,8 +277,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
     // upper case, so no case transform is needed.
     endpoint: {
       base: "https://www.floatrates.com/daily/",
-      single: "%FROM%.json",
-      multiple: "%FROM%.json"
+      single: "%FROM%.json"
     },
     key: undefined,
     handler: function (data: any) {

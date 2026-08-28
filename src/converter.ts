@@ -150,13 +150,8 @@ export class Converter {
   constructor(...config: ProviderReference[] | undefined[] | string[]) {
     this.config = new Config(...config);
 
-    // Forwarding config adder function (with the alternative handle)
     this.add = this.config.add;
-    this.addProvider = this.config.add;
-
-    // Forwarding config multiple adder function (with the alternative handle)
     this.addMultiple = this.config.addMultiple;
-    this.addMultipleProviders = this.config.addMultiple;
 
     this.remove = this.config.remove;
   }
@@ -179,9 +174,7 @@ export class Converter {
    Proxy function definitions
    */
   add: Config["add"];
-  addProvider: Config["add"];
   addMultiple: Config["addMultiple"];
-  addMultipleProviders: Config["addMultiple"];
   remove: Config["remove"];
 
   /**
