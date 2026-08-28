@@ -318,8 +318,8 @@ converter.add("MyProvider", {
     201: "Invalid base currency!"
   },
   errorHandler: function (data) {
-    // the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)
-    return data.error.code;
+    // runs on every response, success included, so it must tolerate a body with no error
+    return data && data.error ? data.error.code : null;
   }
 });
 ```

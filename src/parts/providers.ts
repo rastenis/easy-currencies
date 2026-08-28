@@ -303,3 +303,8 @@ for (const name of Object.keys(providers)) {
   Object.freeze(providers[name].errors);
   Object.freeze(providers[name]);
 }
+
+// Sealed, not frozen: `addMultiple` still registers user-defined providers, but
+// a built-in can no longer be deleted or replaced out from under every
+// Converter in the process.
+Object.seal(providers);

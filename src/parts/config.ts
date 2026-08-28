@@ -111,20 +111,23 @@ export class Config {
       throw new Error("Providers must be given as an array.");
     }
 
-    // Validate the whole batch before registering any of it, so a bad entry
-    // cannot leave earlier ones half-registered and unusable on retry.
+    // Validate the whole batch before adding any of it, so a bad entry cannot
+    // leave earlier ones half-added and unusable on retry.
     newProviders.forEach((p) => {
       if (!checkIfUserDefinedProvider(p)) {
         throw new Error("Invalid provider format!");
       }
       if (Object.prototype.hasOwnProperty.call(providers, p.name)) {
-        throw new Error("A provider by this name is already registered!");
+        throw new Error(
+          `'${p.name}' is the name of a built-in provider; choose another.`
+        );
       }
     });
 
-    newProviders.forEach((p) => {
-      providers[p.name] = p.provider;
-    });
+    // Deliberately not written into the exported `providers` map. Doing so put
+    // user API keys somewhere any code in the process could read, made two
+    // libraries adding the same name collide, and let unrelated code resolve a
+    // provider it never registered. Custom providers belong to this Converter.
 
     // Adding provider to active providers
     this.addProviders(

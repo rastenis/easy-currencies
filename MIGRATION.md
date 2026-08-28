@@ -101,6 +101,27 @@ including the types: `Provider`, `Providers`, `ProviderReference`,
 `UserDefinedProvider`, `ProviderErrors`, `Config`, `rateObject`,
 `chainableConverter`, `HttpClient`, `HttpResponse`, `HttpError`, `ClientOptions`.
 
+## Custom providers are scoped to the converter
+
+`add` and `addMultiple` used to write the provider, **including its API key**,
+into the exported `providers` map. Any code in the process could read the key,
+two libraries registering the same name collided, and unrelated code could
+resolve a provider it never registered.
+
+Custom providers now belong to the converter that added them. Two converters can
+use the same name, and `require("easy-currencies").providers` holds only the
+built-ins. A custom provider is no longer resolvable by name from elsewhere:
+
+```js
+const converter = new Converter();
+converter.add("Mine", provider, true);
+
+// 1.x: worked anywhere in the process. 2.0: throws.
+// new Converter("Mine")
+```
+
+Names that shadow a built-in are rejected.
+
 ## Renamed and removed
 
 | Removed | Use |
