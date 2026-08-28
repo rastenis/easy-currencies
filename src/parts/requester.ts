@@ -50,6 +50,13 @@ export async function fetchRates(
       continue;
     }
 
+    // A transport failure — DNS, refused, timeout, abort — carries no response
+    // to inspect. Marked handled so the caller falls back to the next provider
+    // rather than surfacing a network blip as a fatal error.
+    if (err && !err.response) {
+      throw { handled: true, error: transportError(err) };
+    }
+
     // resolving error
     const error = provider.errorHandler(err ? err.response : result.data);
 
@@ -60,8 +67,32 @@ export async function fetchRates(
         : { handled: false, error };
     }
 
+    // An HTTP failure the provider does not recognise still failed. Falling
+    // through here would read .data off an undefined result.
+    if (err) {
+      throw { handled: true, error: transportError(err) };
+    }
+
     return result.data;
   }
+}
+
+/**
+ * Reduces an axios error to a message and code.
+ *
+ * The raw AxiosError carries `config.url`, which embeds the provider API key.
+ * Callers log these errors, so returning the original would write credentials
+ * to the consumer's logs.
+ *
+ * @param {AxiosError} err - the axios error
+ * @returns {Error} - an error safe to log
+ */
+function transportError(err: AxiosError): Error {
+  const status = err.response?.status;
+  const detail = status ? `HTTP ${status}` : err.code || err.message;
+  const error = new Error(`Request to the provider failed: ${detail}`);
+  (error as any).code = err.code;
+  return error;
 }
 
 /**
