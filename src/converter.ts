@@ -25,13 +25,9 @@ export interface rateObject {
 export const RATES_BASE = Symbol.for("easy-currencies.ratesBase");
 
 /**
- * The rejection shape `fetchRates` uses to describe a provider failure.
- *
- * `handled: false` means the requester did not recognise the failure, so there
- * is nothing to fall back for. `transient` distinguishes a blip (try the next
- * provider for this call, keep this one) from a permanent fault such as a bad
- * API key (try the next provider, and drop this one from the active list).
- * A missing `transient` is read as `false`.
+ * How `fetchRates` describes a provider failure. `transient` distinguishes a
+ * blip, where the provider stays in the list, from a permanent fault such as a
+ * bad key, where it is dropped. Missing means false.
  */
 interface ProviderFailure {
   handled: boolean;
@@ -39,12 +35,7 @@ interface ProviderFailure {
   error: unknown;
 }
 
-/**
- * Reports whether a rejection follows the requester's failure contract.
- *
- * Anything else — a bare Error, a TypeError thrown inside the requester — is
- * not a classified provider failure and must not trigger fallback.
- */
+/** A rejection that is not contract-shaped is a bug, not a provider failure, and must not trigger fallback. */
 function isProviderFailure(value: unknown): value is ProviderFailure {
   return (
     typeof value === "object" &&
@@ -54,15 +45,9 @@ function isProviderFailure(value: unknown): value is ProviderFailure {
 }
 
 /**
- * Normalizes a thrown value into a real Error.
- *
- * Providers describe their failures with plain strings and numeric codes, and
- * consumers write `catch (e) { log(e.message) }`. Throwing the raw value gives
- * them `undefined` and breaks `instanceof Error`, so everything leaving this
- * module is wrapped, with the original preserved on `cause`.
- *
- * @param {unknown} value - the thrown value
- * @returns {Error} - the value itself if it is already an Error, else a wrapper
+ * Providers describe failures with strings and numeric codes; consumers write
+ * `catch (e) { log(e.message) }`. Wrap so that reads something, keeping the
+ * original on `cause`.
  */
 function asError(value: unknown): Error {
   if (value instanceof Error) {
@@ -79,12 +64,7 @@ function asError(value: unknown): Error {
   return error;
 }
 
-/**
- * Renders a rejected rate for an error message without dumping a whole object.
- *
- * @param {unknown} value - the offending value
- * @returns {string} - a short, safe description
- */
+/** Describes a rejected rate without dumping the whole object into the message. */
 function describeRate(value: unknown): string {
   if (typeof value === "string") {
     return JSON.stringify(value);
@@ -95,15 +75,7 @@ function describeRate(value: unknown): string {
   return Array.isArray(value) ? "an array" : "an object";
 }
 
-/**
- * Asserts that an amount is a real, finite number.
- *
- * A currency library must never hand back `NaN`, and the old code did exactly
- * that for an unset or non-numeric amount.
- *
- * @param {unknown} amount - the value to check
- * @returns {number} - the validated amount
- */
+/** A currency library must never hand back NaN. */
 function requireAmount(amount: unknown): number {
   if (typeof amount !== "number" || !Number.isFinite(amount)) {
     throw new Error(
@@ -295,10 +267,8 @@ export class Converter {
   /**
    * Performs safe multiplication to get the result amount.
    *
-   * A usable rate is a finite number strictly greater than zero. Anything else
-   * — a zero, a negative, `Infinity`, a string with trailing garbage, an array
-   * that happens to coerce — is rejected rather than silently multiplied,
-   * since each of those produces a plausible-looking wrong amount.
+   * A usable rate is finite and greater than zero; anything else multiplies
+   * into a plausible-looking wrong amount.
    *
    * @param {number} amount - amount to be converted
    * @param {string} to - conversion currency
@@ -325,11 +295,9 @@ export class Converter {
     const keys = Object.keys(rates);
     const rateKey = keys.find(key => key.toLowerCase() === to.toLowerCase());
 
-    // Truthiness here would report a present-but-zero rate as missing. The key
-    // being absent is the only thing that makes a currency missing.
+    // Truthiness would report a present-but-zero rate as missing.
     if (rateKey === undefined) {
-      // The full table is ~4KB and 166 currencies in production; naming the
-      // currency and the size of the table is the part that helps.
+      // The full table is ~4KB in production.
       throw new Error(
         `No '${to}' present in rates (${keys.length} rate${
           keys.length === 1 ? "" : "s"
@@ -339,8 +307,7 @@ export class Converter {
 
     const raw = rates[rateKey];
 
-    // Number() coerces arrays, null and booleans into plausible numbers
-    // (Number(["0.9"]) === 0.9), so the type is checked before the value.
+    // Number(["0.9"]) === 0.9, so check the type before the value.
     const numericRate =
       typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN;
 
@@ -358,14 +325,9 @@ export class Converter {
   /**
    * Rate fetch function.
    *
-   * The fallback chain is a snapshot taken when the call starts, not the live
-   * provider list. Two concurrent calls therefore each walk their own copy:
-   * previously one call's `config.remove` shrank the list mid-flight and the
-   * other spuriously ran out of providers.
-   *
-   * Only a permanent provider fault (a bad API key, say) removes a provider
-   * from the shared list. A transient one is skipped for this call only, so a
-   * single network blip no longer strips the chain for the process lifetime.
+   * Walks a snapshot of the chain, so concurrent calls do not shrink each
+   * other's list. Only a permanent fault removes a provider from the shared
+   * list; a transient one is skipped for this call.
    *
    * @param {string} from - base currency
    * @param {string} to - conversion currency
@@ -401,7 +363,6 @@ export class Converter {
     for (let index = 0; index < chain.length; index++) {
       const provider = chain[index];
 
-      // Fetching conversion rates from this provider.
       const [err, data] = await (<any>_to(
         fetchRates(client, provider, {
           FROM: from,
@@ -428,15 +389,10 @@ export class Converter {
         throw asError(isProviderFailure(err) ? err.error : err);
       }
 
-      // Reporting through the hook rather than straight to stderr.
       this.onError(err.error);
 
-      // A permanent fault takes the provider out of the shared list; a
-      // transient one is only skipped for this call.
-      //
-      // The last provider is never removed. The old code stopped before
-      // emptying the list, and a converter with no providers left is dead for
-      // the rest of the process — a worse outcome than reporting the fault.
+      // The last provider is never removed: a converter with an empty list
+      // is dead for the rest of the process, which is worse than the fault.
       if (!err.transient && this.config.providers.length > 1) {
         this.config.remove(provider);
       }
