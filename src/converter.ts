@@ -25,6 +25,24 @@ export interface rateObject {
 export const RATES_BASE = Symbol.for("easy-currencies.ratesBase");
 
 /**
+ * The enumerable twin of `RATES_BASE`.
+ *
+ * A symbol is invisible to `JSON.stringify`, spread, `Object.assign` and
+ * `structuredClone`, so a table that has been through a cache loses the marker
+ * and a conversion against the wrong base is then accepted silently. That is
+ * the caching workflow this guard exists for, so the base also travels as an
+ * ordinary key. Underscores are not valid in a currency code, see
+ * `CURRENCY_CODE`, so this can never collide with a rate.
+ */
+export const RATES_BASE_KEY = "__base";
+
+/** The base a table was fetched for, or undefined for one built by hand. */
+function baseOf(rates: any): string | undefined {
+  const marked = rates[RATES_BASE] ?? rates[RATES_BASE_KEY];
+  return typeof marked === "string" ? marked : undefined;
+}
+
+/**
  * How `fetchRates` describes a provider failure. `transient` distinguishes a
  * blip, where the provider stays in the list, from a permanent fault such as a
  * bad key, where it is dropped. Missing means false.
@@ -184,19 +202,17 @@ function readRates(
     return [new Error("Provider returned a rate table with no usable rates."), {}];
   }
 
-  // A handler may return a frozen or memoised table; the marker is a
-  // convenience, not a reason to reject an otherwise usable response.
-  try {
-    Object.defineProperty(rates, RATES_BASE, {
-      value: from,
-      enumerable: false,
-      configurable: true
-    });
-  } catch {
-    /* not extensible */
-  }
+  // Stamp a copy, not the handler's own object. A handler may return a frozen
+  // table, where writing throws, or a memoised one, where a later fetch for a
+  // different base rewrites the marker under a caller still holding it.
+  const marked: any = { ...rates, [RATES_BASE_KEY]: from };
+  Object.defineProperty(marked, RATES_BASE, {
+    value: from,
+    enumerable: false,
+    configurable: true
+  });
 
-  return [null, rates];
+  return [null, marked];
 }
 
 /**
@@ -322,9 +338,9 @@ export class Converter {
 
     // Returining conversion from provided rates
     if (rates !== undefined && rates !== null) {
-      const base = rates[RATES_BASE];
+      const base = baseOf(rates);
       if (
-        typeof base === "string" &&
+        base !== undefined &&
         typeof from === "string" &&
         base.toLowerCase() !== from.toLowerCase()
       ) {
@@ -378,7 +394,9 @@ export class Converter {
       );
     }
 
-    const keys = Object.keys(rates);
+    // The base marker rides along as an ordinary key; it is not a rate, so it
+    // is neither a lookup candidate nor part of the "N rates available" count.
+    const keys = Object.keys(rates).filter((key) => key !== RATES_BASE_KEY);
     // Exact match wins, so a response carrying both "EUR" and "eur" does not
     // resolve differently depending on JSON key order.
     const rateKey =

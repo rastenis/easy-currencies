@@ -1,4 +1,4 @@
-export { Converter, Convert } from "./converter";
+export { Converter, Convert, RATES_BASE_KEY } from "./converter";
 export { providers } from "./parts/providers";
 
 // Types used in public signatures. Exported so consumers can name them, and so

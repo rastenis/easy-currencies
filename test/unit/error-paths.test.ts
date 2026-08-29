@@ -125,14 +125,38 @@ describe("the base marker is stamped on fetched rates", () => {
     );
   });
 
-  it("keeps the marker out of Object.keys and JSON", async () => {
+  it("survives a round trip through a cache", async () => {
     const converter = new Converter();
-    converter.config.setClient(mockClient(response({ rates: { EUR: 0.9 } })).client);
-
+    converter.config.setClient(mockClient(response({ rates: { EUR: 0.9, GBP: 0.8 } })).client);
     const rates = await converter.getRates("USD", "", true);
 
-    expect(Object.keys(rates)).toEqual(["EUR"]);
-    expect(JSON.parse(JSON.stringify(rates))).toEqual({ EUR: 0.9 });
+    // The symbol does not survive any of these; the enumerable key is the
+    // reason a cached table still refuses the wrong base.
+    for (const copy of [
+      JSON.parse(JSON.stringify(rates)),
+      { ...rates },
+      Object.assign({}, rates)
+    ]) {
+      await expect(converter.convert(100, "GBP", "EUR", copy)).rejects.toThrow(
+        /fetched for base 'USD'/
+      );
+    }
+  });
+
+  it("does not count the marker as a rate", async () => {
+    const converter = new Converter();
+    converter.config.setClient(mockClient(response({ rates: { EUR: 0.9 } })).client);
+    const rates = await converter.getRates("USD", "", true);
+
+    await expect(converter.convert(10, "USD", "CHF", rates)).rejects.toThrow(
+      /No 'CHF' present in rates \(1 rate available\)/
+    );
+  });
+
+  it("still converts a table built by hand, which carries no marker", async () => {
+    await expect(
+      new Converter().convert(10, "USD", "EUR", { EUR: 0.9 })
+    ).resolves.toBeCloseTo(9, 10);
   });
 });
 
@@ -211,7 +235,8 @@ describe("empty and unusable responses", () => {
     converter.config.setClient(mock.client);
 
     await expect(converter.getRates("USD", "", true)).resolves.toEqual({
-      EUR: 0.9
+      EUR: 0.9,
+      __base: "USD"
     });
     expect(mock.urls().length).toBeGreaterThan(1);
   });
@@ -230,7 +255,8 @@ describe("empty and unusable responses", () => {
 
     // A junk 200 must not be fabricated into a rate table the caller trusts.
     await expect(converter.getRates("USD", "", true)).resolves.toEqual({
-      EUR: 0.9
+      EUR: 0.9,
+      __base: "USD"
     });
     expect(String(seen[0])).toMatch(/no usable rates/);
   });

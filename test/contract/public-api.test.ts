@@ -32,6 +32,7 @@ describe("published entry point", () => {
     expect(Object.keys(freshPkg()).sort()).toEqual([
       "Convert",
       "Converter",
+      "RATES_BASE_KEY",
       "createClient",
       "providers"
     ]);

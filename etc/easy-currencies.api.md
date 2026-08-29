@@ -126,6 +126,9 @@ export interface rateObject {
 }
 
 // @public
+export const RATES_BASE_KEY = "__base";
+
+// @public
 export interface UserDefinedProvider {
     // (undocumented)
     name: string;
