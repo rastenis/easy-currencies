@@ -15,3 +15,4 @@ export type { Config } from "./parts/config";
 export type { HttpClient, HttpResponse, HttpError, ClientOptions } from "./parts/client";
 export { createClient } from "./parts/client";
 export type { chainableConverter } from "./parts/chainer";
+export type { RetryOptions } from "./parts/requester";

@@ -1,4 +1,4 @@
-import { fetchRates } from "./parts/requester";
+import { fetchRates, deadlineFrom, RetryOptions } from "./parts/requester";
 import { Provider, ProviderReference } from "./parts/providers";
 import { Config } from "./parts/config";
 export { Chainer as Convert } from "./parts/chainer";
@@ -310,6 +310,24 @@ export class Converter {
   };
 
   /**
+   * Tunes retries and the time a conversion may take.
+   *
+   * `budgetMs` is wall clock for the whole call, spent across every provider
+   * rather than reset for each one, and it covers the requests themselves: a
+   * client that never settles cannot hold a conversion open past it. Fields
+   * merge, so one can be set without restating the rest.
+   *
+   * @example
+   * converter.setRetryOptions({ budgetMs: 5000 });   // an HTTP handler
+   * converter.setRetryOptions({ maxRetries: 0 });    // never retry a 429
+   *
+   * @param {RetryOptions} options - the tuning to apply
+   */
+  setRetryOptions = (options: RetryOptions) => {
+    this.config.setRetryOptions(options);
+  };
+
+  /**
    * Conversion function (non chainable).
    *
    * @example
@@ -478,6 +496,12 @@ export class Converter {
     // Getting the client
     const client = this.config.getClient();
 
+    // One deadline for the whole chain. Per provider it would let a
+    // three-provider chain spend three budgets, which is how a rate-limited
+    // conversion reached 102 seconds.
+    const retry = this.config.getRetryOptions();
+    const deadline = deadlineFrom(retry);
+
     let lastError: Error = new Error("No rate providers were tried.");
 
     for (let index = 0; index < chain.length; index++) {
@@ -495,11 +519,12 @@ export class Converter {
       }
 
       const [err, data] = await (<any>_to(
-        fetchRates(client, provider, {
-          FROM: from,
-          TO: to,
-          multiple: multiple
-        })
+        fetchRates(
+          client,
+          provider,
+          { FROM: from, TO: to, multiple: multiple },
+          { ...retry, deadline }
+        )
       ));
 
       if (!err) {

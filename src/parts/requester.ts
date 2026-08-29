@@ -14,30 +14,98 @@ export interface Query {
   multiple: boolean;
 }
 
-/** Retry tuning. Defaults preserve the 1.x schedule. */
+/** Retry tuning. */
 export interface RetryOptions {
-  /** Retries after the initial request before giving up. Defaults to 5. */
+  /** Retries after the initial request before giving up. Defaults to 2. */
   maxRetries?: number;
-  /** Upper bound in ms on a wait before jitter. Defaults to 16000. */
+  /** Upper bound in ms on a wait before jitter. Defaults to 8000. */
   maxDelay?: number;
+  /**
+   * Wall-clock budget in ms for the whole conversion, spent across every
+   * provider rather than reset for each one. Defaults to 20000.
+   */
+  budgetMs?: number;
+  /**
+   * Absolute epoch-ms deadline. Set by `getRates` from `budgetMs` so one budget
+   * covers the whole chain; a direct `fetchRates` call may pass its own.
+   */
+  deadline?: number;
 }
 
-/**
- * How a rate fetch failed. `handled` says whether the caller may fall back;
- * Every provider failure is recoverable by trying the next provider; the caller
- * never removes one from the chain.
- */
+/** How a rate fetch failed. Every provider failure is recoverable by trying the next provider. */
 export interface FetchRatesError {
   /** False means fatal: the caller rethrows rather than trying another provider. */
   handled: boolean;
-  /** True means try the next provider, but keep this one for later calls. */
+  /** The reason, always an Error by the time it leaves here. */
   error: unknown;
 }
 
-const DEFAULT_MAX_RETRIES = 5;
-const DEFAULT_MAX_DELAY = 16000;
+// The old 5 retries capped at 16s ran 1+2+4+8+16 = 31s per provider, and the
+// schedule restarted for each one: three rate-limited providers measured at
+// 102s and 18 upstream requests, with no way for a caller to shorten it.
+const DEFAULT_MAX_RETRIES = 2;
+const DEFAULT_MAX_DELAY = 8000;
+const DEFAULT_BUDGET = 20000;
 const INITIAL_DELAY = 1000;
 const JITTER = 1000;
+
+/**
+ * When a call that starts now must be finished by.
+ *
+ * `getRates` computes this once so a single budget covers the whole chain;
+ * computing it per provider would let a three-provider chain spend three.
+ */
+export function deadlineFrom(options: RetryOptions): number {
+  return Date.now() + normalize(options.budgetMs, DEFAULT_BUDGET);
+}
+
+/** Marks the rejection the budget raises, so it is not read as a transport failure. */
+const BUDGET_EXHAUSTED = Symbol.for("easy-currencies.budgetExhausted");
+
+function budgetExhausted(): Error {
+  const error: any = new Error(
+    "Request to the provider failed: the conversion ran out of time."
+  );
+  error[BUDGET_EXHAUSTED] = true;
+  return error;
+}
+
+function isBudgetExhausted(value: unknown): boolean {
+  return typeof value === "object" && value !== null && (value as any)[BUDGET_EXHAUSTED] === true;
+}
+
+/**
+ * Rejects once the deadline passes.
+ *
+ * The 10s timeout lives inside the built-in client, so a caller-supplied one,
+ * which `setClient` makes a headline feature, could leave `convert()` pending
+ * for ever. Gating only the retry sleeps would not help: nothing fires while
+ * the call itself is outstanding.
+ */
+function withDeadline<T>(work: Promise<T>, deadline: number): Promise<T> {
+  const left = deadline - Date.now();
+  if (left <= 0) {
+    return Promise.reject(budgetExhausted());
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const timer: any = setTimeout(() => reject(budgetExhausted()), left);
+    // A pending timer must not hold the process open past the answer.
+    if (typeof timer.unref === "function") {
+      timer.unref();
+    }
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
 
 /**
  * The fetchRates function, used for fetching currency conversion rates.
@@ -48,7 +116,7 @@ const JITTER = 1000;
  * @param {HttpClient} client - client to be used for the request
  * @param {Provider} provider - provider from which the quotes will be fetched
  * @param {Query} query - the query
- * @param {RetryOptions} [options] - retry tuning; defaults preserve prior behaviour
+ * @param {RetryOptions} [options] - retry tuning
  * @returns {Promise<any>} - a result promise
  */
 export async function fetchRates(
@@ -59,6 +127,7 @@ export async function fetchRates(
 ): Promise<any> {
   const maxRetries = normalize(options.maxRetries, DEFAULT_MAX_RETRIES);
   const maxDelay = normalize(options.maxDelay, DEFAULT_MAX_DELAY);
+  const deadline = options.deadline ?? deadlineFrom(options);
 
   let attempt = 0;
   let delay = INITIAL_DELAY; // initial delay in ms
@@ -68,11 +137,23 @@ export async function fetchRates(
     let err: unknown;
     let result: HttpResponse | undefined;
 
+    // Check before dispatching, not only around the wait: the argument to
+    // withDeadline is evaluated first, so a spent budget would still fire a
+    // request at a vendor whose answer could not be used.
+    if (Date.now() >= deadline) {
+      throw providerFailure(budgetExhausted());
+    }
+
     // Not `_to`: a falsy rejection reason is indistinguishable from success,
     // and the old code then read `.data` off a null result.
     try {
-      result = await client.get(formatUrl(provider, query));
+      result = await withDeadline(client.get(formatUrl(provider, query)), deadline);
     } catch (e) {
+      // The budget is not this provider's fault, but it is the whole call's
+      // answer: trying the next one would only spend time it no longer has.
+      if (isBudgetExhausted(e)) {
+        throw providerFailure(e as Error);
+      }
       failed = true;
       err = e;
     }
@@ -93,11 +174,18 @@ export async function fetchRates(
 
       // The server's own guidance beats our guess; ours is a fallback.
       const asked = retryAfter(response);
-      await sleep(
+      const wait =
         asked === undefined
           ? Math.min(delay, maxDelay) + Math.random() * JITTER
-          : Math.min(asked, maxDelay)
-      );
+          : Math.min(asked, maxDelay);
+
+      // Sleeping past the deadline only to fail on waking is dead time, and it
+      // is time the caller could have spent on the next provider.
+      if (Date.now() + wait >= deadline) {
+        throw providerFailure(budgetExhausted());
+      }
+
+      await sleep(wait);
 
       attempt++;
       delay *= 2;
@@ -110,11 +198,6 @@ export async function fetchRates(
       throw providerFailure(transportError(err));
     }
 
-    // resolving error
-    // Providers read fields off the body without guards, and the client sets
-    // data to undefined for an unparseable response, so a vendor serving an
-    // outage page makes the handler throw. That is this provider's failure,
-    // not a reason to abandon the ones behind it.
     // Vendors split into two camps: apilayer-style ones put their code in a 200
     // body, the rest signal with an HTTP status. Only the body is readable in
     // both cases, so that is what the handler gets, and the status answers for
