@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "lint": "oxlint src test scripts",
+    "lint": "oxlint src test scripts && eslint src",
     "prepare": "npm run build",
     "docs": "typedoc && cp ./_config.yml docs/_config.yml",
     "prepublishOnly": "npm run build && npm test && npm run api:check",
@@ -60,11 +60,13 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.2",
     "dotenv": "^16.4.5",
+    "eslint": "^10.9.1",
     "jest": "^29.7.0",
     "oxlint": "^1.80.0",
     "publint": "^0.3.24",
     "ts-jest": "^29.1.4",
     "typedoc": "^0.28.20",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.68.0"
   }
 }
