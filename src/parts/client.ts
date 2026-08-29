@@ -39,7 +39,16 @@ export interface HttpClient {
 export interface ClientOptions {
   /** Milliseconds before a request is aborted. Defaults to 10000. */
   timeout?: number;
+  /**
+   * Bytes of response body the client will buffer before giving up. Defaults
+   * to 10MB. An unterminated stream otherwise buffers whole until the timeout
+   * fires, so this is what stands between a broken upstream and an OOM; the
+   * largest real rate table is ~4KB, so 10MB is pure headroom, not a real ceiling.
+   */
+  maxResponseSize?: number;
 }
+
+const DEFAULT_MAX_RESPONSE_SIZE = 10 * 1024 * 1024;
 
 /** Node's fetch reports the reason under `cause`; surface it as a code. */
 function errorCode(err: any): string | undefined {
@@ -49,8 +58,57 @@ function errorCode(err: any): string | undefined {
   return err?.cause?.code ?? err?.code;
 }
 
+/** Distinguishes a body that grew past the cap from any other parse failure. */
+class ResponseTooLargeError extends Error {}
+
+/**
+ * Reads the body up to `limit` bytes and parses it as JSON.
+ *
+ * Reading via the stream instead of response.json() is what lets a call bail
+ * out mid-download: an unterminated chunked stream measured at 8898MB pushed
+ * and 9078MB RSS before the 10s abort ever landed, since response.json()
+ * buffers the whole thing first. TextDecoder, not Buffer#toString, so a
+ * leading UTF-8 BOM is stripped the same way response.json() strips it.
+ */
+async function readBody(response: Response, limit: number): Promise<any> {
+  if (!response.body) {
+    return undefined;
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    total += value.byteLength;
+    if (total > limit) {
+      await reader.cancel();
+      throw new ResponseTooLargeError(`Response body exceeded ${limit} bytes`);
+    }
+    chunks.push(value);
+  }
+
+  const text = new TextDecoder().decode(concat(chunks, total));
+  return JSON.parse(text);
+}
+
+function concat(chunks: Uint8Array[], total: number): Uint8Array {
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+
 export function createClient(options: ClientOptions = {}): HttpClient {
   const timeout = options.timeout ?? 10000;
+  const maxResponseSize = options.maxResponseSize ?? DEFAULT_MAX_RESPONSE_SIZE;
 
   return {
     async get(url: string): Promise<HttpResponse> {
@@ -69,8 +127,21 @@ export function createClient(options: ClientOptions = {}): HttpClient {
       // rather than failing here.
       let data: any;
       try {
-        data = await response.json();
-      } catch {
+        data = await readBody(response, maxResponseSize);
+      } catch (err) {
+        if (err instanceof ResponseTooLargeError) {
+          // Same shape as the transport failure above: no usable response
+          // came back, so the fallback chain has to treat this provider the
+          // same way it treats a dropped connection, not a parsed answer.
+          //
+          // Carried on `code`, not in the message. The requester will not echo
+          // a client's message, because that is where a URL and its API key
+          // end up, so a message-only failure surfaces as "Error (message
+          // withheld)" and says nothing about what went wrong.
+          const tooLarge: any = new Error(err.message);
+          tooLarge.code = "E_RESPONSE_TOO_LARGE";
+          throw tooLarge;
+        }
         data = undefined;
       }
 
