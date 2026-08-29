@@ -89,11 +89,12 @@ function withDeadline<T>(work: Promise<T>, deadline: number): Promise<T> {
   }
 
   return new Promise<T>((resolve, reject) => {
-    const timer: any = setTimeout(() => reject(budgetExhausted()), left);
-    // A pending timer must not hold the process open past the answer.
-    if (typeof timer.unref === "function") {
-      timer.unref();
-    }
+    // Deliberately not unref'd. This timer is the only thing keeping the loop
+    // alive while a client hangs, which is precisely when the budget has to
+    // fire; unref'ing it made node exit 0 with the promise never settling, so
+    // the caller got neither a rate nor an error. It cannot outlive the answer
+    // either way, because every settle path below clears it.
+    const timer = setTimeout(() => reject(budgetExhausted()), left);
     work.then(
       (value) => {
         clearTimeout(timer);
