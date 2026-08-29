@@ -9,6 +9,14 @@ export interface chainableConverter {
   from: (from: string) => chainableConverter;
   to: (to: string) => Promise<number>;
   fetch: () => Promise<chainableConverter>;
+  /**
+   * The fetched rate table.
+   *
+   * This type is optimistic: the value is undefined until `fetch()` has
+   * resolved. Saying so would break any consumer reading `convert.rates`
+   * without a guard, so the honest `rateObject | undefined` waits for the next
+   * major rather than arriving in a minor.
+   */
   rates: rateObject;
   amount: (val: number) => chainableConverter;
 }
@@ -28,7 +36,7 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentAmount: number | undefined = amount;
   let _currentFrom: string | undefined = undefined;
   let _currentTo: string | undefined = undefined;
-  let _currentRates: any | undefined = undefined;
+  let _currentRates: rateObject | undefined = undefined;
   // Base currency the cached rates were fetched for.
   let _ratesBase: string | undefined = undefined;
 
@@ -43,7 +51,8 @@ export function Chainer(amount: number | undefined = undefined) {
     to: _to,
     fetch: _fetch,
     get rates() {
-      return _currentRates;
+      // Cast, not a lie the compiler made: see the note on the interface.
+      return _currentRates as rateObject;
     },
     amount: _amount
   };

@@ -36,9 +36,28 @@ export const RATES_BASE = Symbol.for("easy-currencies.ratesBase");
  */
 export const RATES_BASE_KEY = "__base";
 
+/**
+ * An untrusted value as something with readable properties, or undefined.
+ *
+ * Vendor bodies and caller-supplied rate tables arrive as `unknown`. Reading a
+ * property off one without narrowing first is how a malformed 200 used to
+ * become a TypeError instead of a fallback.
+ */
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
 /** The base a table was fetched for, or undefined for one built by hand. */
-function baseOf(rates: any): string | undefined {
-  const marked = rates[RATES_BASE] ?? rates[RATES_BASE_KEY];
+function baseOf(rates: unknown): string | undefined {
+  const record = asRecord(rates);
+  if (!record) {
+    return undefined;
+  }
+  const marked =
+    (record as Record<symbol | string, unknown>)[RATES_BASE] ??
+    record[RATES_BASE_KEY];
   return typeof marked === "string" ? marked : undefined;
 }
 
@@ -77,7 +96,7 @@ function asError(value: unknown): Error {
       : `Rate provider failed: ${String(value)}`;
 
   const error = new Error(message);
-  (error as any).cause = value;
+  (error as { cause?: unknown }).cause = value;
   return error;
 }
 
@@ -179,7 +198,7 @@ function asRate(raw: unknown): number {
  * Uses the same coercion as `convertRate`, so a table that passes here cannot
  * fail every lookup for want of a usable value.
  */
-function hasUsableRate(rates: any): boolean {
+function hasUsableRate(rates: Record<string, unknown>): boolean {
   return Object.keys(rates).some((key) => {
     const value = asRate(rates[key]);
     return Number.isFinite(value) && value > 0;
@@ -195,12 +214,13 @@ function hasUsableRate(rates: any): boolean {
  */
 function readRates(
   provider: Provider,
-  data: any,
+  data: unknown,
   from: string
 ): [Error | null, rateObject] {
   // Some vendors truncate an unrecognised code to a valid prefix and answer for
   // that instead: exchangerate-api turns "CNYqqqwwC" into "CNY".
-  const echoed = data && (data.base || data.source);
+  const body = asRecord(data);
+  const echoed = body?.base ?? body?.source;
   if (typeof echoed === "string" && echoed.toLowerCase() !== from.toLowerCase()) {
     return [
       new Error(
@@ -210,14 +230,16 @@ function readRates(
     ];
   }
 
-  let rates: any;
+  let handled: unknown;
   try {
-    rates = provider.handler(data);
+    const handler = provider.handler as (body: unknown) => unknown;
+    handled = handler(data);
   } catch (e) {
     return [asError(e), {}];
   }
 
-  if (!rates || typeof rates !== "object") {
+  const rates = asRecord(handled);
+  if (!rates) {
     return [new Error("Provider returned no usable rates."), {}];
   }
 
@@ -232,7 +254,10 @@ function readRates(
   // Stamp a copy, not the handler's own object. A handler may return a frozen
   // table, where writing throws, or a memoised one, where a later fetch for a
   // different base rewrites the marker under a caller still holding it.
-  const marked: any = { ...rates, [RATES_BASE_KEY]: from };
+  // The cast is the one place the base marker is smuggled into a table typed
+  // as currency-to-number. RATES_BASE_KEY cannot be a currency code, so no
+  // caller reading a rate can collide with it.
+  const marked = { ...rates, [RATES_BASE_KEY]: from } as unknown as rateObject;
   Object.defineProperty(marked, RATES_BASE, {
     value: from,
     enumerable: false,
@@ -388,6 +413,12 @@ export class Converter {
     amount: number,
     from: string,
     to: string,
+    // Public signature, and `any` is load-bearing here rather than laziness.
+    // Rates may legitimately arrive with string values, which FloatRates and
+    // AlphaVantage really send, and a caller's own interface has no index
+    // signature so it would not satisfy Record<string, unknown>. Narrowing
+    // happens immediately below instead.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rates: any = undefined
   ): Promise<number> => {
     // Validating before anything is requested: an unset amount used to come
@@ -441,15 +472,22 @@ export class Converter {
   convertRate = (
     amount: number,
     to: string,
+    // Public signature, and `any` is load-bearing here rather than laziness.
+    // Rates may legitimately arrive with string values, which FloatRates and
+    // AlphaVantage really send, and a caller's own interface has no index
+    // signature so it would not satisfy Record<string, unknown>. Narrowing
+    // happens immediately below instead.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rates: any = undefined
   ): number => {
     requireAmount(amount);
     requireCurrency(to, "to");
 
-    // Array.isArray as well as the typeof: an array IS an object, and
+    // Array.isArray as well as the record check: an array IS an object, and
     // Object.keys([0.9]) is ["0"], so a table read from an array offered
     // index-keyed currencies rather than being rejected.
-    if (typeof rates !== "object" || rates === null || Array.isArray(rates)) {
+    const table = Array.isArray(rates) ? undefined : asRecord(rates);
+    if (!table) {
       throw new Error(
         `Rates must be an object mapping currency to rate, received ${describeRate(
           rates
@@ -459,7 +497,7 @@ export class Converter {
 
     // The base marker rides along as an ordinary key; it is not a rate, so it
     // is neither a lookup candidate nor part of the "N rates available" count.
-    const keys = Object.keys(rates).filter((key) => key !== RATES_BASE_KEY);
+    const keys = Object.keys(table).filter((key) => key !== RATES_BASE_KEY);
     // Exact match wins, so a response carrying both "EUR" and "eur" does not
     // resolve differently depending on JSON key order.
     const rateKey =
@@ -476,7 +514,7 @@ export class Converter {
       );
     }
 
-    const raw = rates[rateKey];
+    const raw = table[rateKey];
     const numericRate = asRate(raw);
 
     if (!Number.isFinite(numericRate) || numericRate <= 0) {
@@ -560,14 +598,16 @@ export class Converter {
         continue;
       }
 
-      const [err, data] = await (<any>_to(
+      // The rejection is a FetchRatesError, not an Error, so name both sides
+      // rather than casting the pair to any and losing the shape entirely.
+      const [err, data] = await _to<unknown, unknown>(
         fetchRates(
           client,
           provider,
           { FROM: from, TO: to, multiple: multiple },
           { ...retry, deadline }
         )
-      ));
+      );
 
       if (!err) {
         // A provider answering wrongly, or a handler throwing on a shape it did

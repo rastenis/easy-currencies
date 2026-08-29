@@ -18,6 +18,9 @@
 
 export interface HttpResponse {
   status: number;
+  // Vendor JSON, deliberately untyped: HttpResponse is public, so narrowing this
+  // to `unknown` would break every consumer reading `.data` without a guard.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   /** Lower-cased response header names. Needed for Retry-After on a 429. */
   headers?: Record<string, string>;
@@ -50,12 +53,22 @@ export interface ClientOptions {
 
 const DEFAULT_MAX_RESPONSE_SIZE = 10 * 1024 * 1024;
 
+/** True for a non-null object, so a property read off it is not a member access on `unknown`. */
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 /** Node's fetch reports the reason under `cause`; surface it as a code. */
-function errorCode(err: any): string | undefined {
-  if (err?.name === "TimeoutError" || err?.name === "AbortError") {
+function errorCode(err: unknown): string | undefined {
+  if (!isObject(err)) {
+    return undefined;
+  }
+  if (err.name === "TimeoutError" || err.name === "AbortError") {
     return "ETIMEDOUT";
   }
-  return err?.cause?.code ?? err?.code;
+  const cause = isObject(err.cause) ? err.cause : undefined;
+  const code = cause?.code ?? err.code;
+  return typeof code === "string" ? code : undefined;
 }
 
 /** Distinguishes a body that grew past the cap from any other parse failure. */
@@ -70,7 +83,7 @@ class ResponseTooLargeError extends Error {}
  * buffers the whole thing first. TextDecoder, not Buffer#toString, so a
  * leading UTF-8 BOM is stripped the same way response.json() strips it.
  */
-async function readBody(response: Response, limit: number): Promise<any> {
+async function readBody(response: Response, limit: number): Promise<unknown> {
   if (!response.body) {
     return undefined;
   }
@@ -93,7 +106,7 @@ async function readBody(response: Response, limit: number): Promise<any> {
   }
 
   const text = new TextDecoder().decode(concat(chunks, total));
-  return JSON.parse(text);
+  return JSON.parse(text) as unknown;
 }
 
 function concat(chunks: Uint8Array[], total: number): Uint8Array {
@@ -115,9 +128,10 @@ export function createClient(options: ClientOptions = {}): HttpClient {
       let response: Response;
       try {
         response = await fetch(url, { signal: AbortSignal.timeout(timeout) });
-      } catch (err: any) {
+      } catch (err) {
         // No response: DNS, refused, timeout, abort.
-        const error: HttpError = new Error(err?.message || "fetch failed");
+        const message = isObject(err) && typeof err.message === "string" ? err.message : undefined;
+        const error: HttpError = new Error(message || "fetch failed");
         error.code = errorCode(err);
         throw error;
       }
@@ -125,7 +139,7 @@ export function createClient(options: ClientOptions = {}): HttpClient {
       // A provider may signal failure in a 200 body, so parse before branching.
       // Vendors occasionally return HTML on an outage; treat that as no body
       // rather than failing here.
-      let data: any;
+      let data: unknown;
       try {
         data = await readBody(response, maxResponseSize);
       } catch (err) {
@@ -138,7 +152,7 @@ export function createClient(options: ClientOptions = {}): HttpClient {
           // a client's message, because that is where a URL and its API key
           // end up, so a message-only failure surfaces as "Error (message
           // withheld)" and says nothing about what went wrong.
-          const tooLarge: any = new Error(err.message);
+          const tooLarge: HttpError = new Error(err.message);
           tooLarge.code = "E_RESPONSE_TOO_LARGE";
           throw tooLarge;
         }

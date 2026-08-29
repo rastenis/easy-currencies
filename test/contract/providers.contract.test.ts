@@ -268,3 +268,19 @@ describe("contract coverage", () => {
     );
   });
 });
+
+describe("a literal null body", () => {
+  it.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
+    "%s reports it rather than throwing a TypeError",
+    async (_name, fixture) => {
+      // Adversarial integration testing found this shape breaking all eight
+      // providers identically, with "Cannot read properties of null" naming
+      // neither the provider nor the cause. Narrowing the handlers fixed it.
+      const { converter } = isolated(fixture, response(null));
+
+      await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
+        /no usable rates/
+      );
+    }
+  );
+});

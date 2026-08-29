@@ -10,7 +10,7 @@ import { UserDefinedProvider, Provider } from "./providers";
  * checks the actual shape each field is dereferenced with, and returns the
  * reason so the caller can throw one message that names it.
  */
-export function providerShapeIssue(provider: Provider | any): string | null {
+export function providerShapeIssue(provider: unknown): string | null {
   if (provider === null || typeof provider !== "object") {
     return "provider must be an object";
   }
@@ -47,7 +47,7 @@ export function providerShapeIssue(provider: Provider | any): string | null {
  * on.
  */
 export function userDefinedProviderIssue(
-  userDefinedProvider: UserDefinedProvider | any
+  userDefinedProvider: unknown
 ): string | null {
   if (userDefinedProvider === null || typeof userDefinedProvider !== "object") {
     return "provider entry must be an object";
@@ -67,7 +67,7 @@ export function userDefinedProviderIssue(
  * @returns {u is UserDefinedProvider}
  */
 export function checkIfUserDefinedProvider(
-  userDefinedProvider: UserDefinedProvider | any
+  userDefinedProvider: unknown
 ): userDefinedProvider is UserDefinedProvider {
   return userDefinedProviderIssue(userDefinedProvider) === null;
 }
@@ -80,7 +80,7 @@ export function checkIfUserDefinedProvider(
  * @returns {p is Provider}
  */
 export function checkIfProvider(
-  provider: Provider | any
+  provider: unknown
 ): provider is Provider {
   return providerShapeIssue(provider) === null;
 }

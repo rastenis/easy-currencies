@@ -23,7 +23,7 @@
     "lint": "oxlint src test scripts && eslint src",
     "prepare": "npm run build",
     "docs": "typedoc && cp ./_config.yml docs/_config.yml",
-    "prepublishOnly": "npm run build && npm test && npm run api:check",
+    "prepublishOnly": "npm run build && npm run lint && npm test && npm run api:check",
     "test": "jest --selectProjects offline",
     "test:live": "jest --selectProjects live --passWithNoTests --runInBand",
     "test:all": "jest --passWithNoTests",

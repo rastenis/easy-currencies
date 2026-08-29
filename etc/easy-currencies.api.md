@@ -12,7 +12,6 @@ export interface chainableConverter {
     fetch: () => Promise<chainableConverter>;
     // (undocumented)
     from: (from: string) => chainableConverter;
-    // (undocumented)
     rates: rateObject;
     // (undocumented)
     to: (to: string) => Promise<number>;
@@ -96,7 +95,7 @@ export interface Provider {
     };
     errorHandler: (data: any) => number | string | null;
     errors: ProviderErrors;
-    handler: Function;
+    handler: (data: any) => rateObject;
     key: any;
 }
 
