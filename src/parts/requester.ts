@@ -222,7 +222,16 @@ function signalledFailure(
   // that 500 was a status. Phrase it the way a transport failure already is
   // rather than duplicating that string here.
   if (typeof error === "number" && failed && response) {
-    return { handled: true, error: httpFailureError(response.status) };
+    // Keep the provider's own number when it is not just the status echoed
+    // back: an apilayer 101 arriving on an HTTP 401 is the useful half, and
+    // reporting only "HTTP 401" throws away what the vendor actually said.
+    return {
+      handled: true,
+      error: httpFailureError(
+        response.status,
+        error === response.status ? undefined : error
+      )
+    };
   }
 
   return { handled: true, error };
@@ -396,8 +405,12 @@ function retryAfter(response: HttpResponse): number | undefined {
 }
 
 /** The phrasing any HTTP failure gets, regardless of which path notices it. */
-function httpFailureError(status: number): Error {
-  return new Error(`Request to the provider failed: HTTP ${status}`);
+function httpFailureError(status: number, providerCode?: number): Error {
+  const detail =
+    providerCode === undefined
+      ? `HTTP ${status}`
+      : `HTTP ${status}, provider code ${providerCode}`;
+  return new Error(`Request to the provider failed: ${detail}`);
 }
 
 /**

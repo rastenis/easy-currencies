@@ -519,3 +519,31 @@ describe("the time budget", () => {
     ).resolves.toEqual({ rates: { EUR: 0.9 } });
   });
 });
+
+describe("an unmapped numeric error keeps what the vendor said", () => {
+  it("reports the provider's code alongside the status when they differ", async () => {
+    // apilayer sends its own code in the body and a status in the header. Both
+    // matter: "HTTP 401" alone throws away the 101 that names the cause.
+    const apilayerish = {
+      ...provider,
+      errors: { 999: "known" },
+      errorHandler: (data: any) => (data && data.error ? data.error.code : null)
+    };
+    const { client } = mockClient(httpError(401, { error: { code: 101 } }));
+
+    const err = await failureOf(client, apilayerish);
+
+    expect(err.error.message).toBe(
+      "Request to the provider failed: HTTP 401, provider code 101"
+    );
+  });
+
+  it("does not repeat the status when the code is just the status echoed back", async () => {
+    const echoesStatus = { ...provider, errorHandler: (data: any) => data.status };
+    const { client } = mockClient(httpError(500, { status: 500 }));
+
+    const err = await failureOf(client, echoesStatus);
+
+    expect(err.error.message).toBe("Request to the provider failed: HTTP 500");
+  });
+});
