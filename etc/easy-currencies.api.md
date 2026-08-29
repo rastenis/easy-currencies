@@ -12,7 +12,7 @@ export interface chainableConverter {
     fetch: () => Promise<chainableConverter>;
     // (undocumented)
     from: (from: string) => chainableConverter;
-    rates: rateObject | undefined;
+    rates: rateObject;
     // (undocumented)
     to: (to: string) => Promise<number>;
 }
