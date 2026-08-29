@@ -440,7 +440,11 @@ describe("error classification", () => {
   it("marks errors present in the provider's map as handled", async () => {
     const { client } = mockClient(response({ status: 101 }));
 
-    await expect(fetchRates(client, provider, query)).rejects.toEqual({
+    // toMatchObject, not toEqual: the rejection is a FetchRatesError (an Error
+    // subclass, for only-throw-error), and Jest's toEqual special-cases Error
+    // values to compare only `.message` against a plain object, which would
+    // pass no matter what `handled`/`error` held.
+    await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
       handled: true,
       error: "Invalid API key!"
     });

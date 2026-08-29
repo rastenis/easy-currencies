@@ -32,12 +32,27 @@ export interface RetryOptions {
   deadline?: number;
 }
 
-/** How a rate fetch failed. Every provider failure is recoverable by trying the next provider. */
-export interface FetchRatesError {
+/**
+ * How a rate fetch failed. Every provider failure is recoverable by trying the
+ * next provider.
+ *
+ * Extends Error, not a plain object, so every `throw` of one satisfies
+ * only-throw-error. converter.ts still recognises it by duck-typing `handled`
+ * (see `isProviderFailure` there), which an Error subclass with a boolean
+ * `handled` property satisfies exactly as a plain object would.
+ */
+export class FetchRatesError extends Error {
   /** False means fatal: the caller rethrows rather than trying another provider. */
-  handled: boolean;
-  /** The reason, always an Error by the time it leaves here. */
-  error: unknown;
+  readonly handled: boolean;
+  /** The reason: an Error for a transport or budget failure, or whatever a provider's errorHandler mapped to. */
+  readonly error: unknown;
+
+  constructor(handled: boolean, error: unknown) {
+    super(error instanceof Error ? error.message : String(error));
+    this.name = "FetchRatesError";
+    this.handled = handled;
+    this.error = error;
+  }
 }
 
 // The old 5 retries capped at 16s ran 1+2+4+8+16 = 31s per provider, and the
@@ -62,16 +77,19 @@ export function deadlineFrom(options: RetryOptions): number {
 /** Marks the rejection the budget raises, so it is not read as a transport failure. */
 const BUDGET_EXHAUSTED = Symbol.for("easy-currencies.budgetExhausted");
 
+/** An Error carrying the budget-exhaustion marker. */
+type BudgetExhaustedMarker = Error & { [BUDGET_EXHAUSTED]?: true };
+
 function budgetExhausted(): Error {
-  const error: any = new Error(
+  const error: BudgetExhaustedMarker = new Error(
     "Request to the provider failed: the conversion ran out of time."
   );
   error[BUDGET_EXHAUSTED] = true;
   return error;
 }
 
-function isBudgetExhausted(value: unknown): boolean {
-  return typeof value === "object" && value !== null && (value as any)[BUDGET_EXHAUSTED] === true;
+function isBudgetExhausted(value: unknown): value is BudgetExhaustedMarker {
+  return value instanceof Error && (value as BudgetExhaustedMarker)[BUDGET_EXHAUSTED] === true;
 }
 
 /**
@@ -100,9 +118,12 @@ function withDeadline<T>(work: Promise<T>, deadline: number): Promise<T> {
         clearTimeout(timer);
         resolve(value);
       },
-      (error) => {
+      (error: unknown) => {
         clearTimeout(timer);
-        reject(error);
+        // Forwarded verbatim: `work` is whatever a caller-supplied HttpClient
+        // rejects with, which the contract never requires to be an Error.
+        const forwarded: Error = error as Error;
+        reject(forwarded);
       }
     );
   });
@@ -174,7 +195,7 @@ function signalledFailure(
 ): FetchRatesError | null {
   // `?? {}` because the client sets data to undefined for an unparseable
   // response and handlers read fields off it without guards.
-  const body = (failed ? response?.data : result?.data) ?? {};
+  const body: unknown = (failed ? response?.data : result?.data) ?? {};
 
   let error: number | string | null;
   try {
@@ -208,7 +229,7 @@ function signalledFailure(
     : undefined;
 
   if (mapped) {
-    return { handled: true, error: mapped };
+    return new FetchRatesError(true, mapped);
   }
 
   // A code the provider does not enumerate is not a verdict on the chain.
@@ -225,16 +246,13 @@ function signalledFailure(
     // Keep the provider's own number when it is not just the status echoed
     // back: an apilayer 101 arriving on an HTTP 401 is the useful half, and
     // reporting only "HTTP 401" throws away what the vendor actually said.
-    return {
-      handled: true,
-      error: httpFailureError(
-        response.status,
-        error === response.status ? undefined : error
-      )
-    };
+    return new FetchRatesError(
+      true,
+      httpFailureError(response.status, error === response.status ? undefined : error)
+    );
   }
 
-  return { handled: true, error };
+  return new FetchRatesError(true, error);
 }
 
 /**
@@ -247,14 +265,14 @@ function signalledFailure(
  * @param {Provider} provider - provider from which the quotes will be fetched
  * @param {Query} query - the query
  * @param {RetryOptions} [options] - retry tuning
- * @returns {Promise<any>} - a result promise
+ * @returns {Promise<unknown>} - a result promise
  */
 export async function fetchRates(
   client: HttpClient,
   provider: Provider,
   query: Query,
   options: RetryOptions = {}
-): Promise<any> {
+): Promise<unknown> {
   const maxRetries = normalize(options.maxRetries, DEFAULT_MAX_RETRIES);
   const maxDelay = normalize(options.maxDelay, DEFAULT_MAX_DELAY);
   const deadline = options.deadline ?? deadlineFrom(options);
@@ -282,7 +300,7 @@ export async function fetchRates(
       // The budget is not this provider's fault, but it is the whole call's
       // answer: trying the next one would only spend time it no longer has.
       if (isBudgetExhausted(e)) {
-        throw providerFailure(e as Error);
+        throw providerFailure(e);
       }
       failed = true;
       err = e;
@@ -338,7 +356,7 @@ function normalize(value: number | undefined, fallback: number): number {
 
 /** The rejection shape for a failure the caller should treat as this provider's, and fall back from. */
 function providerFailure(error: Error): FetchRatesError {
-  return { handled: true, error };
+  return new FetchRatesError(true, error);
 }
 
 /** The response of an HTTP failure, or undefined for anything else thrown. */
@@ -355,13 +373,25 @@ function responseOf(err: unknown): HttpResponse | undefined {
  * `HttpResponse` carries no headers today, so this only pays off for a custom
  * client that attaches them — but it costs nothing to look.
  */
+/** True for a non-null object, so a property read off it is not a member access on `unknown`. */
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/** Narrows to a fetch-style Headers instance, the one shape here that reads via a method. */
+function hasGetMethod(
+  value: Record<string, unknown>
+): value is Record<string, unknown> & { get(name: string): unknown } {
+  return typeof value.get === "function";
+}
+
 function header(response: HttpResponse, name: string): string | undefined {
-  const headers = (response as any).headers;
-  if (!headers) {
+  const headers: unknown = response.headers;
+  if (!isObject(headers)) {
     return undefined;
   }
 
-  if (typeof headers.get === "function") {
+  if (hasGetMethod(headers)) {
     const value = headers.get(name);
     return typeof value === "string" ? value : undefined;
   }
@@ -441,7 +471,8 @@ function describe(err: unknown): string {
     if (typeof code === "number") {
       return String(code);
     }
-    const name = (err as any).constructor?.name;
+    const ctor = (err as { constructor?: unknown }).constructor;
+    const name = typeof ctor === "function" ? ctor.name : undefined;
     if (typeof name !== "string" || !name || name === "Object") {
       return "unknown error";
     }
@@ -454,10 +485,23 @@ function describe(err: unknown): string {
     return "unknown error";
   }
 
-  // Whatever is left is a primitive — number, bigint, boolean, symbol — and
-  // every one of those renders. Objects never reach here, which matters:
-  // String() throws on a null prototype, and their fields are not ours to show.
-  return String(err);
+  // Whatever is left renders through String() on its own: number, bigint,
+  // boolean, symbol, or a bare function via its source text. Objects never
+  // reach here, which matters: String() throws on a null prototype, and their
+  // fields are not ours to show. Spelled out rather than left to fall through,
+  // because `unknown` does not narrow like a union: TS cannot tell this is
+  // exhaustive unless each case is named.
+  if (
+    typeof err === "number" ||
+    typeof err === "bigint" ||
+    typeof err === "boolean" ||
+    typeof err === "symbol" ||
+    typeof err === "function"
+  ) {
+    return String(err);
+  }
+
+  return "unknown error";
 }
 
 /**
@@ -478,7 +522,7 @@ function transportError(err: unknown): Error {
 
   const code = (err as HttpError)?.code;
   if (typeof code === "string") {
-    (error as any).code = code;
+    (error as HttpError).code = code;
   }
   return error;
 }
@@ -503,5 +547,5 @@ function formatUrl(provider: Provider, query: Query): string {
   return (provider.endpoint.base + provider.endpoint.single)
     .replace(/%FROM%/g, put(query.FROM))
     .replace(/%TO%/g, put(query.TO))
-    .replace(/%KEY%/g, put(provider.key || ""));
+    .replace(/%KEY%/g, put(String(provider.key || "")));
 }
