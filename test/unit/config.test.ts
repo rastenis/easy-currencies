@@ -70,6 +70,27 @@ describe("construction", () => {
       "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)"
     );
   });
+
+  // `new Converter()` (no arguments) never reaches this branch: it returns
+  // before resolveProviders even looks at configuration[0]. These pass an
+  // explicit null/undefined so the guard is actually exercised.
+  it("defaults to the ExchangeRateAPI chain given an explicit null config", () => {
+    const converter = new Converter(null as any);
+
+    expect(converter.providers[0].endpoint).toEqual(
+      providers.ExchangeRateAPI.endpoint
+    );
+    expect(converter.providers).toHaveLength(3);
+  });
+
+  it("defaults to the ExchangeRateAPI chain given an explicit undefined config", () => {
+    const converter = new Converter(undefined);
+
+    expect(converter.providers[0].endpoint).toEqual(
+      providers.ExchangeRateAPI.endpoint
+    );
+    expect(converter.providers).toHaveLength(3);
+  });
 });
 
 describe("provider ordering", () => {
@@ -102,6 +123,21 @@ describe("provider ordering", () => {
     converter.add("OrderingActive", provider, true);
 
     expect(converter.config.activeProvider()).toBe(provider);
+  });
+});
+
+describe("config.providers", () => {
+  // `converter.providers` was already a defensive copy; `converter.config.providers`
+  // was not, so `converter.config.providers.length = 0` still emptied the real
+  // chain despite going through the "safe" getter.
+  it("is a copy, so mutating it does not touch the real chain", () => {
+    const converter = new Converter("CurrencyLayer", "key");
+    const before = converter.providers.length;
+
+    converter.config.providers.length = 0;
+    converter.config.providers.push(customProvider("https://sneak-in.example/"));
+
+    expect(converter.providers).toHaveLength(before);
   });
 });
 

@@ -40,10 +40,14 @@ function converterWith(count: number) {
   const converter = new Converter();
   const chain = Array.from({ length: count }, (_, i) => fakeProvider(`p${i}`));
 
-  // config.providers returns the live array, so this replaces the chain
-  // without registering names in the global provider singleton.
-  converter.config.providers.length = 0;
-  converter.config.providers.push(...chain);
+  // config.providers is a defensive copy, so replacing the chain goes through
+  // the public API: drop the defaults, then register the fakes directly
+  // (addMultiple, not add, so they keep object identity for `toEqual(chain)`).
+  converter.providers.forEach((p) => converter.remove(p));
+  converter.addMultiple(
+    chain.map((provider, i) => ({ name: `p${i}`, provider })),
+    false
+  );
 
   converter.onError = () => {};
 
@@ -206,7 +210,7 @@ describe("chain exhaustion", () => {
 
   it("reports an empty provider list rather than crashing", async () => {
     const converter = new Converter();
-    converter.config.providers.length = 0;
+    converter.providers.forEach((p) => converter.remove(p));
 
     await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow(
       /No rate providers are configured/

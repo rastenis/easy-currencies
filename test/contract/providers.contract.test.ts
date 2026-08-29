@@ -5,6 +5,7 @@ import {
   AMOUNT,
   EXPECTED
 } from "../fixtures/providers.fixtures";
+import { providers } from "../../src/parts/providers";
 
 // `providers` is a mutable module singleton; a fresh copy per test stops keys leaking between them.
 function freshConverter(name: string, key?: string): any {
@@ -64,6 +65,16 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
         fixture.emptyResponse
       );
     });
+
+    for (const payload of fixture.extraEmptyResponses ?? []) {
+      it(`rejects the same way for ${JSON.stringify(payload)}`, async () => {
+        const { converter } = isolated(fixture, response(payload));
+
+        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
+          fixture.emptyResponse
+        );
+      });
+    }
 
     const handled = fixture.handledError;
     (handled ? it : it.skip)(
@@ -223,6 +234,25 @@ describe("known defects", () => {
     await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
       "API rate limit reached."
     );
+  });
+});
+
+describe("handler guards", () => {
+  // Direct handler calls, not routed through convert(): the contract-level
+  // "no usable rate" tests above catch a raw crash, but a mutant that drops
+  // the `typeof o !== "object"` half of the AlphaVantage guard still passes
+  // them (indexing a string doesn't throw), so the empty map itself has to be
+  // asserted strictly here.
+  it("CurrencyLayer returns an empty map for quotes: null", () => {
+    expect(providers.CurrencyLayer.handler({ quotes: null })).toStrictEqual({});
+  });
+
+  it("AlphaVantage returns an empty map when the first key is a string", () => {
+    expect(
+      providers.AlphaVantage.handler({
+        "Realtime Currency Exchange Rate": "unexpected string"
+      })
+    ).toStrictEqual({});
   });
 });
 

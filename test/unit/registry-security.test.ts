@@ -36,6 +36,14 @@ describe("registry lookup", () => {
       /No provider with this name/
     );
   });
+
+  // Distinct from the case above: here the whole ProviderReference is missing,
+  // not just its `name`. `provider?.name` has to survive that on its own.
+  it("rejects a missing provider reference outright", () => {
+    expect(() => resolveProvider(undefined as any)).toThrow(
+      /No provider with this name/
+    );
+  });
 });
 
 describe("instance isolation", () => {
@@ -101,5 +109,33 @@ describe("provider validation", () => {
     expect(() => new Converter().add("Fixer", provider as any)).toThrow(
       /built-in provider/
     );
+  });
+
+  // Both of these were raw TypeErrors escaping to the caller under fuzzing,
+  // rather than the library's own "Invalid provider format!".
+  it("rejects a provider with a null endpoint instead of crashing on it", () => {
+    const provider = {
+      endpoint: null,
+      key: "k",
+      handler: (d: any) => d.rates,
+      errors: {},
+      errorHandler: () => null
+    };
+    expect(() => new Converter().add("NullEndpoint", provider as any)).toThrow(
+      "Invalid provider format!"
+    );
+  });
+
+  it("rejects a non-string provider name instead of crashing on it", () => {
+    const provider = {
+      endpoint: { base: "https://noname.example/", single: "%FROM%" },
+      key: "k",
+      handler: (d: any) => d.rates,
+      errors: {},
+      errorHandler: () => null
+    };
+    expect(() =>
+      new Converter().add(Object.create(null), provider as any)
+    ).toThrow("Invalid provider format!");
   });
 });
