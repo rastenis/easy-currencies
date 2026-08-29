@@ -4,8 +4,6 @@
 
 ```ts
 
-import { AxiosInstance } from 'axios';
-
 // @public
 export interface chainableConverter {
     // (undocumented)
@@ -20,16 +18,23 @@ export interface chainableConverter {
     to: (to: string) => Promise<number>;
 }
 
+// @public (undocumented)
+export interface ClientOptions {
+    timeout?: number;
+}
+
 // @public
 export class Config {
     constructor(...config: ProviderReference[] | undefined[] | string[]);
     activeProvider(): Provider;
     add: (name: string, provider: Provider, setActive?: boolean) => void;
     addMultiple: (newProviders: UserDefinedProvider[], setActive?: boolean) => void;
-    getClient: () => AxiosInstance;
+    getClient: () => HttpClient;
+    getRetryOptions: () => RetryOptions;
     get providers(): Provider[];
     remove: (provider: Provider) => void;
-    setClient: (client: AxiosInstance) => void;
+    setClient: (client: HttpClient) => void;
+    setRetryOptions: (options: RetryOptions) => void;
 }
 
 // @public
@@ -44,18 +49,42 @@ export class Converter {
     add: Config["add"];
     // (undocumented)
     addMultiple: Config["addMultiple"];
-    // (undocumented)
-    addMultipleProviders: Config["addMultiple"];
-    // (undocumented)
-    addProvider: Config["add"];
     config: Config;
     convert: (amount: number, from: string, to: string, rates?: any) => Promise<number>;
     convertRate: (amount: number, to: string, rates?: any) => number;
     getRates: (from: string, to: string, multiple?: boolean) => Promise<rateObject>;
+    onError: (error: unknown) => void;
     get providers(): Provider[];
     // (undocumented)
     remove: Config["remove"];
-    setProxyConfiguration: (proxyConfiguration: ProxyConfiguration) => void;
+    setClient: (client: HttpClient) => void;
+    setRetryOptions: (options: RetryOptions) => void;
+}
+
+// @public (undocumented)
+export function createClient(options?: ClientOptions): HttpClient;
+
+// @public (undocumented)
+export interface HttpClient {
+    // (undocumented)
+    get(url: string): Promise<HttpResponse>;
+}
+
+// @public
+export interface HttpError extends Error {
+    // (undocumented)
+    code?: string;
+    // (undocumented)
+    response?: HttpResponse;
+}
+
+// @public
+export interface HttpResponse {
+    // (undocumented)
+    data: any;
+    headers?: Record<string, string>;
+    // (undocumented)
+    status: number;
 }
 
 // @public
@@ -63,7 +92,6 @@ export interface Provider {
     endpoint: {
         base: string;
         single: string;
-        multiple: string;
     };
     errorHandler: (data: any) => number | string | null;
     errors: ProviderErrors;
@@ -95,22 +123,20 @@ export interface Providers {
 export const providers: Providers;
 
 // @public
-export interface ProxyConfiguration {
-    // (undocumented)
-    auth: {
-        username: string;
-        password: string;
-    };
-    // (undocumented)
-    host: string;
-    // (undocumented)
-    port: number;
-}
-
-// @public
 export interface rateObject {
     // (undocumented)
     [currencyName: string]: number;
+}
+
+// @public
+export const RATES_BASE_KEY = "__base";
+
+// @public
+export interface RetryOptions {
+    budgetMs?: number;
+    deadline?: number;
+    maxDelay?: number;
+    maxRetries?: number;
 }
 
 // @public

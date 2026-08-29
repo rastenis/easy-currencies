@@ -10,6 +10,9 @@ import { UserDefinedProvider, Provider } from "./providers";
 export function checkIfUserDefinedProvider(
   userDefinedProvider: UserDefinedProvider | any
 ): userDefinedProvider is UserDefinedProvider {
+  if (userDefinedProvider === null || typeof userDefinedProvider !== "object") {
+    return false;
+  }
   return (
     (userDefinedProvider as UserDefinedProvider).name !== undefined &&
     checkIfProvider((userDefinedProvider as UserDefinedProvider).provider)
@@ -26,12 +29,16 @@ export function checkIfUserDefinedProvider(
 export function checkIfProvider(
   provider: Provider | any
 ): provider is Provider {
+  if (provider === null || typeof provider !== "object") {
+    return false;
+  }
+  // `key` is deliberately not required: keyless providers are legitimate, and
+  // requiring it rejected every built-in provider.
   return (
     (provider as Provider).endpoint !== undefined &&
     (provider as Provider).errorHandler !== undefined &&
     (provider as Provider).errors !== undefined &&
-    (provider as Provider).handler !== undefined &&
-    (provider as Provider).key !== undefined
+    (provider as Provider).handler !== undefined
   );
 }
 

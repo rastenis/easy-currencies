@@ -1,27 +1,25 @@
-import { AxiosInstance, AxiosResponse, AxiosRequestHeaders } from "axios";
+import { HttpClient, HttpError, HttpResponse } from "../../src/parts/client";
 
-export function response(data: any, status: number = 200): AxiosResponse {
-  return {
-    data,
-    status,
-    statusText: "",
-    headers: {} as AxiosRequestHeaders,
-    config: { headers: {} as AxiosRequestHeaders }
-  } as AxiosResponse;
+export function response(data: any, status: number = 200): HttpResponse {
+  return { status, data };
 }
 
-/** An axios-shaped HTTP failure. The requester handles these differently from an error payload in a 200 body. */
-export function httpError(status: number, data: any = undefined) {
-  return { response: { status, data } };
+/** An HTTP failure. The requester handles these differently from an error payload in a 200 body. */
+export function httpError(status: number, data: any = undefined): HttpError {
+  const err = new Error(`Request failed with status code ${status}`) as HttpError;
+  err.response = { status, data };
+  return err;
 }
 
-/** A transport failure (ECONNREFUSED, timeout, DNS) — a rejection carrying no `response`. */
-export function transportError(message: string = "ECONNREFUSED") {
-  return new Error(message);
+/** A transport failure (ECONNREFUSED, timeout, DNS) — an error carrying no response. */
+export function transportError(code: string = "ECONNREFUSED"): HttpError {
+  const err = new Error("fetch failed") as HttpError;
+  err.code = code;
+  return err;
 }
 
 export interface MockClient {
-  client: AxiosInstance;
+  client: HttpClient;
   get: jest.Mock;
   urls: () => string[];
   /** Throws unless exactly one request was made. */
@@ -29,7 +27,7 @@ export interface MockClient {
 }
 
 /**
- * A stand-in AxiosInstance returning the given outcomes in order.
+ * A stand-in HttpClient returning the given outcomes in order.
  * The last outcome repeats, so retry tests need not enumerate every attempt.
  */
 export function mockClient(...outcomes: any[]): MockClient {
@@ -42,14 +40,11 @@ export function mockClient(...outcomes: any[]): MockClient {
     if (outcome instanceof Error) {
       return Promise.reject(outcome);
     }
-    if (outcome && typeof outcome === "object" && "response" in outcome) {
-      return Promise.reject(outcome);
-    }
     return Promise.resolve(outcome);
   });
 
   return {
-    client: { get } as unknown as AxiosInstance,
+    client: { get } as HttpClient,
     get,
     urls: () => [...requested],
     url: () => {

@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from "axios";
+import { HttpClient, createClient } from "./client";
+import { RetryOptions } from "./requester";
 import {
   Provider,
   providers,
@@ -8,15 +9,6 @@ import {
 } from "./providers";
 
 import { checkIfUserDefinedProvider } from "./utils";
-
-/**
- * Proxy configuration object.
- */
-export interface ProxyConfiguration {
-  host: string;
-  port: number;
-  auth: { username: string; password: string };
-}
 
 /**
  * Config object that initializes with configuration data
@@ -47,13 +39,13 @@ export class Config {
   /**
    * Active client.
    */
-  private _client: AxiosInstance = axios.create();
+  private _client: HttpClient = createClient();
 
   /**
    * Client setter.
    * @param client  The client.
    */
-  setClient = (client: AxiosInstance): void => {
+  setClient = (client: HttpClient): void => {
     this._client = client;
   };
 
@@ -62,6 +54,26 @@ export class Config {
    */
   getClient = () => {
     return this._client;
+  };
+
+  /**
+   * Active retry tuning.
+   */
+  private _retry: RetryOptions = {};
+
+  /**
+   * Retry setter. Merges, so one field can be set without restating the rest.
+   * @param options  The tuning to apply.
+   */
+  setRetryOptions = (options: RetryOptions): void => {
+    this._retry = { ...this._retry, ...options };
+  };
+
+  /**
+   * Retry getter.
+   */
+  getRetryOptions = (): RetryOptions => {
+    return { ...this._retry };
   };
 
   /**
@@ -116,17 +128,27 @@ export class Config {
     newProviders: UserDefinedProvider[],
     setActive: boolean = false
   ): void => {
-    // Duplicate check
+    if (!Array.isArray(newProviders)) {
+      throw new Error("Providers must be given as an array.");
+    }
+
+    // Validate the whole batch before adding any of it, so a bad entry cannot
+    // leave earlier ones half-added and unusable on retry.
     newProviders.forEach((p) => {
       if (!checkIfUserDefinedProvider(p)) {
-        throw "Invalid provider format!";
+        throw new Error("Invalid provider format!");
       }
-
-      if (providers[p.name]) {
-        throw "A provider by this name is already registered!";
+      if (Object.prototype.hasOwnProperty.call(providers, p.name)) {
+        throw new Error(
+          `'${p.name}' is the name of a built-in provider; choose another.`
+        );
       }
-      providers[p.name] = p.provider;
     });
+
+    // Deliberately not written into the exported `providers` map. Doing so put
+    // user API keys somewhere any code in the process could read, made two
+    // libraries adding the same name collide, and let unrelated code resolve a
+    // provider it never registered. Custom providers belong to this Converter.
 
     // Adding provider to active providers
     this.addProviders(
@@ -194,7 +216,15 @@ export function resolveProviders(
     typeof configuration[0] !== "undefined" &&
     typeof configuration[0] !== "string"
   ) {
-    throw "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)";
+    throw new Error(
+      "You must either supply nothing or a config object (see the 'config' section to see the different APIs that can be used)"
+    );
+  }
+
+  // typeof null is "object", and the signature permits undefined[], so both
+  // reach resolveProvider and crash there without this.
+  if (configuration[0] === null || configuration[0] === undefined) {
+    return [providers.ExchangeRateAPI];
   }
 
   // returning single provider

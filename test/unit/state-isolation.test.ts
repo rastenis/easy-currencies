@@ -20,7 +20,7 @@ function load() {
 
 function customProvider(): Provider {
   return {
-    endpoint: { base: "https://custom.example.com/", single: "%FROM%-%TO%", multiple: "" },
+    endpoint: { base: "https://custom.example.com/", single: "%FROM%-%TO%" },
     key: "ck",
     handler: (data: any) => data.rates,
     errors: {},
@@ -42,12 +42,14 @@ it("keeps each converter's API key when two use the same provider", async () => 
   expect(mock.url()).not.toContain("KEY_TWO");
 });
 
-it("refuses a provider name already registered by an unrelated instance", () => {
+it("lets two converters register the same custom provider name", () => {
   const Converter = load();
   const a = new Converter();
   a.add("SharedName", customProvider());
 
   const b = new Converter();
 
-  expect(() => b.add("SharedName", customProvider())).toThrow();
+  // Registration used to go into the module-global map, so a second instance
+  // collided and the first instance's key was readable process-wide.
+  expect(() => b.add("SharedName", customProvider())).not.toThrow();
 });

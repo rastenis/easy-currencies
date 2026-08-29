@@ -7,7 +7,7 @@ Convert currencies with ease! Eight exchange rate providers to choose from, othe
 
 ## Features
 
-- Easily convert currencies using one of the six built-in API providers
+- Easily convert currencies using one of the eight built-in API providers
 - Two modes of operation:
   - Easy mode - no configuration or API keys required at all
   - Custom mode - choose one or more providers, use key-gated providers.
@@ -70,8 +70,16 @@ console.log(convert.rates);
 //   DKK: 6.42,
 //   HUF: 312.8,
 //   ...
+//   __base: "USD"
 // }
 ```
+
+`__base` records the currency the table was fetched for. Passing a table to
+`convert(amount, from, to, rates)` with a different `from` throws instead of
+returning a wrong number, and the key is an ordinary one so the check still
+works after the table has been through `JSON.stringify` and a cache. It is not a
+rate: skip it when iterating, or import `RATES_BASE_KEY` to name it. An
+underscore is not valid in a currency code, so it cannot collide with one.
 
 This also allows for cached conversion:
 
@@ -116,6 +124,8 @@ const value = await converter.convert(15, "USD", "EUR");
 console.log(value); // converted value
 ```
 
+Upgrading from 1.x? See [MIGRATION.md](MIGRATION.md).
+
 ## Supported providers and API keys
 
 The first column is the exact name to pass to `new Converter()`.
@@ -143,20 +153,82 @@ keyless providers, which stay on as fallbacks.
 
 `ExchangeRateAPI` and `ExchangeRatesAPIIO` are different services with confusingly similar names.
 
-## Using proxy
+## Using a proxy or a custom client
+
+Requests go through the global fetch, which has no proxy option. Supply your own
+client to proxy, or to add an agent, retries or instrumentation.
+
+If you already use axios, an axios instance satisfies the client interface as
+is, including the rejection behaviour the fallback chain depends on:
 
 ```js
-import { Converter } from "easy-currencies";
+import axios from "axios";
 
-const converter = new Converter();
-converter.setProxyConfiguration({
-  host: "127.0.0.1",
-  port: 8080,
-  auth: { username: "user", password: "pass" }
-});
-
-// Further usage will be proxied!
+converter.setClient(axios.create({ proxy: { host: "127.0.0.1", port: 8080 } }));
 ```
+
+To stay dependency-free, use an undici dispatcher. **A client must reject on an
+HTTP failure with the response attached.** `fetch` resolves on 4xx and 5xx, so a
+client that does not check `r.ok` silently disables provider error mapping, the
+429 retry and the fallback chain:
+
+```js
+import { ProxyAgent } from "undici";
+
+const dispatcher = new ProxyAgent("http://127.0.0.1:8080");
+
+converter.setClient({
+  get: async (url) => {
+    const r = await fetch(url, { dispatcher });
+    let data;
+    try {
+      data = await r.json();
+    } catch {
+      data = undefined;
+    }
+    const headers = Object.fromEntries(r.headers);
+
+    if (!r.ok) {
+      const err = new Error(`Request failed with status code ${r.status}`);
+      err.response = { status: r.status, data, headers };
+      throw err;
+    }
+    return { status: r.status, data, headers };
+  }
+});
+```
+
+A client is `{ get(url) }` resolving to `{ status, data, headers? }`. `headers`
+is optional and enables `Retry-After` handling on a 429. TypeScript users passing
+`dispatcher` to `fetch` need `{ dispatcher } as any`; it is not in the DOM
+`RequestInit` type.
+
+To keep the built-in client and change only the timeout:
+
+```js
+import { createClient } from "easy-currencies";
+
+converter.setClient(createClient({ timeout: 30000 })); // default is 10000
+```
+
+## Bounding how long a conversion can take
+
+A conversion gets 20 seconds of wall clock, spent across the whole fallback
+chain rather than reset for each provider, and it covers the requests
+themselves. A client that never settles cannot hold a conversion open past it.
+
+```js
+converter.setRetryOptions({ budgetMs: 5000 }); // an HTTP handler
+converter.setRetryOptions({ maxRetries: 0 }); // never retry a 429
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `budgetMs` | 20000 | wall clock for the whole call, across every provider |
+| `maxRetries` | 2 | retries after the initial request, on a 429 only |
+| `maxDelay` | 8000 | upper bound in ms on one backoff wait, before jitter |
+
+Fields merge, so one can be set without restating the rest.
 
 ## API
 
@@ -169,7 +241,8 @@ converter.setProxyConfiguration({
 - `add(name, provider, setActive?)`
 - `addMultiple(providers, setActive?)`
 - `remove(provider)`
-- `setProxyConfiguration({ host, port, auth })`
+- `setClient(client)`
+- `setRetryOptions(options)`
 
 `Convert(amount?)`, chainable:
 
@@ -194,7 +267,6 @@ console.log(converter.providers);
  *  endpoint: {
  *    base: "https://openexchangerates.org/api/latest.json?app_id=%KEY%",
  *    single: "&base=%FROM%",
- *    multiple: "&base=%FROM%"
  *  },
  *  key: "API_KEY",
  *  handler: function(data) {
@@ -212,7 +284,6 @@ console.log(converter.providers);
  *  endpoint: {
  *    base: "https://api.exchangerate-api.com/v4/latest/",
  *    single: "%FROM%",
- *    multiple: "%FROM%"
  *  },
  *  key: undefined,
  *  handler: function(data) {
@@ -245,7 +316,7 @@ console.log(converter.config.activeProvider()); // ...provider data
 
 Upon creation of a converter, a default provider that does not require any API keys is automatically inserted into the list of active providers as a primary fallback. It always has lower priority than the providers the converter was initialized with.
 
-If a provider is well defined(all possible errors are registered properly), a conversion error will log the mapped error, and remove the provider from the active providers list. The conversion flow will attempt to resume by repeating the conversion using a different active provider.
+If a provider is well defined(all possible errors are registered properly), a conversion error is reported through `converter.onError` and the conversion flow resumes with the next active provider. A failure applies to that call only: no provider is removed, so one unknown currency cannot degrade a long-lived converter.
 
 If there are no more providers to fall back on, the converter throws the error. Moreover, if the error is not registered (unhandled error), it will be thrown as well.
 
@@ -262,8 +333,7 @@ converter.add("MyProvider", {
   // the name of the custom provider
   endpoint: {
     base: "http://myprovider.net/api/live?access_key=%KEY%", // the base endpoint of the conversion API, with %KEY% being the api key's slot
-    single: "&source=%FROM%", // the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation
-    multiple: "&source=%FROM%&currencies=%TO%" // the string that will be appended to the base endpoint when fetching specific currencies, with %TO% being the target currencies, separated by ','
+    single: "&source=%FROM%" // the string that will be appended to the base endpoint, with %FROM% being the base currency abbreviation
   },
   key: "API_KEY", // your api key
   handler: function (data) {
@@ -276,11 +346,16 @@ converter.add("MyProvider", {
     201: "Invalid base currency!"
   },
   errorHandler: function (data) {
-    // the function that takes the JSON error data and returns the error status (could be a HTTP status or a custom API-layer status)
-    return data.error.code;
+    // runs on every response, success included, so it must tolerate a body with no error
+    return data && data.error ? data.error.code : null;
   }
 });
 ```
+
+`errorHandler` always receives the response body, on a 200 and on an HTTP
+failure alike. If your vendor signals with a status code rather than in the
+body, key `errors` by the status and return `null` here: an HTTP status is
+matched against `errors` when the handler finds nothing.
 
 Multiple providers can be added with addMultiple:
 

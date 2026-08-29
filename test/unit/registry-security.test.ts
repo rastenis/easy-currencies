@@ -71,6 +71,7 @@ describe("built-in templates", () => {
   it("are frozen", () => {
     expect(Object.isFrozen(providers.Fixer)).toBe(true);
     expect(Object.isFrozen(providers.Fixer.endpoint)).toBe(true);
+    expect(Object.isFrozen(providers.Fixer.errors)).toBe(true);
   });
 
   it("send API keys over https", () => {
@@ -89,7 +90,7 @@ describe("provider validation", () => {
     ).toThrow("Invalid provider format!");
   });
 
-  it("rejects a duplicate provider name", () => {
+  it("rejects a name that shadows a built-in provider", () => {
     const provider = {
       endpoint: { base: "https://dup.example/", single: "%FROM%", multiple: "" },
       key: "k",
@@ -97,10 +98,8 @@ describe("provider validation", () => {
       errors: {},
       errorHandler: () => null
     };
-    new Converter().add("DuplicateName", provider as any);
-
-    expect(() => new Converter().add("DuplicateName", provider as any)).toThrow(
-      "A provider by this name is already registered!"
+    expect(() => new Converter().add("Fixer", provider as any)).toThrow(
+      /built-in provider/
     );
   });
 });

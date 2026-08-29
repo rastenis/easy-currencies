@@ -1,7 +1,7 @@
 import { _to, sleep, checkIfProvider, checkIfUserDefinedProvider } from "../../src/parts/utils";
 
 const provider = {
-  endpoint: { base: "b", single: "s", multiple: "m" },
+  endpoint: { base: "b", single: "s" },
   key: "k",
   handler: () => ({}),
   errors: {},
@@ -52,7 +52,18 @@ describe("provider type guards", () => {
     expect(checkIfProvider(provider)).toBe(true);
   });
 
-  it.each(["endpoint", "key", "handler", "errors", "errorHandler"])(
+  it("accepts a keyless provider", () => {
+    const { key, ...keyless } = provider;
+
+    expect(checkIfProvider(keyless)).toBe(true);
+  });
+
+  it("rejects null", () => {
+    expect(checkIfProvider(null)).toBe(false);
+    expect(checkIfUserDefinedProvider(null)).toBe(false);
+  });
+
+  it.each(["endpoint", "handler", "errors", "errorHandler"])(
     "rejects a provider missing %s",
     (field) => {
       const incomplete: any = { ...provider };

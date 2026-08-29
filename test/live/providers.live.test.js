@@ -1,95 +1,44 @@
 const { Converter } = require("../../src");
-
-test("Converts an amount of given currency (ExchangeRateAPI).", async () => {
-  const converter = new Converter("ExchangeRateAPI");
-
-  const value = await converter.convert(15, "USD", "EUR");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
-
-test("Converts an amount of given currency (OpenExchangeRates).", async () => {
-  const converter = new Converter(
-    "OpenExchangeRates",
-    process.env.OPEN_EXCHANGE_RATES_KEY
-  );
-
-  const value = await converter.convert(15, "USD", "EUR");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
-
-test("Converts an amount of given currency (AlphaVantage).", async () => {
-  const converter = new Converter(
-    "AlphaVantage",
-    process.env.ALPHA_VANTAGE_KEY
-  );
-
-  const value = await converter.convert(15, "USD", "EUR");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
-
-test("Converts an amount of given currency (ExchangeRatesAPIIO).", async () => {
-  const converter = new Converter(
-    "ExchangeRatesAPIIO",
-    process.env.EXCHANGERATESAPI_IO_KEY
-  );
-
-  const value = await converter.convert(15, "EUR", "USD");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
-
-test("Converts an amount of given currency (Frankfurter).", async () => {
-  const converter = new Converter("Frankfurter");
-
-  const value = await converter.convert(15, "USD", "EUR");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
-
-test("Converts an amount of given currency (FloatRates).", async () => {
-  const converter = new Converter("FloatRates");
-
-  const value = await converter.convert(15, "USD", "EUR");
-
-  expect(typeof value).toBe("number");
-  expect(value).toBeGreaterThan(0);
-  expect(value).toBeLessThan(30);
-}, 10000);
+const { expectRealConversion, QUOTE } = require("./helpers/liveRate");
 
 /**
- * Omitting  CurrencyLayer and Fixer because they require paid keys to switch base currency
+ * One live conversion per provider, checked for direction and for agreement
+ * with an independent keyless provider. See helpers/liveRate.js for why a
+ * plain range on 15 USD -> EUR could not fail.
+ *
+ * CurrencyLayer and Fixer are omitted: both require a paid key to choose a base
+ * currency, so there is no conversion they can serve here.
  */
-// test("Converts an amount of given currency (CurrencyLayer)", async () => {
-//   // default initialization
-//   const converter = new Converter("CurrencyLayer", process.env.CURRENCY_LAYER_KEY);
 
-//   const value = await converter.convert(15, "USD", "EUR");
+const AMOUNT = 15;
 
-//   expect(typeof value).toBe("number");
-//   expect(value).toBeGreaterThan(0);
-//   expect(value).toBeLessThan(30);
-// });
+/** A converter with the implicit fallbacks removed, so the named provider answers. */
+function only(name, key) {
+  const converter = key === undefined ? new Converter(name) : new Converter(name, key);
+  while (converter.active.length > 1) {
+    converter.remove(converter.active[1]);
+  }
+  return converter;
+}
 
-// test("Converts an amount of given currency (Fixer)", async () => {
-//   // default initialization
-//   const converter = new Converter("Fixer", process.env.FIXER_KEY);
+const PROVIDERS = [
+  ["ExchangeRateAPI", undefined, "USD"],
+  ["OpenExchangeRates", process.env.OPEN_EXCHANGE_RATES_KEY, "USD"],
+  ["AlphaVantage", process.env.ALPHA_VANTAGE_KEY, "USD"],
+  // The free ExchangeRatesAPI.io plan is locked to a EUR base.
+  ["ExchangeRatesAPIIO", process.env.EXCHANGERATESAPI_IO_KEY, "EUR"],
+  ["Frankfurter", undefined, "USD"],
+  ["FloatRates", undefined, "USD"]
+];
 
-//   const value = await converter.convert(15, "USD", "EUR");
+describe.each(PROVIDERS)("%s", (name, key, from) => {
+  it("converts at a rate that matches an independent provider", async () => {
+    const value = await only(name, key).convert(AMOUNT, from, QUOTE);
 
-//   expect(typeof value).toBe("number");
-//   expect(value).toBeGreaterThan(0);
-//   expect(value).toBeLessThan(30);
-// });
+    await expectRealConversion(value, {
+      amount: AMOUNT,
+      from,
+      provider: name
+    });
+  }, 20000);
+});

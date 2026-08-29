@@ -1,4 +1,4 @@
-export { Converter, Convert } from "./converter";
+export { Converter, Convert, RATES_BASE_KEY } from "./converter";
 export { providers } from "./parts/providers";
 
 // Types used in public signatures. Exported so consumers can name them, and so
@@ -11,5 +11,8 @@ export type {
   Providers,
   UserDefinedProvider
 } from "./parts/providers";
-export type { Config, ProxyConfiguration } from "./parts/config";
+export type { Config } from "./parts/config";
+export type { HttpClient, HttpResponse, HttpError, ClientOptions } from "./parts/client";
+export { createClient } from "./parts/client";
 export type { chainableConverter } from "./parts/chainer";
+export type { RetryOptions } from "./parts/requester";

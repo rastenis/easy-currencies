@@ -46,13 +46,12 @@ export interface Provider {
    * Endpoint configuration object for a provider:
    * The base template is the root of the access URL, with a place for access key in the form of %KEY% (if needed)
    * The single template is used for single currency conversions, requires a %FROM% and a %TO% to be present.
-   * The multiple template is currently unused.
-   * @type {{ base: string; single: string; multiple: string }}
+   * @type {{ base: string; single: string }}
    * @memberof Provider
    */
-  endpoint: { base: string; single: string; multiple: string };
+  endpoint: { base: string; single: string };
   /**
-   * A function that returns a map of currencies from the data object returned by axios (response.data)
+   * A function that returns a map of currencies from the data object returned by the client (response.data)
    *
    * @example
    *  function(data) { //must return {currency1:rate1,curency2:rate2} in reference to the base currency.
@@ -103,14 +102,13 @@ export interface ProviderReference {
  */
 export function resolveProvider(provider: ProviderReference): Provider {
   // Own-property check only. A plain lookup accepts "__proto__", "constructor"
-  // and every other inherited key, and assigning the key through "__proto__"
-  // writes it onto Object.prototype.
+  // and every other inherited key, and assigning the API key through
+  // "__proto__" writes it onto Object.prototype.
   const name = provider?.name;
-  if (
-    typeof name !== "string" ||
-    !Object.prototype.hasOwnProperty.call(providers, name)
-  ) {
-    throw "No provider with this name. Please use a provider from the supported providers list.";
+  if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(providers, name)) {
+    throw new Error(
+      "No provider with this name. Please use a provider from the supported providers list."
+    );
   }
 
   // Copy, so instances do not share a template and overwrite each other's key.
@@ -124,8 +122,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRateAPI: {
     endpoint: {
       base: "https://api.exchangerate-api.com/v4/latest/",
-      single: "%FROM%",
-      multiple: "%FROM%"
+      single: "%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -139,8 +136,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRatesAPIIO: {
     endpoint: {
       base: "https://api.exchangeratesapi.io/latest?access_key=%KEY%",
-      single: "&base=%FROM%&symbols=%TO%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%&symbols=%TO%"
     },
     errors: {
       105: "A paid plan is required in order to use other base currencies!",
@@ -151,15 +147,15 @@ export const providers: Providers = Object.assign(Object.create(null), {
     handler: function (data: any) {
       return data.rates;
     },
+    // apilayer signals failure in the body, not the HTTP status.
     errorHandler: function (data: any) {
-      return data.status;
+      return data && data.error ? data.error.code : null;
     }
   },
   CurrencyLayer: {
     endpoint: {
       base: "https://apilayer.net/api/live?access_key=%KEY%",
-      single: "&source=%FROM%",
-      multiple: "&source=%FROM%&currencies=%TO%"
+      single: "&source=%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -187,8 +183,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   OpenExchangeRates: {
     endpoint: {
       base: "https://openexchangerates.org/api/latest.json?app_id=%KEY%",
-      single: "&base=%FROM%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -204,8 +199,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   AlphaVantage: {
     endpoint: {
       base: "https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&apikey=%KEY%",
-      single: "&from_currency=%FROM%&to_currency=%TO%",
-      multiple: ""
+      single: "&from_currency=%FROM%&to_currency=%TO%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -219,6 +213,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
       return map;
     },
     errors: {
+      429: "API rate limit reached.",
       503: "Invalid API key or Malformed query."
     },
     errorHandler: function (data: any) {
@@ -244,8 +239,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
   Fixer: {
     endpoint: {
       base: "https://data.fixer.io/api/latest?access_key=%KEY%",
-      single: "&base=%FROM%&symbols=%TO%",
-      multiple: "&base=%FROM%"
+      single: "&base=%FROM%&symbols=%TO%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -266,8 +260,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
     // an unsupported target into an HTTP failure instead of a plain miss.
     endpoint: {
       base: "https://api.frankfurter.dev/v1/latest?base=",
-      single: "%FROM%",
-      multiple: "%FROM%"
+      single: "%FROM%"
     },
     key: undefined,
     handler: function (data: any) {
@@ -284,8 +277,7 @@ export const providers: Providers = Object.assign(Object.create(null), {
     // upper case, so no case transform is needed.
     endpoint: {
       base: "https://www.floatrates.com/daily/",
-      single: "%FROM%.json",
-      multiple: "%FROM%.json"
+      single: "%FROM%.json"
     },
     key: undefined,
     handler: function (data: any) {
@@ -311,3 +303,8 @@ for (const name of Object.keys(providers)) {
   Object.freeze(providers[name].errors);
   Object.freeze(providers[name]);
 }
+
+// Sealed, not frozen: `addMultiple` still registers user-defined providers, but
+// a built-in can no longer be deleted or replaced out from under every
+// Converter in the process.
+Object.seal(providers);

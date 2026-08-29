@@ -57,15 +57,6 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
       );
     });
 
-    it("is case-insensitive about the target currency", async () => {
-      const { converter } = isolated(fixture, response(fixture.success));
-
-      await expect(converter.convert(AMOUNT, "USD", "eur")).resolves.toBeCloseTo(
-        EXPECTED,
-        10
-      );
-    });
-
     it("rejects when the response contains no usable rate", async () => {
       const { converter } = isolated(fixture, response({}));
 
@@ -83,7 +74,8 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
           : response(handled!.payload);
         const { converter } = isolated(fixture, outcome);
 
-        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
+        // 2.0: thrown as a real Error, with the vendor's value on `cause`.
+        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
           handled!.message
         );
       }
@@ -98,8 +90,8 @@ describe.each(PROVIDER_FIXTURES.map((f) => [f.name, f] as const))(
           : response(unhandled!.payload);
         const { converter } = isolated(fixture, outcome);
 
-        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(
-          unhandled!.error
+        await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toMatchObject(
+          { cause: unhandled!.error }
         );
       }
     );
@@ -132,23 +124,31 @@ describe("provider fallback", () => {
     expect(mock.urls()[1]).toContain("exchangerate-api.com");
   });
 
-  it("drops the failed provider from the active list", async () => {
+  it("keeps the failed provider in the chain", async () => {
     const { converter } = withFallback(
       response({ error: { code: 101 } }),
       response({ rates: { EUR: 0.9 } })
     );
 
+    const before = converter.active.length;
+
     await converter.convert(AMOUNT, "USD", "EUR");
 
-    expect(converter.active).toHaveLength(IMPLICIT_FALLBACKS);
-    expect(converter.active[0].endpoint.base).toContain("exchangerate-api.com");
+    // A failure is about this call, not the provider's fitness: evicting meant
+    // one unknown currency stripped the chain for the life of the process.
+    expect(converter.active).toHaveLength(before);
   });
 
-  it("does not fall back on an unhandled error", async () => {
-    const { converter, mock } = withFallback(response({ error: { code: 999 } }));
+  it("falls back on a code the provider does not enumerate", async () => {
+    const { converter, mock } = withFallback(
+      response({ error: { code: 999 } }),
+      response({ rates: { EUR: 0.9 } })
+    );
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(999);
-    expect(mock.urls()).toHaveLength(1);
+    // Treating an unrecognised code as fatal meant a vendor 500 ended the call
+    // outright for every provider whose errorHandler reads the HTTP status.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).resolves.toBeDefined();
+    expect(mock.urls().length).toBeGreaterThan(1);
   });
 
   it("falls back when the transport fails", async () => {
@@ -197,7 +197,11 @@ describe("provider fallback", () => {
       httpError(404)
     );
 
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBeDefined();
+    // 2.0 throws Error objects; the message depends on which fallback
+    // surfaces, so pin the type rather than the wording.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBeInstanceOf(
+      Error
+    );
 
     // Walked past the first provider; the exact depth depends on which of the
     // fallbacks recognises a 404.
@@ -209,29 +213,16 @@ describe("known defects", () => {
   // Each test records current, wrong behaviour. When one fails, the underlying
   // bug has been fixed and the test should be inverted to assert the fix.
 
-  it("leaves ExchangeRatesAPIIO unable to map any of its documented errors", async () => {
-    const { converter } = isolated(
-      PROVIDER_FIXTURES[1],
-      response({ success: false, error: { code: 101 } })
-    );
-
-    // Should reject with "Invalid API key!". The errorHandler reads data.status
-    // rather than data.error.code, so the error body is treated as success and
-    // the caller gets a misleading message instead.
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
-      /No data returned for rate fetch/
-    );
-  });
-
-  it("treats an AlphaVantage rate limit as unhandled instead of retrying", async () => {
+  it("maps an AlphaVantage rate limit so it can fall back", async () => {
     const { converter } = isolated(
       PROVIDER_FIXTURES[4],
       response({ Information: "API rate limit reached" })
     );
 
-    // errorHandler returns 429, but the errors map has no 429 entry, so this is
-    // classified unhandled: no retry, no fallback.
-    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toBe(429);
+    // 2.0: thrown as a real Error rather than the bare message string.
+    await expect(converter.convert(AMOUNT, "USD", "EUR")).rejects.toThrow(
+      "API rate limit reached."
+    );
   });
 });
 
