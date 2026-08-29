@@ -1,0 +1,63 @@
+name: Set a dist-tag
+
+# Moving a dist-tag from a laptop needs a one-time password, which an account
+# secured with a passkey cannot produce, and the alternative is a long-lived
+# token this project deliberately does not have. Trusted publishing already
+# authenticates the release workflow through OIDC, so borrow that instead.
+#
+# Note npm rejects any tag name that parses as a SemVer range, so `v1`, `1.x`
+# and `v1.x` are all refused. `latest-1` is the usual substitute.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The published version to point at, for example 1.10.2
+        required: true
+      tag:
+        description: The dist-tag to move, for example latest-1
+        required: true
+
+jobs:
+  dist-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC, the same trust the release workflow uses
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          registry-url: https://registry.npmjs.org
+
+      # Refuse a tag npm would reject anyway, with a message that says why.
+      - name: Check the tag name is not a SemVer range
+        run: |
+          node -e '
+            const tag = process.env.TAG;
+            const semver = require("semver");
+            if (semver.validRange(tag) !== null) {
+              console.error(`"${tag}" parses as a SemVer range, which npm refuses as a dist-tag.`);
+              process.exit(1);
+            }
+          '
+        env:
+          TAG: ${{ inputs.tag }}
+
+      - name: Check the version is published
+        run: npm view "easy-currencies@${VERSION}" version
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - run: npm install -g npm@latest
+
+      - name: Move the tag
+        run: npm dist-tag add "easy-currencies@${VERSION}" "${TAG}"
+        env:
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ inputs.tag }}
+
+      - name: Show the result
+        run: |
+          npm dist-tag ls easy-currencies | tee -a "$GITHUB_STEP_SUMMARY"
