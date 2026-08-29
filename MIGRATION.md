@@ -63,6 +63,20 @@ an error carrying `response: { status, data, headers }` for an HTTP failure, or
 
 To change only the timeout: `converter.setClient(createClient({ timeout: 30000 }))`.
 
+`setClient` is a `Converter` method. The `Convert()` chain builds its own
+converter internally and does not expose it, so chain calls cannot take a custom
+client. Behind a proxy, use a `Converter` instance:
+
+```js
+// no injection point
+Convert(15).from("USD").to("EUR");
+
+// use this instead
+const converter = new Converter();
+converter.setClient(myClient);
+await converter.convert(15, "USD", "EUR");
+```
+
 ## Errors are `Error` objects
 
 1.x threw strings and numbers, so `e.message` was `undefined`.
@@ -153,7 +167,7 @@ const provider = {
 | A 429 is retried twice, not five times, capped at 8s | `setRetryOptions({ maxRetries, maxDelay })` to restore |
 | Zero, negative, `Infinity` and garbage rates are rejected | nothing, these produced wrong amounts before |
 | A non-finite amount throws instead of returning `NaN` | nothing |
-| A transient failure no longer drops a provider | nothing, only permanent faults evict now |
+| A failed provider is no longer dropped from the chain | nothing, but a permanently bad key now costs a failed request on every call |
 | `console.error` is no longer unconditional | `converter.onError = () => {}` to silence |
 | A provider answering for a different base is rejected | nothing, this caught vendors truncating codes |
 
