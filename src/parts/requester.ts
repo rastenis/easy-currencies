@@ -464,44 +464,40 @@ function describe(err: unknown): string {
   }
 
   if (err && typeof err === "object") {
-    const { code, message } = err as HttpError;
-    if (typeof code === "string" && code.trim()) {
-      return code.trim();
-    }
-    if (typeof code === "number") {
-      return String(code);
-    }
-    const ctor = (err as { constructor?: unknown }).constructor;
-    const name = typeof ctor === "function" ? ctor.name : undefined;
-    if (typeof name !== "string" || !name || name === "Object") {
-      return "unknown error";
-    }
-    return typeof message === "string" && message.trim()
-      ? `${name} (message withheld)`
-      : `${name} (no message)`;
+    return describeObject(err);
   }
 
   if (err === null || err === undefined) {
     return "unknown error";
   }
 
-  // Whatever is left renders through String() on its own: number, bigint,
-  // boolean, symbol, or a bare function via its source text. Objects never
-  // reach here, which matters: String() throws on a null prototype, and their
-  // fields are not ours to show. Spelled out rather than left to fall through,
-  // because `unknown` does not narrow like a union: TS cannot tell this is
-  // exhaustive unless each case is named.
-  if (
-    typeof err === "number" ||
-    typeof err === "bigint" ||
-    typeof err === "boolean" ||
-    typeof err === "symbol" ||
-    typeof err === "function"
-  ) {
-    return String(err);
+  // Everything left is a primitive or a function, each of which String()
+  // renders on its own. Objects never reach here, which matters: String()
+  // throws on a null prototype, and their fields are not ours to show. The
+  // cast is because `unknown` does not narrow by elimination the way a union
+  // does, not because the set is in doubt.
+  return String(err as number | bigint | boolean | symbol);
+}
+
+/** The object half of `describe`, split out to keep either half readable. */
+function describeObject(err: object): string {
+  const { code, message } = err as HttpError;
+  if (typeof code === "string" && code.trim()) {
+    return code.trim();
+  }
+  if (typeof code === "number") {
+    return String(code);
   }
 
-  return "unknown error";
+  const ctor = (err as { constructor?: unknown }).constructor;
+  const name = typeof ctor === "function" ? ctor.name : undefined;
+  if (typeof name !== "string" || !name || name === "Object") {
+    return "unknown error";
+  }
+
+  return typeof message === "string" && message.trim()
+    ? `${name} (message withheld)`
+    : `${name} (no message)`;
 }
 
 /**
