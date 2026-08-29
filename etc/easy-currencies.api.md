@@ -95,7 +95,7 @@ export interface Provider {
     };
     errorHandler: (data: any) => number | string | null;
     errors: ProviderErrors;
-    handler: Function;
+    handler: (data: any) => rateObject;
     key: any;
 }
 
