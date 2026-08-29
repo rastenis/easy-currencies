@@ -54,7 +54,10 @@ test("Fails because of invalid key (OpenExchangeRates)", async () => {
 
 test("Fails because of invalid key (AlphaVantage)", async () => {
   const converter = new Converter("AlphaVantage", "");
-
+  // The only test here that was missing this. Without it the keyless fallbacks
+  // answer and the conversion succeeds, which is correct chain behaviour and
+  // says nothing about the key.
+  isolate(converter);
   const [err, value] = await _to(converter.convert(15, "CNY", "EUR"));
 
   expect(typeof err === "string" ? err : err && err.message).toBeTruthy();
