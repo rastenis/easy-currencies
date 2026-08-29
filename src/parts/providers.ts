@@ -1,3 +1,7 @@
+// Type only: converter.ts imports Provider/ProviderReference from this file, so
+// this side of the cycle must stay type-only or it would need a runtime import back.
+import type { rateObject } from "../converter";
+
 /**
  * A map for provider information
  *
@@ -41,6 +45,10 @@ export interface Provider {
    * @type {*}
    * @memberof Provider
    */
+  // Public contract: consumers assign whatever shape their provider needs, and
+  // requester.ts reads it back as opaque (`provider.key || ""`). Narrowing to
+  // `unknown` would break every existing custom provider at compile time.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
   key: any;
   /**
    * Endpoint configuration object for a provider:
@@ -61,7 +69,12 @@ export interface Provider {
    * @type {Function}
    * @memberof Provider
    */
-  handler: Function;
+  // `Function` accepted any callable and is flagged by no-unsafe-function-type;
+  // this is the documented shape instead. The `any` parameter mirrors
+  // errorHandler below for the same reason: user-defined handlers are compiled
+  // against `any`, and narrowing it would break every existing custom provider.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
+  handler: (data: any) => rateObject;
   /**
    * A map of possible errors and their respective messages
    *
@@ -79,6 +92,10 @@ export interface Provider {
    * @type {Function}
    * @memberof Provider
    */
+  // Public contract: consumers write custom errorHandlers against `(data: any) =>
+  // ...`. Narrowing this to `unknown` would break every existing custom provider
+  // at compile time.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
   errorHandler: (data: any) => number | string | null;
 }
 
@@ -90,6 +107,9 @@ export interface Provider {
  */
 export interface ProviderReference {
   name: string;
+  // Same public contract as Provider.key above: callers pass whatever key
+  // shape their provider needs.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
   key: any;
 }
 
@@ -112,12 +132,31 @@ export function resolveProvider(provider: ProviderReference): Provider {
   }
 
   // Copy, so instances do not share a template and overwrite each other's key.
+  // `key` is `any` on both sides by the public contract (Provider.key,
+  // ProviderReference.key), so this assignment carries no more risk than the
+  // interfaces already declare.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- see above
   return { ...providers[name], key: provider.key };
+}
+
+/**
+ * Narrows an unknown response body to a plain object, or undefined if it is
+ * not one (including null, since typeof null === "object" would otherwise
+ * slip through). Every built-in handler and errorHandler below starts here
+ * instead of casting `data` ad hoc at each member access.
+ */
+function asRecord(data: unknown): Record<string, unknown> | undefined {
+  return typeof data === "object" && data !== null
+    ? (data as Record<string, unknown>)
+    : undefined;
 }
 
 /**
  * Provider map initialization
  */
+// Object.create(null) types as `any`, so Object.assign onto it does too; cast
+// at the construction boundary rather than disabling the check, since this is
+// the one place that must vouch for the literal actually matching Providers.
 export const providers: Providers = Object.assign(Object.create(null), {
   ExchangeRateAPI: {
     endpoint: {
@@ -125,12 +164,12 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "%FROM%"
     },
     key: undefined,
-    handler: function (data: any) {
-      return data.rates;
+    handler: function (data: unknown) {
+      return asRecord(data)?.rates as rateObject;
     },
     errors: { 400: "Malformed query.", 404: "Currency not found" },
-    errorHandler: function (data: any) {
-      return data.status;
+    errorHandler: function (data: unknown) {
+      return asRecord(data)?.status as number | string | null;
     }
   },
   ExchangeRatesAPIIO: {
@@ -144,12 +183,13 @@ export const providers: Providers = Object.assign(Object.create(null), {
       201: "Invalid base currency."
     },
     key: undefined,
-    handler: function (data: any) {
-      return data.rates;
+    handler: function (data: unknown) {
+      return asRecord(data)?.rates as rateObject;
     },
     // apilayer signals failure in the body, not the HTTP status.
-    errorHandler: function (data: any) {
-      return data && data.error ? data.error.code : null;
+    errorHandler: function (data: unknown) {
+      const code = asRecord(asRecord(data)?.error)?.code;
+      return (code ?? null) as number | string | null;
     }
   },
   CurrencyLayer: {
@@ -158,16 +198,20 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "&source=%FROM%"
     },
     key: undefined,
-    handler: function (data: any) {
+    handler: function (data: unknown) {
       // An empty or unexpected 200 body would otherwise throw a TypeError out
       // of the handler, which the caller reports as a missing response.
-      if (!data || typeof data.quotes !== "object" || data.quotes === null) {
+      // `quotes` must itself be a real object: quotes === null is a distinct
+      // 200 shape, and asRecord folds it into "not usable" like every other
+      // non-object case.
+      const quotes = asRecord(asRecord(data)?.quotes);
+      if (!quotes) {
         return {};
       }
-      const map = {} as any;
-      Object.keys(data.quotes).map((key) => {
-        map[key.slice(3)] = data.quotes[key];
-      });
+      const map: rateObject = {};
+      for (const key of Object.keys(quotes)) {
+        map[key.slice(3)] = quotes[key] as number;
+      }
       return map;
     },
     errors: {
@@ -176,8 +220,9 @@ export const providers: Providers = Object.assign(Object.create(null), {
       201: "Invalid base currency.",
       106: "No results."
     },
-    errorHandler: function (data: any) {
-      return data.error ? data.error.code : null;
+    errorHandler: function (data: unknown) {
+      const code = asRecord(asRecord(data)?.error)?.code;
+      return (code ?? null) as number | string | null;
     }
   },
   OpenExchangeRates: {
@@ -186,14 +231,14 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "&base=%FROM%"
     },
     key: undefined,
-    handler: function (data: any) {
-      return data.rates;
+    handler: function (data: unknown) {
+      return asRecord(data)?.rates as rateObject;
     },
     errors: {
       401: "Invalid API key!"
     },
-    errorHandler: function (data: any) {
-      return data.status;
+    errorHandler: function (data: unknown) {
+      return asRecord(data)?.status as number | string | null;
     }
   },
   AlphaVantage: {
@@ -202,36 +247,43 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "&from_currency=%FROM%&to_currency=%TO%"
     },
     key: undefined,
-    handler: function (data: any) {
-      const map = {} as any;
-      const o = data ? data[Object.keys(data)[0]] : undefined;
-      // Same guard: an empty 200 must not crash the handler.
-      if (!o || typeof o !== "object") {
+    handler: function (data: unknown) {
+      const map: rateObject = {};
+      const record = asRecord(data);
+      if (!record) {
         return map;
       }
-      map[o["3. To_Currency Code"]] = o["5. Exchange Rate"];
+      const firstKey = Object.keys(record)[0];
+      const o = firstKey === undefined ? undefined : asRecord(record[firstKey]);
+      // Same guard: an empty 200, or a first key holding a string rather than
+      // an object, must not crash the handler.
+      if (!o) {
+        return map;
+      }
+      map[o["3. To_Currency Code"] as string] = o["5. Exchange Rate"] as number;
       return map;
     },
     errors: {
       429: "API rate limit reached.",
       503: "Invalid API key or Malformed query."
     },
-    errorHandler: function (data: any) {
-      if (!data) {
+    errorHandler: function (data: unknown) {
+      const record = asRecord(data);
+      if (!record) {
         return null;
       }
       // AlphaVantage does not return error codes in the response,
       // so we have to check if the response contains error messages
       // and translate them to error codes if possible.
 
-      const hasError = data["Error Message"] || data["Information"];
+      const hasError = record["Error Message"] || record["Information"];
 
-      if (hasError?.includes("API rate limit")) {
+      if (typeof hasError === "string" && hasError.includes("API rate limit")) {
         return 429;
       }
 
       if (hasError) {
-        return hasError;
+        return hasError as string | number;
       }
       return null;
     }
@@ -242,16 +294,17 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "&base=%FROM%&symbols=%TO%"
     },
     key: undefined,
-    handler: function (data: any) {
-      return data.rates;
+    handler: function (data: unknown) {
+      return asRecord(data)?.rates as rateObject;
     },
     errors: {
       105: "A paid plan is required in order to use Fixer.io (base currency use not allowed)",
       101: "Invalid API key!",
       201: "Invalid base currency."
     },
-    errorHandler: function (data: any) {
-      return data.error ? data.error.code : null;
+    errorHandler: function (data: unknown) {
+      const code = asRecord(asRecord(data)?.error)?.code;
+      return (code ?? null) as number | string | null;
     }
   },
   Frankfurter: {
@@ -263,13 +316,13 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "%FROM%"
     },
     key: undefined,
-    handler: function (data: any) {
-      return data.rates;
+    handler: function (data: unknown) {
+      return asRecord(data)?.rates as rateObject;
     },
     // Verified live: an unknown base returns 404 with {"message":"not found"}.
     errors: { 404: "Currency not found or not supported by Frankfurter." },
-    errorHandler: function (data: any) {
-      return data.status;
+    errorHandler: function (data: unknown) {
+      return asRecord(data)?.status as number | string | null;
     }
   },
   FloatRates: {
@@ -280,20 +333,27 @@ export const providers: Providers = Object.assign(Object.create(null), {
       single: "%FROM%.json"
     },
     key: undefined,
-    handler: function (data: any) {
-      const map = {} as any;
-      Object.keys(data).map((key) => {
-        map[data[key].code] = parseFloat(data[key].rate);
-      });
+    handler: function (data: unknown) {
+      const map: rateObject = {};
+      const record = asRecord(data);
+      if (!record) {
+        return map;
+      }
+      for (const key of Object.keys(record)) {
+        const entry = asRecord(record[key]);
+        if (entry) {
+          map[entry.code as string] = parseFloat(entry.rate as string);
+        }
+      }
       return map;
     },
     // Verified live: an unknown currency returns 403 with an empty body.
     errors: { 403: "Currency not found or not supported by FloatRates." },
-    errorHandler: function (data: any) {
-      return data.status;
+    errorHandler: function (data: unknown) {
+      return asRecord(data)?.status as number | string | null;
     }
   }
-});
+}) as Providers;
 
 // Templates are copied on resolve; freezing makes accidental mutation of the
 // shared definitions fail loudly rather than silently affecting every future
