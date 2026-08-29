@@ -6,6 +6,22 @@ on:
   pull_request:
 
 jobs:
+  # Runs here rather than only through CodeFactor, which analyses pull requests
+  # against the default branch and nothing else: the eight PRs stacked on the
+  # 2.0 branch got no static analysis at all, and the first report came from
+  # their accumulated diff. This gives every pull request the same check
+  # whatever it targets.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
   test:
     name: test (node ${{ matrix.node-version }})
     runs-on: ubuntu-latest

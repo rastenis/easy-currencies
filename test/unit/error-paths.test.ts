@@ -192,7 +192,7 @@ describe("whole-table fetches", () => {
 
     // Fixer's template carries &symbols=%TO%, so a table request would go out
     // asking for an empty symbol list.
-    expect(mock.urls().every((u) => !/symbols=$/.test(u))).toBe(true);
+    expect(mock.urls().every((u) => !u.endsWith("symbols="))).toBe(true);
   });
 
   it("validate the target currency when one is given", async () => {
