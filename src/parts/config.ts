@@ -8,7 +8,7 @@ import {
   ProviderReference
 } from "./providers";
 
-import { checkIfUserDefinedProvider } from "./utils";
+import { userDefinedProviderIssue } from "./utils";
 
 /**
  * Config object that initializes with configuration data
@@ -33,7 +33,9 @@ export class Config {
    * @memberof Config
    */
   get providers(): Provider[] {
-    return this._active;
+    // A copy: handing back the live array lets `providers.length = 0` empty
+    // the chain, the same bypass `converter.providers` already guards against.
+    return [...this._active];
   }
 
   /**
@@ -135,8 +137,9 @@ export class Config {
     // Validate the whole batch before adding any of it, so a bad entry cannot
     // leave earlier ones half-added and unusable on retry.
     newProviders.forEach((p) => {
-      if (!checkIfUserDefinedProvider(p)) {
-        throw new Error("Invalid provider format!");
+      const issue = userDefinedProviderIssue(p);
+      if (issue) {
+        throw new Error(`Invalid provider format! ${issue}.`);
       }
       if (Object.prototype.hasOwnProperty.call(providers, p.name)) {
         throw new Error(

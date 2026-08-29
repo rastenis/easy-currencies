@@ -23,6 +23,13 @@ export interface ProviderFixture {
   unhandledError?: { payload?: any; http?: number; error: any };
   /** How the provider rejects a 200 response containing no usable rate. */
   emptyResponse: RegExp;
+  /**
+   * Additional 200 payloads that must also fall through to `emptyResponse`
+   * rather than throwing a raw TypeError out of the handler. Beyond the plain
+   * `{}` every fixture is already checked against, these pin the specific
+   * shapes each provider's handler guards against.
+   */
+  extraEmptyResponses?: any[];
 }
 
 // Distinct per provider, so a key leaking between instances is visible rather than silently equal.
@@ -59,7 +66,10 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
     // Quotes are prefixed with the source currency.
     success: { quotes: { USDEUR: RATE } },
     handledError: { payload: { error: { code: 101 } }, message: "Invalid API key!" },
-    emptyResponse: NO_RATE
+    emptyResponse: NO_RATE,
+    // `quotes: null` is a distinct 200 shape from a missing `quotes`: typeof
+    // null is "object", so it needs its own guard in the handler.
+    extraEmptyResponses: [{ quotes: null }]
   },
   {
     name: "OpenExchangeRates",
@@ -91,7 +101,10 @@ export const PROVIDER_FIXTURES: ProviderFixture[] = [
       payload: { "Error Message": "Invalid API call." },
       error: "Invalid API call."
     },
-    emptyResponse: NO_RATE
+    emptyResponse: NO_RATE,
+    // The first key holding a string rather than an object: `!o` alone would
+    // miss it, since a non-empty string is truthy.
+    extraEmptyResponses: [{ "Realtime Currency Exchange Rate": "unexpected string" }]
   },
   {
     name: "Fixer",

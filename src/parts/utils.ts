@@ -1,6 +1,65 @@
 import { UserDefinedProvider, Provider } from "./providers";
 
 /**
+ * Checks a candidate Provider and names the first thing wrong with it, or
+ * returns null if it is well-formed.
+ *
+ * A plain `!== undefined` check let `endpoint: null` and similar garbage
+ * through, so `addProviders` crashed on `p.endpoint.base` with a raw
+ * TypeError instead of the library's own "Invalid provider format!". This
+ * checks the actual shape each field is dereferenced with, and returns the
+ * reason so the caller can throw one message that names it.
+ */
+export function providerShapeIssue(provider: Provider | any): string | null {
+  if (provider === null || typeof provider !== "object") {
+    return "provider must be an object";
+  }
+  const p = provider as Provider;
+  if (
+    p.endpoint === null ||
+    typeof p.endpoint !== "object" ||
+    typeof p.endpoint.base !== "string" ||
+    typeof p.endpoint.single !== "string"
+  ) {
+    return "'endpoint' must be an object with string 'base' and 'single'";
+  }
+  if (typeof p.handler !== "function") {
+    return "'handler' must be a function";
+  }
+  if (p.errors === null || typeof p.errors !== "object") {
+    return "'errors' must be an object";
+  }
+  if (typeof p.errorHandler !== "function") {
+    return "'errorHandler' must be a function";
+  }
+  // `key` is deliberately not required: keyless providers are legitimate, and
+  // requiring it rejected every built-in provider.
+  return null;
+}
+
+/**
+ * Same as `providerShapeIssue`, for the `{ name, provider }` pair `add` and
+ * `addMultiple` take.
+ *
+ * `name` used to be checked with `!== undefined`, so `Object.create(null)` (an
+ * object, not undefined) passed here and then crashed converting it to a
+ * property key for the built-in-name lookup, with no `toString` to fall back
+ * on.
+ */
+export function userDefinedProviderIssue(
+  userDefinedProvider: UserDefinedProvider | any
+): string | null {
+  if (userDefinedProvider === null || typeof userDefinedProvider !== "object") {
+    return "provider entry must be an object";
+  }
+  const u = userDefinedProvider as UserDefinedProvider;
+  if (typeof u.name !== "string") {
+    return "'name' must be a string";
+  }
+  return providerShapeIssue(u.provider);
+}
+
+/**
  * Utility for typechecking UserDefinedProvider objects
  *
  * @export
@@ -10,13 +69,7 @@ import { UserDefinedProvider, Provider } from "./providers";
 export function checkIfUserDefinedProvider(
   userDefinedProvider: UserDefinedProvider | any
 ): userDefinedProvider is UserDefinedProvider {
-  if (userDefinedProvider === null || typeof userDefinedProvider !== "object") {
-    return false;
-  }
-  return (
-    (userDefinedProvider as UserDefinedProvider).name !== undefined &&
-    checkIfProvider((userDefinedProvider as UserDefinedProvider).provider)
-  );
+  return userDefinedProviderIssue(userDefinedProvider) === null;
 }
 
 /**
@@ -29,17 +82,7 @@ export function checkIfUserDefinedProvider(
 export function checkIfProvider(
   provider: Provider | any
 ): provider is Provider {
-  if (provider === null || typeof provider !== "object") {
-    return false;
-  }
-  // `key` is deliberately not required: keyless providers are legitimate, and
-  // requiring it rejected every built-in provider.
-  return (
-    (provider as Provider).endpoint !== undefined &&
-    (provider as Provider).errorHandler !== undefined &&
-    (provider as Provider).errors !== undefined &&
-    (provider as Provider).handler !== undefined
-  );
+  return providerShapeIssue(provider) === null;
 }
 
 

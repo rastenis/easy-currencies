@@ -84,4 +84,17 @@ describe("provider type guards", () => {
   it("rejects one whose provider is malformed", () => {
     expect(checkIfUserDefinedProvider({ name: "X", provider: {} })).toBe(false);
   });
+
+  // Fuzzing found these as raw TypeErrors escaping the config surface: `!==
+  // undefined` let them through the guard, and they crashed dereferencing the
+  // field further down instead of failing here.
+  it("rejects a provider with a null endpoint", () => {
+    expect(checkIfProvider({ ...provider, endpoint: null })).toBe(false);
+  });
+
+  it("rejects a name that is an object rather than a string", () => {
+    expect(
+      checkIfUserDefinedProvider({ name: Object.create(null), provider })
+    ).toBe(false);
+  });
 });
