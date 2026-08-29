@@ -107,6 +107,111 @@ function withDeadline<T>(work: Promise<T>, deadline: number): Promise<T> {
   });
 }
 
+/** One attempt's place in the retry schedule. */
+interface Schedule {
+  attempt: number;
+  maxRetries: number;
+  delay: number;
+  maxDelay: number;
+  deadline: number;
+}
+
+/**
+ * Waits out a 429 before the next attempt, or throws when there is no attempt
+ * left to make and no time left to make it in.
+ */
+async function waitOutRateLimit(
+  response: HttpResponse,
+  { attempt, maxRetries, delay, maxDelay, deadline }: Schedule
+): Promise<void> {
+  if (attempt >= maxRetries) {
+    // A rate limit says nothing about the provider's health.
+    throw providerFailure(
+      new Error(
+        `Request to the provider failed: rate limited, giving up after ${
+          attempt + 1
+        } attempts (HTTP 429)`
+      )
+    );
+  }
+
+  // The server's own guidance beats our guess; ours is a fallback.
+  const asked = retryAfter(response);
+  const wait =
+    asked === undefined
+      ? Math.min(delay, maxDelay) + Math.random() * JITTER
+      : Math.min(asked, maxDelay);
+
+  // Sleeping past the deadline only to fail on waking is dead time, and it is
+  // time the caller could have spent on the next provider.
+  if (Date.now() + wait >= deadline) {
+    throw providerFailure(budgetExhausted());
+  }
+
+  await sleep(wait);
+}
+
+/**
+ * The failure a provider signalled, or null if it signalled none.
+ *
+ * Vendors split into two camps: apilayer-style ones put their code in a 200
+ * body, the rest signal with an HTTP status. Only the body is readable in both
+ * cases, so that is what the handler gets, and the status answers for the
+ * providers whose errors table is keyed by it.
+ *
+ * Passing the response object to the handler instead meant `data.error.code`
+ * read undefined on every HTTP failure, so the errors tables of
+ * ExchangeRatesAPIIO, CurrencyLayer and Fixer were unreachable whenever the
+ * vendor used a status: a 401 carrying {error:{code:101}} surfaced as
+ * "HTTP 401" rather than "Invalid API key!".
+ */
+function signalledFailure(
+  provider: Provider,
+  failed: boolean,
+  response: HttpResponse | undefined,
+  result: HttpResponse | undefined
+): FetchRatesError | null {
+  // `?? {}` because the client sets data to undefined for an unparseable
+  // response and handlers read fields off it without guards.
+  const body = (failed ? response?.data : result?.data) ?? {};
+
+  let error: number | string | null;
+  try {
+    error = provider.errorHandler(body);
+  } catch (e) {
+    throw providerFailure(
+      e instanceof Error ? e : new Error(`Provider callback failed: ${String(e)}`)
+    );
+  }
+
+  // Only a status the provider actually enumerates. An unmapped one is not a
+  // verdict, and the caller phrases it as "HTTP 500" rather than surfacing a
+  // bare number as the error.
+  if (
+    !error &&
+    failed &&
+    response &&
+    Object.prototype.hasOwnProperty.call(provider.errors, response.status)
+  ) {
+    error = response.status;
+  }
+
+  if (!error) {
+    return null;
+  }
+
+  // Own-property lookup: an errorHandler returning "constructor" would
+  // otherwise find Object.prototype.constructor and read as a mapped error.
+  const mapped = Object.prototype.hasOwnProperty.call(provider.errors, error)
+    ? provider.errors[error]
+    : undefined;
+
+  // A code the provider does not enumerate is not a verdict on the chain.
+  // Treating it as fatal meant a 500 from any provider whose errorHandler reads
+  // the HTTP status ended the call outright, so the default chain never fell back.
+  return mapped ? { handled: true, error: mapped } : { handled: true, error };
+}
+
 /**
  * The fetchRates function, used for fetching currency conversion rates.
  *
@@ -161,32 +266,7 @@ export async function fetchRates(
     const response = responseOf(err);
 
     if (failed && response?.status === 429) {
-      if (attempt >= maxRetries) {
-        // A rate limit says nothing about the provider's health.
-        throw providerFailure(
-          new Error(
-            `Request to the provider failed: rate limited, giving up after ${
-              attempt + 1
-            } attempts (HTTP 429)`
-          )
-        );
-      }
-
-      // The server's own guidance beats our guess; ours is a fallback.
-      const asked = retryAfter(response);
-      const wait =
-        asked === undefined
-          ? Math.min(delay, maxDelay) + Math.random() * JITTER
-          : Math.min(asked, maxDelay);
-
-      // Sleeping past the deadline only to fail on waking is dead time, and it
-      // is time the caller could have spent on the next provider.
-      if (Date.now() + wait >= deadline) {
-        throw providerFailure(budgetExhausted());
-      }
-
-      await sleep(wait);
-
+      await waitOutRateLimit(response, { attempt, maxRetries, delay, maxDelay, deadline });
       attempt++;
       delay *= 2;
       continue;
@@ -198,58 +278,10 @@ export async function fetchRates(
       throw providerFailure(transportError(err));
     }
 
-    // Vendors split into two camps: apilayer-style ones put their code in a 200
-    // body, the rest signal with an HTTP status. Only the body is readable in
-    // both cases, so that is what the handler gets, and the status answers for
-    // the providers whose errors table is keyed by it.
-    //
-    // Passing the response object here instead meant `data.error.code` read
-    // undefined on every HTTP failure, so the errors tables of
-    // ExchangeRatesAPIIO, CurrencyLayer and Fixer were unreachable whenever the
-    // vendor used a status: a 401 carrying {error:{code:101}} surfaced as
-    // "HTTP 401" rather than "Invalid API key!".
-    //
-    // `?? {}` because the client sets data to undefined for an unparseable
-    // response and handlers read fields off it without guards.
-    const body = (failed ? response?.data : result?.data) ?? {};
-
-    let error: number | string | null;
-    try {
-      error = provider.errorHandler(body);
-    } catch (e) {
-      throw providerFailure(
-        e instanceof Error ? e : new Error(`Provider callback failed: ${String(e)}`)
-      );
-    }
-
-    // Only a status the provider actually enumerates. An unmapped one is not a
-    // verdict, and the transport path below phrases it as "HTTP 500" rather
-    // than surfacing a bare number as the error.
-    if (
-      !error &&
-      failed &&
-      response &&
-      Object.prototype.hasOwnProperty.call(provider.errors, response.status)
-    ) {
-      error = response.status;
-    }
-
-    // returning either the meaning of the error (if registered in provider's definition), or the error itself.
-    if (error) {
-      // Own-property lookup: an errorHandler returning "constructor" would
-      // otherwise find Object.prototype.constructor and read as a mapped error.
-      const mapped = Object.prototype.hasOwnProperty.call(provider.errors, error)
-        ? provider.errors[error]
-        : undefined;
-
-      // A code the provider does not enumerate is not a verdict on the chain.
-      // Treating it as fatal meant a 500 from any provider whose errorHandler
-      // reads the HTTP status ended the call outright, so the default chain
-      // never fell back.
-      const failure: FetchRatesError = mapped
-        ? { handled: true, error: mapped }
-        : { handled: true, error };
-      throw failure;
+    // A provider-signalled error ends this provider's turn.
+    const signalled = signalledFailure(provider, failed, response, result);
+    if (signalled) {
+      throw signalled;
     }
 
     // An HTTP failure the provider does not recognise still failed. Falling
