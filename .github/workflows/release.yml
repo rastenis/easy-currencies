@@ -56,13 +56,38 @@ jobs:
       # Audits the PUBLISHED package, not this repo's dependencies: running
       # `npm audit signatures` here would report on devDependencies and say
       # nothing about the tarball just pushed.
+      # The registry is not readable the instant publish returns. On 2.0.0 this
+      # step ran about a second later, got ETARGET, and took the GitHub Release
+      # step down with it while the package itself had published correctly.
       - name: Verify the published attestation
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           DIR="$(mktemp -d)"
           cd "$DIR"
           npm init -y >/dev/null
-          npm i --no-audit --no-fund "easy-currencies@${GITHUB_REF_NAME#v}"
-          npm audit signatures
+
+          for attempt in $(seq 1 20); do
+            if npm i --no-audit --no-fund "easy-currencies@${VERSION}" 2>/dev/null; then
+              echo "Installed easy-currencies@${VERSION} on attempt ${attempt}."
+              break
+            fi
+            if [ "$attempt" = "20" ]; then
+              echo "easy-currencies@${VERSION} did not appear on the registry within 10 minutes."
+              exit 1
+            fi
+            sleep 30
+          done
+
+          # The attestation lands on its own endpoint, which can lag the version.
+          for attempt in $(seq 1 20); do
+            OUT="$(npm audit signatures 2>&1)" && { echo "$OUT"; break; }
+            echo "$OUT" | grep -q "E404" || { echo "$OUT"; exit 1; }
+            if [ "$attempt" = "20" ]; then
+              echo "No attestation for easy-currencies@${VERSION} within 10 minutes."
+              exit 1
+            fi
+            sleep 30
+          done
 
       # Merged PR titles become the release notes, so there is no changelog to
       # keep in sync.
