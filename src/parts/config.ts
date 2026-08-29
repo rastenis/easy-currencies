@@ -122,7 +122,7 @@ export class Config {
   /**
    * Adds multiple new, user-defined provider to the list of providers.
    *
-   * @param {UserDefinedProvider[]} providers - providers to be added
+   * @param {UserDefinedProvider[]} newProviders - providers to be added
    * @param {boolean} [setActive=false] - should the new provider(s) be prioritized
    * @memberof Config
    */
