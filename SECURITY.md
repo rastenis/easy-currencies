@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the current major version (1.x) receives security fixes. Older majors are
+Only the current major version (2.x) receives security fixes. Older majors are
 end of life; please upgrade before reporting.
 
 ## Reporting a vulnerability
