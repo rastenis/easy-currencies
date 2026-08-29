@@ -31,6 +31,11 @@ module.exports = {
     {
       ...common,
       displayName: "live",
+      // Real requests, with retries on a 429, against vendors that rate limit.
+      // Jest's 5s default is not enough: two of these files had no explicit
+      // timeout and one timed out on a back-to-back canary run. Setting it here
+      // rather than per test so a new live file cannot inherit the gap.
+      testTimeout: 30000,
       // Hits real vendor APIs to catch drift that mocks cannot see. Opt-in, and
       // an empty match when unconfigured (jest falls back to its default
       // pattern and scans everything if testMatch is an empty array).
