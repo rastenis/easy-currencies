@@ -144,6 +144,36 @@ function requireCurrency(currency: unknown, label: string): string {
 }
 
 /**
+ * Lower-cases A-Z only.
+ *
+ * `String.prototype.toLowerCase` folds the Kelvin sign U+212A onto "k", so a
+ * table carrying that key answered a request for "K". Currency codes are
+ * ASCII, so the fold should be too.
+ */
+function asciiLower(value: string): string {
+  return value.replace(/[A-Z]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 32));
+}
+
+/**
+ * A rate as a number, or NaN if the value is not one.
+ *
+ * FloatRates and AlphaVantage send rates as strings, so strings are accepted,
+ * but only in decimal. `Number()` on its own also parses `0x`, `0b` and `0o`,
+ * which turned a table carrying `"0x10"` into a rate of 16.
+ */
+const DECIMAL = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+
+function asRate(raw: unknown): number {
+  if (typeof raw === "number") {
+    return raw;
+  }
+  if (typeof raw === "string" && DECIMAL.test(raw.trim())) {
+    return Number(raw);
+  }
+  return NaN;
+}
+
+/**
  * Whether a table holds at least one entry that will actually convert.
  *
  * Uses the same coercion as `convertRate`, so a table that passes here cannot
@@ -151,9 +181,7 @@ function requireCurrency(currency: unknown, label: string): string {
  */
 function hasUsableRate(rates: any): boolean {
   return Object.keys(rates).some((key) => {
-    const raw = rates[key];
-    const value =
-      typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN;
+    const value = asRate(rates[key]);
     return Number.isFinite(value) && value > 0;
   });
 }
@@ -247,6 +275,21 @@ export class Converter {
   onError: (error: unknown) => void = (error: unknown) => {
     console.error(error);
   };
+
+  /**
+   * Reports a provider failure without letting the report become the failure.
+   *
+   * `onError` is consumer code, and the default is `console.error`, which
+   * throws on a closed stdout: a CLI piped into `head` would abort the whole
+   * chain on EPIPE and never reach the healthy provider behind it.
+   */
+  private report(error: unknown): void {
+    try {
+      this.onError(error);
+    } catch {
+      /* a broken reporter is not a reason to abandon the conversion */
+    }
+  }
 
   /**
    * Creates an instance of Converter.
@@ -403,7 +446,10 @@ export class Converter {
     requireAmount(amount);
     requireCurrency(to, "to");
 
-    if (typeof rates !== "object" || rates === null) {
+    // Array.isArray as well as the typeof: an array IS an object, and
+    // Object.keys([0.9]) is ["0"], so a table read from an array offered
+    // index-keyed currencies rather than being rejected.
+    if (typeof rates !== "object" || rates === null || Array.isArray(rates)) {
       throw new Error(
         `Rates must be an object mapping currency to rate, received ${describeRate(
           rates
@@ -418,7 +464,7 @@ export class Converter {
     // resolve differently depending on JSON key order.
     const rateKey =
       keys.find((key) => key === to) ??
-      keys.find((key) => key.toLowerCase() === to.toLowerCase());
+      keys.find((key) => asciiLower(key) === asciiLower(to));
 
     // Truthiness would report a present-but-zero rate as missing.
     if (rateKey === undefined) {
@@ -431,10 +477,7 @@ export class Converter {
     }
 
     const raw = rates[rateKey];
-
-    // Number(["0.9"]) === 0.9, so check the type before the value.
-    const numericRate =
-      typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN;
+    const numericRate = asRate(raw);
 
     if (!Number.isFinite(numericRate) || numericRate <= 0) {
       throw new Error(
@@ -513,7 +556,7 @@ export class Converter {
         lastError = new Error(
           "Provider cannot fetch a whole rate table; it requires a target currency."
         );
-        this.onError(lastError);
+        this.report(lastError);
         continue;
       }
 
@@ -534,7 +577,7 @@ export class Converter {
         if (!failure) {
           return rates;
         }
-        this.onError(failure);
+        this.report(failure);
         lastError = failure;
         continue;
       }
@@ -545,7 +588,7 @@ export class Converter {
         throw asError(isProviderFailure(err) ? err.error : err);
       }
 
-      this.onError(err.error);
+      this.report(err.error);
       lastError = asError(err.error);
     }
 

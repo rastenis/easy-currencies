@@ -63,3 +63,6 @@ dist
 
 # API Extractor scratch output; only etc/ is committed
 temp
+
+# Agent worktrees and local Claude state.
+.claude/
