@@ -1,0 +1,38 @@
+name: OpenSSF Scorecard
+
+# A standing check on the things that are easy to get right once and then let
+# rot: token permissions, branch protection, pinned dependencies, dangerous
+# workflow triggers. Every one of those has already drifted here at least once.
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "0 7 * * 1"
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # upload the SARIF result
+      id-token: write # publish the result so the badge can read it
+      contents: read
+      actions: read
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
