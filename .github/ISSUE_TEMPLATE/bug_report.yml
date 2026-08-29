@@ -1,0 +1,60 @@
+name: Bug report
+description: Something converts wrongly, throws unexpectedly, or does not behave as documented.
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `npm ls easy-currencies`.
+      placeholder: "2.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node version
+      description: Output of `node -v`.
+      placeholder: "v22.11.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      description: Which one was in use? Leave blank if you did not name one.
+      options:
+        - Not sure / default chain
+        - ExchangeRateAPI
+        - FloatRates
+        - Frankfurter
+        - ExchangeRatesAPIIO
+        - CurrencyLayer
+        - OpenExchangeRates
+        - AlphaVantage
+        - Fixer
+        - A custom provider
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the exact error message if there was one. Redact your API key.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: The smallest code that shows it. A wrong number is worth reporting even without a reproduction, so do not let this stop you.
+      render: javascript
