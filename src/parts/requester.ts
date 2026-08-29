@@ -471,12 +471,22 @@ function describe(err: unknown): string {
     return "unknown error";
   }
 
-  // Everything left is a primitive or a function, each of which String()
-  // renders on its own. Objects never reach here, which matters: String()
-  // throws on a null prototype, and their fields are not ours to show. The
-  // cast is because `unknown` does not narrow by elimination the way a union
-  // does, not because the set is in doubt.
-  return String(err as number | bigint | boolean | symbol);
+  // Each of these renders through String() on its own. Objects never reach
+  // here, which matters: String() throws on a null prototype and their fields
+  // are not ours to show. Named one by one rather than narrowed by
+  // elimination, because `unknown` stays `unknown` in the false branch of a
+  // typeof check, so nothing else convinces the compiler this is exhaustive.
+  if (
+    typeof err === "number" ||
+    typeof err === "bigint" ||
+    typeof err === "boolean" ||
+    typeof err === "symbol" ||
+    typeof err === "function"
+  ) {
+    return String(err);
+  }
+
+  return "unknown error";
 }
 
 /** The object half of `describe`, split out to keep either half readable. */
