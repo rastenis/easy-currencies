@@ -127,6 +127,21 @@ function requireCurrency(currency: unknown, label: string): string {
 }
 
 /**
+ * Whether a table holds at least one entry that will actually convert.
+ *
+ * Uses the same coercion as `convertRate`, so a table that passes here cannot
+ * fail every lookup for want of a usable value.
+ */
+function hasUsableRate(rates: any): boolean {
+  return Object.keys(rates).some((key) => {
+    const raw = rates[key];
+    const value =
+      typeof raw === "number" || typeof raw === "string" ? Number(raw) : NaN;
+    return Number.isFinite(value) && value > 0;
+  });
+}
+
+/**
  * Reads the rates out of a successful response.
  *
  * Returns the failure rather than throwing, so the caller can move to the next
@@ -159,6 +174,14 @@ function readRates(
 
   if (!rates || typeof rates !== "object") {
     return [new Error("Provider returned no usable rates."), {}];
+  }
+
+  // Three of the built-in handlers return {} by design when the body is not the
+  // shape they expect, and FloatRates turns a junk 200 into {undefined: NaN}.
+  // Treating that as a successful fetch of zero rates stops the chain with
+  // healthy providers still behind it, and hands raw mode a garbage table.
+  if (!hasUsableRate(rates)) {
+    return [new Error("Provider returned a rate table with no usable rates."), {}];
   }
 
   // A handler may return a frozen or memoised table; the marker is a
@@ -386,7 +409,19 @@ export class Converter {
       );
     }
 
-    return amount * numericRate;
+    const converted = amount * numericRate;
+
+    // Both operands are already finite and the rate is positive, so a result
+    // that is not finite overflowed and a result of zero from a non-zero amount
+    // underflowed. Either way the product is not the answer, and returning it
+    // hands back a wrong number that looks like a right one.
+    if (!Number.isFinite(converted) || (converted === 0 && amount !== 0)) {
+      throw new Error(
+        `Converting ${amount} at rate ${numericRate} is not representable as a number.`
+      );
+    }
+
+    return converted;
   };
 
   /**
