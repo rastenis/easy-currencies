@@ -1,5 +1,4 @@
 import { Converter, rateObject } from "../converter";
-import { _to } from "../parts/utils"
 
 /**
  * The chainable object interface.
@@ -105,7 +104,7 @@ export function Chainer(amount: number | undefined = undefined) {
     const result = await _converter.convert(
       <number>_currentAmount,
       <string>_currentFrom,
-      <string>_currentTo,
+      _currentTo,
       _currentRates
     );
 
