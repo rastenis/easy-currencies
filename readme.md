@@ -134,6 +134,12 @@ The three keyless providers need no signup and are **used by default**: a
 `new Converter()` tries them in the order below, so a conversion keeps working
 when one of them is down. Nothing to configure.
 
+They do not all cover the same currencies. ExchangeRateAPI carries 166 and
+Frankfurter carries 29, the ECB set, so a fallback changes both the rate source
+and which currencies resolve at all. A code that works most of the time can fail
+while the primary is down. Name a provider explicitly if you need one specific
+source.
+
 | Name              | Service                                                   | API key      |
 | ----------------- | --------------------------------------------------------- | ------------ |
 | `ExchangeRateAPI` | [exchangerate-api.com](https://www.exchangerate-api.com/) | not required |
