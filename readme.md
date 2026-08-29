@@ -211,6 +211,25 @@ import { createClient } from "easy-currencies";
 converter.setClient(createClient({ timeout: 30000 })); // default is 10000
 ```
 
+## Bounding how long a conversion can take
+
+A conversion gets 20 seconds of wall clock, spent across the whole fallback
+chain rather than reset for each provider, and it covers the requests
+themselves. A client that never settles cannot hold a conversion open past it.
+
+```js
+converter.setRetryOptions({ budgetMs: 5000 }); // an HTTP handler
+converter.setRetryOptions({ maxRetries: 0 }); // never retry a 429
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `budgetMs` | 20000 | wall clock for the whole call, across every provider |
+| `maxRetries` | 2 | retries after the initial request, on a 429 only |
+| `maxDelay` | 8000 | upper bound in ms on one backoff wait, before jitter |
+
+Fields merge, so one can be set without restating the rest.
+
 ## API
 
 `Converter`:
@@ -223,6 +242,7 @@ converter.setClient(createClient({ timeout: 30000 })); // default is 10000
 - `addMultiple(providers, setActive?)`
 - `remove(provider)`
 - `setClient(client)`
+- `setRetryOptions(options)`
 
 `Convert(amount?)`, chainable:
 

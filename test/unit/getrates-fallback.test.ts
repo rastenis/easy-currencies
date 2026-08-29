@@ -1,14 +1,17 @@
 /**
  * The fallback chain, driven against the requester's failure contract:
  *
- *   { handled: boolean, transient?: boolean, error: unknown }
+ *   { handled: boolean, error: unknown }
  *
  * fetchRates is mocked so each classification can be exercised directly,
  * rather than inferred from whichever vendor payload happens to produce it.
+ * deadlineFrom is real: getRates calls it, and a budget far in the future keeps
+ * it out of the way of what these tests are about.
  */
 
 jest.mock("../../src/parts/requester", () => ({
-  fetchRates: jest.fn()
+  fetchRates: jest.fn(),
+  deadlineFrom: () => Date.now() + 600000
 }));
 
 import { Converter } from "../../src/converter";

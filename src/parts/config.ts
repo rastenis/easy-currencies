@@ -1,4 +1,5 @@
 import { HttpClient, createClient } from "./client";
+import { RetryOptions } from "./requester";
 import {
   Provider,
   providers,
@@ -53,6 +54,26 @@ export class Config {
    */
   getClient = () => {
     return this._client;
+  };
+
+  /**
+   * Active retry tuning.
+   */
+  private _retry: RetryOptions = {};
+
+  /**
+   * Retry setter. Merges, so one field can be set without restating the rest.
+   * @param options  The tuning to apply.
+   */
+  setRetryOptions = (options: RetryOptions): void => {
+    this._retry = { ...this._retry, ...options };
+  };
+
+  /**
+   * Retry getter.
+   */
+  getRetryOptions = (): RetryOptions => {
+    return { ...this._retry };
   };
 
   /**

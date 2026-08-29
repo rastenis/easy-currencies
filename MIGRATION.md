@@ -149,6 +149,8 @@ const provider = {
 | Change | What to do |
 | --- | --- |
 | Requests time out after 10s. 1.x waited forever. | `setClient(createClient({ timeout }))` to adjust |
+| A conversion is bounded to 20s across the whole chain. 1.x could run 102s. | `setRetryOptions({ budgetMs })` to adjust |
+| A 429 is retried twice, not five times, capped at 8s | `setRetryOptions({ maxRetries, maxDelay })` to restore |
 | Zero, negative, `Infinity` and garbage rates are rejected | nothing, these produced wrong amounts before |
 | A non-finite amount throws instead of returning `NaN` | nothing |
 | A transient failure no longer drops a provider | nothing, only permanent faults evict now |

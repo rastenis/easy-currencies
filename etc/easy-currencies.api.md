@@ -30,9 +30,11 @@ export class Config {
     add: (name: string, provider: Provider, setActive?: boolean) => void;
     addMultiple: (newProviders: UserDefinedProvider[], setActive?: boolean) => void;
     getClient: () => HttpClient;
+    getRetryOptions: () => RetryOptions;
     get providers(): Provider[];
     remove: (provider: Provider) => void;
     setClient: (client: HttpClient) => void;
+    setRetryOptions: (options: RetryOptions) => void;
 }
 
 // @public
@@ -56,6 +58,7 @@ export class Converter {
     // (undocumented)
     remove: Config["remove"];
     setClient: (client: HttpClient) => void;
+    setRetryOptions: (options: RetryOptions) => void;
 }
 
 // @public (undocumented)
@@ -127,6 +130,14 @@ export interface rateObject {
 
 // @public
 export const RATES_BASE_KEY = "__base";
+
+// @public
+export interface RetryOptions {
+    budgetMs?: number;
+    deadline?: number;
+    maxDelay?: number;
+    maxRetries?: number;
+}
 
 // @public
 export interface UserDefinedProvider {

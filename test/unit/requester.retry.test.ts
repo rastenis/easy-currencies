@@ -76,7 +76,8 @@ describe("429 handling", () => {
       response({ rates: { EUR: 0.9 } })
     );
 
-    await fetchRates(client, provider, query);
+    // Three retries needs one more than the default allows.
+    await fetchRates(client, provider, query, { maxRetries: 3 });
 
     expect(delays()).toHaveLength(3);
 
@@ -89,16 +90,18 @@ describe("429 handling", () => {
     expect(delays()[2]).toBeLessThan(5000);
   });
 
-  it("gives up after 5 retries rather than looping forever", async () => {
+  it("gives up after 2 retries rather than looping forever", async () => {
     const { client, get } = mockClient(httpError(429));
 
     const err = await failureOf(client);
 
-    // 6 attempts: the initial request plus maxRetries (5) retries.
-    expect(get).toHaveBeenCalledTimes(6);
-    expect(sleepMock).toHaveBeenCalledTimes(5);
+    // 3 attempts: the initial request plus maxRetries (2) retries. The old
+    // default of 5 ran 31s per provider, and the schedule restarted for each
+    // one in the chain.
+    expect(get).toHaveBeenCalledTimes(3);
+    expect(sleepMock).toHaveBeenCalledTimes(2);
     expect(err.error).toBeInstanceOf(Error);
-    expect(err.error.message).toMatch(/rate limited, giving up after 6 attempts/);
+    expect(err.error.message).toMatch(/rate limited, giving up after 3 attempts/);
   });
 
   it("marks exhaustion handled, so the caller falls back", async () => {
@@ -243,7 +246,7 @@ describe("retry options", () => {
       response({ rates: { EUR: 0.9 } })
     );
 
-    await fetchRates(client, provider, query, { maxDelay: 1500 });
+    await fetchRates(client, provider, query, { maxDelay: 1500, maxRetries: 3 });
 
     // 1000, then 2000 and 4000 both clamped to 1500 — jitter still applies.
     expect(delays()[0]).toBeGreaterThanOrEqual(1000);
@@ -270,15 +273,19 @@ describe("retry options", () => {
     expect(sleepMock).not.toHaveBeenCalled();
   });
 
-  it("ignores nonsensical overrides rather than hanging or looping", async () => {
+  it.each([
+    ["NaN and a negative", { maxRetries: NaN, maxDelay: -1 }],
+    // Infinity is the one non-finite value that would otherwise retry forever.
+    ["Infinity", { maxRetries: Infinity, maxDelay: Infinity }]
+  ])("ignores %s rather than hanging or looping", async (_label, options) => {
     const { client, get } = mockClient(httpError(429));
 
-    await failureOf(client, provider, { maxRetries: NaN, maxDelay: -1 });
+    await failureOf(client, provider, options);
 
-    // Both fall back to the defaults: 6 attempts, 5 waits.
-    expect(get).toHaveBeenCalledTimes(6);
-    expect(delays()[4]).toBeGreaterThanOrEqual(16000);
-    expect(delays()[4]).toBeLessThan(17000);
+    // Both fall back to the defaults: 3 attempts, 2 waits.
+    expect(get).toHaveBeenCalledTimes(3);
+    expect(delays()[1]).toBeGreaterThanOrEqual(2000);
+    expect(delays()[1]).toBeLessThan(3000);
   });
 });
 
@@ -419,5 +426,47 @@ describe("error classification", () => {
       handled: true,
       error: 999
     });
+  });
+});
+
+describe("the time budget", () => {
+  it("stops a client that never settles", async () => {
+    // The 10s timeout lives inside the built-in client, so a caller-supplied
+    // one used to hold convert() open for ever. Gating the retry sleeps alone
+    // would not fire here: nothing sleeps while the request is outstanding.
+    const client = { get: () => new Promise<any>(() => {}) } as any;
+
+    const err = await failureOf(client, provider, { budgetMs: 40 });
+
+    expect(err.handled).toBe(true);
+    expect(err.error.message).toMatch(/ran out of time/);
+  });
+
+  it("refuses a request once the deadline has already passed", async () => {
+    const { client, get } = mockClient(response({ rates: { EUR: 0.9 } }));
+
+    const err = await failureOf(client, provider, { deadline: Date.now() - 1 });
+
+    expect(get).not.toHaveBeenCalled();
+    expect(err.error.message).toMatch(/ran out of time/);
+  });
+
+  it("does not sleep past the deadline just to fail on waking", async () => {
+    const { client, get } = mockClient(httpError(429));
+
+    // The first backoff is at least 1000ms, so it cannot fit.
+    const err = await failureOf(client, provider, { budgetMs: 200 });
+
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(sleepMock).not.toHaveBeenCalled();
+    expect(err.error.message).toMatch(/ran out of time/);
+  });
+
+  it("leaves a request that finishes in time alone", async () => {
+    const { client } = mockClient(response({ rates: { EUR: 0.9 } }));
+
+    await expect(
+      fetchRates(client, provider, query, { budgetMs: 5000 })
+    ).resolves.toEqual({ rates: { EUR: 0.9 } });
   });
 });
