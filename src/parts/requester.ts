@@ -207,10 +207,34 @@ function signalledFailure(
     ? provider.errors[error]
     : undefined;
 
+  if (mapped) {
+    return { handled: true, error: mapped };
+  }
+
   // A code the provider does not enumerate is not a verdict on the chain.
   // Treating it as fatal meant a 500 from any provider whose errorHandler reads
   // the HTTP status ended the call outright, so the default chain never fell back.
-  return mapped ? { handled: true, error: mapped } : { handled: true, error };
+  //
+  // An unmapped number from an actual HTTP failure is usually that status
+  // echoed back: ExchangeRateAPI's errorHandler is literally `data => data.status`,
+  // so an unrecognised body carrying one surfaced bare, and the caller rendered
+  // it as "Rate provider failed: 500", naming neither the provider nor the fact
+  // that 500 was a status. Phrase it the way a transport failure already is
+  // rather than duplicating that string here.
+  if (typeof error === "number" && failed && response) {
+    // Keep the provider's own number when it is not just the status echoed
+    // back: an apilayer 101 arriving on an HTTP 401 is the useful half, and
+    // reporting only "HTTP 401" throws away what the vendor actually said.
+    return {
+      handled: true,
+      error: httpFailureError(
+        response.status,
+        error === response.status ? undefined : error
+      )
+    };
+  }
+
+  return { handled: true, error };
 }
 
 /**
@@ -380,12 +404,26 @@ function retryAfter(response: HttpResponse): number | undefined {
   return Math.max(at - Date.now(), 0);
 }
 
+/** The phrasing any HTTP failure gets, regardless of which path notices it. */
+function httpFailureError(status: number, providerCode?: number): Error {
+  const detail =
+    providerCode === undefined
+      ? `HTTP ${status}`
+      : `HTTP ${status}, provider code ${providerCode}`;
+  return new Error(`Request to the provider failed: ${detail}`);
+}
+
 /**
  * Describes a thrown value in one line, without serialising it.
  *
  * Clients are free to reject with anything at all, and `err.code ||
- * err.message || String(err)` reads "undefined" off half of them. Unknown
- * objects are named, never stringified: their fields can hold the request URL.
+ * err.message || String(err)` reads "undefined" off half of them. `message` is
+ * never used verbatim: a bare `fetch()` throws a TypeError naming the request
+ * when a URL fails to parse, and node-fetch's FetchError does the same for a
+ * DNS or connection failure, both embedding the provider API key. `code` is
+ * the one field a client is expected to set as a closed classification (like
+ * "ETIMEDOUT"), so it is the only one trusted; anything else is named by its
+ * class, never dumped.
  *
  * @param {unknown} err - the thrown value
  * @returns {string} - a short, safe description
@@ -403,14 +441,13 @@ function describe(err: unknown): string {
     if (typeof code === "number") {
       return String(code);
     }
-    if (typeof message === "string" && message.trim()) {
-      return message.trim();
-    }
-    // Named, not dumped — an error object's own fields may carry the API key.
     const name = (err as any).constructor?.name;
-    return typeof name === "string" && name && name !== "Object"
-      ? `${name} (no message)`
-      : "unknown error";
+    if (typeof name !== "string" || !name || name === "Object") {
+      return "unknown error";
+    }
+    return typeof message === "string" && message.trim()
+      ? `${name} (message withheld)`
+      : `${name} (no message)`;
   }
 
   if (err === null || err === undefined) {
@@ -435,8 +472,9 @@ function describe(err: unknown): string {
  */
 function transportError(err: unknown): Error {
   const status = responseOf(err)?.status;
-  const detail = status ? `HTTP ${status}` : describe(err);
-  const error = new Error(`Request to the provider failed: ${detail}`);
+  const error = status
+    ? httpFailureError(status)
+    : new Error(`Request to the provider failed: ${describe(err)}`);
 
   const code = (err as HttpError)?.code;
   if (typeof code === "string") {

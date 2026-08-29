@@ -341,6 +341,22 @@ describe("transport failures", () => {
     expect(err).toMatchObject({ handled: true });
     expect(err.error.message).toBe("Request to the provider failed: HTTP 500");
   });
+
+  it("does not leak the request URL through a client's `.message`", async () => {
+    // Neither shape carries a usable `.code`, so `describe()` fell through to
+    // `.message` verbatim: a bare `fetch()` throws exactly this TypeError for a
+    // malformed URL, and node-fetch's FetchError does the same for a DNS or
+    // connection failure. Both embed the request, key included.
+    const urlShaped = new TypeError(
+      "Failed to parse URL from https://api.example.com/rate?access_key=SUPERSECRET"
+    );
+    const { client } = mockClient(urlShaped);
+
+    const err = await failureOf(client);
+
+    expect(err.error.message).not.toContain("SUPERSECRET");
+    expect(inspect(err, { depth: null })).not.toContain("SUPERSECRET");
+  });
 });
 
 describe("non-Error rejections", () => {
@@ -374,10 +390,27 @@ describe("non-Error rejections", () => {
     );
   });
 
-  it("falls back to the message when the code is blank", async () => {
+  it("does not fall back to the message when the code is blank", async () => {
+    // `message` is exactly where a client puts the request URL, so a blank
+    // `code` must not resurrect it; a plain object carries no class name to
+    // report instead, so this bottoms out at "unknown error".
     expect(await messageFor({ code: "  ", message: "  down for maintenance " })).toBe(
-      "Request to the provider failed: down for maintenance"
+      "Request to the provider failed: unknown error"
     );
+  });
+
+  it("names the error class instead of echoing a present message", async () => {
+    class Timeoutish extends Error {
+      url = "https://api.example.com/rate?access_key=SUPERSECRET";
+    }
+    const err = await failureOf(
+      rejectsWith(Object.assign(new Timeoutish("down for maintenance"), { code: "  " }))
+    );
+
+    expect(err.error.message).toBe(
+      "Request to the provider failed: Timeoutish (message withheld)"
+    );
+    expect(inspect(err, { depth: null })).not.toContain("SUPERSECRET");
   });
 
   it("names an error class that carries no message, without dumping its fields", async () => {
@@ -427,6 +460,22 @@ describe("error classification", () => {
       error: 999
     });
   });
+
+  it("phrases an unmapped numeric error from an HTTP failure as HTTP <status>", async () => {
+    // ExchangeRateAPI's real errorHandler is `data => data.status`. A body that
+    // happens to carry a `status` the provider does not enumerate used to
+    // surface as the bare number, which callers rendered as
+    // "Rate provider failed: 500": naming neither the provider nor the fact
+    // that 500 was an HTTP status.
+    const echoesStatus = { ...provider, errorHandler: (data: any) => data.status };
+    const { client } = mockClient(httpError(500, { status: 500 }));
+
+    const err = await failureOf(client, echoesStatus);
+
+    expect(err).toMatchObject({ handled: true });
+    expect(err.error).toBeInstanceOf(Error);
+    expect(err.error.message).toBe("Request to the provider failed: HTTP 500");
+  });
 });
 
 describe("the time budget", () => {
@@ -468,5 +517,33 @@ describe("the time budget", () => {
     await expect(
       fetchRates(client, provider, query, { budgetMs: 5000 })
     ).resolves.toEqual({ rates: { EUR: 0.9 } });
+  });
+});
+
+describe("an unmapped numeric error keeps what the vendor said", () => {
+  it("reports the provider's code alongside the status when they differ", async () => {
+    // apilayer sends its own code in the body and a status in the header. Both
+    // matter: "HTTP 401" alone throws away the 101 that names the cause.
+    const apilayerish = {
+      ...provider,
+      errors: { 999: "known" },
+      errorHandler: (data: any) => (data && data.error ? data.error.code : null)
+    };
+    const { client } = mockClient(httpError(401, { error: { code: 101 } }));
+
+    const err = await failureOf(client, apilayerish);
+
+    expect(err.error.message).toBe(
+      "Request to the provider failed: HTTP 401, provider code 101"
+    );
+  });
+
+  it("does not repeat the status when the code is just the status echoed back", async () => {
+    const echoesStatus = { ...provider, errorHandler: (data: any) => data.status };
+    const { client } = mockClient(httpError(500, { status: 500 }));
+
+    const err = await failureOf(client, echoesStatus);
+
+    expect(err.error.message).toBe("Request to the provider failed: HTTP 500");
   });
 });
