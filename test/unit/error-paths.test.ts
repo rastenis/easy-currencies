@@ -199,6 +199,42 @@ describe("empty and unusable responses", () => {
     await expect(converter.convert(1, "USD", "EUR")).rejects.toThrow();
   });
 
+  it("falls back rather than returning an empty table as success", async () => {
+    // The default chain is three providers. An empty table used to end the walk
+    // here, so the healthy provider behind this one was never asked.
+    const converter = new Converter();
+    converter.onError = () => {};
+    const mock = mockClient(
+      response({ rates: {} }),
+      response({ rates: { EUR: 0.9 } })
+    );
+    converter.config.setClient(mock.client);
+
+    await expect(converter.getRates("USD", "", true)).resolves.toEqual({
+      EUR: 0.9
+    });
+    expect(mock.urls().length).toBeGreaterThan(1);
+  });
+
+  it.each([
+    ["a table whose only value is null", { undefined: null }],
+    ["a table whose only value is NaN", { EUR: NaN }],
+    ["a table of unparseable strings", { EUR: "unavailable" }],
+    ["a table of non-positive rates", { EUR: 0, GBP: -1 }]
+  ])("treats %s as that provider's failure", async (_label, rates) => {
+    const converter = new Converter();
+    const seen: unknown[] = [];
+    converter.onError = (e) => seen.push(e);
+    converter.add("Probe", providerThat({ handler: () => rates }), true);
+    converter.config.setClient(mockClient(response({ rates: { EUR: 0.9 } })).client);
+
+    // A junk 200 must not be fabricated into a rate table the caller trusts.
+    await expect(converter.getRates("USD", "", true)).resolves.toEqual({
+      EUR: 0.9
+    });
+    expect(String(seen[0])).toMatch(/no usable rates/);
+  });
+
   it("fetches normally when rates are explicitly null", async () => {
     const converter = new Converter();
     converter.config.setClient(mockClient(response({ rates: { EUR: 0.9 } })).client);

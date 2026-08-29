@@ -232,3 +232,34 @@ describe("currency validation", () => {
     });
   });
 });
+
+describe("a product that overflows or underflows is not an answer", () => {
+  const converter = new Converter();
+
+  it.each([
+    ["overflows to Infinity", 1e308, 10],
+    ["overflows on a large rate", 1e300, 1e300]
+  ])("rejects a result that %s", (_label, amount, rate) => {
+    expect(() => converter.convertRate(amount, "EUR", { EUR: rate })).toThrow(
+      /not representable as a number/
+    );
+  });
+
+  it.each([
+    ["underflows to zero", 5e-324, 0.5],
+    ["underflows on a tiny rate", 1e-300, 1e-300]
+  ])("rejects a result that %s", (_label, amount, rate) => {
+    // Both operands are positive, so a zero here is lost magnitude, not maths.
+    expect(() => converter.convertRate(amount, "EUR", { EUR: rate })).toThrow(
+      /not representable as a number/
+    );
+  });
+
+  it("still converts a zero amount to zero", () => {
+    expect(converter.convertRate(0, "EUR", { EUR: 0.9 })).toBe(0);
+  });
+
+  it("still converts a negative amount", () => {
+    expect(converter.convertRate(-10, "EUR", { EUR: 0.9 })).toBeCloseTo(-9, 10);
+  });
+});
