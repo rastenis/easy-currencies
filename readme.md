@@ -332,6 +332,11 @@ converter.add("MyProvider", {
 });
 ```
 
+`errorHandler` always receives the response body, on a 200 and on an HTTP
+failure alike. If your vendor signals with a status code rather than in the
+body, key `errors` by the status and return `null` here: an HTTP status is
+matched against `errors` when the handler finds nothing.
+
 Multiple providers can be added with addMultiple:
 
 ```js

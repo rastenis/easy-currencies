@@ -82,7 +82,7 @@ export async function fetchRates(
     if (failed && response?.status === 429) {
       if (attempt >= maxRetries) {
         // A rate limit says nothing about the provider's health.
-        throw transient(
+        throw providerFailure(
           new Error(
             `Request to the provider failed: rate limited, giving up after ${
               attempt + 1
@@ -107,7 +107,7 @@ export async function fetchRates(
     // A transport failure — DNS, refused, timeout, abort — carries no response
     // to inspect. Transient: the next call may well succeed.
     if (failed && !response) {
-      throw transient(transportError(err));
+      throw providerFailure(transportError(err));
     }
 
     // resolving error
@@ -115,15 +115,40 @@ export async function fetchRates(
     // data to undefined for an unparseable response, so a vendor serving an
     // outage page makes the handler throw. That is this provider's failure,
     // not a reason to abandon the ones behind it.
+    // Vendors split into two camps: apilayer-style ones put their code in a 200
+    // body, the rest signal with an HTTP status. Only the body is readable in
+    // both cases, so that is what the handler gets, and the status answers for
+    // the providers whose errors table is keyed by it.
+    //
+    // Passing the response object here instead meant `data.error.code` read
+    // undefined on every HTTP failure, so the errors tables of
+    // ExchangeRatesAPIIO, CurrencyLayer and Fixer were unreachable whenever the
+    // vendor used a status: a 401 carrying {error:{code:101}} surfaced as
+    // "HTTP 401" rather than "Invalid API key!".
+    //
+    // `?? {}` because the client sets data to undefined for an unparseable
+    // response and handlers read fields off it without guards.
+    const body = (failed ? response?.data : result?.data) ?? {};
+
     let error: number | string | null;
     try {
-      error = provider.errorHandler(
-        failed ? response : (result as HttpResponse).data
-      );
+      error = provider.errorHandler(body);
     } catch (e) {
-      throw transient(
+      throw providerFailure(
         e instanceof Error ? e : new Error(`Provider callback failed: ${String(e)}`)
       );
+    }
+
+    // Only a status the provider actually enumerates. An unmapped one is not a
+    // verdict, and the transport path below phrases it as "HTTP 500" rather
+    // than surfacing a bare number as the error.
+    if (
+      !error &&
+      failed &&
+      response &&
+      Object.prototype.hasOwnProperty.call(provider.errors, response.status)
+    ) {
+      error = response.status;
     }
 
     // returning either the meaning of the error (if registered in provider's definition), or the error itself.
@@ -147,7 +172,17 @@ export async function fetchRates(
     // An HTTP failure the provider does not recognise still failed. Falling
     // through here would read .data off an undefined result.
     if (failed) {
-      throw transient(transportError(err));
+      throw providerFailure(transportError(err));
+    }
+
+    // A 200 whose body did not parse is not a usable response. Letting it
+    // through made the provider's handler dereference undefined, and the
+    // consumer's error was then a TypeError naming neither the provider nor the
+    // cause, identical whether the socket died in 4ms or the read timed out.
+    if (result!.data === undefined) {
+      throw providerFailure(
+        new Error("Provider returned a response with no readable body.")
+      );
     }
 
     return (result as HttpResponse).data;
@@ -161,8 +196,8 @@ function normalize(value: number | undefined, fallback: number): number {
     : fallback;
 }
 
-/** The rejection shape for a failure that should not cost the provider its place. */
-function transient(error: Error): FetchRatesError {
+/** The rejection shape for a failure the caller should treat as this provider's, and fall back from. */
+function providerFailure(error: Error): FetchRatesError {
   return { handled: true, error };
 }
 

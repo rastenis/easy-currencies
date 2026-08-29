@@ -155,6 +155,30 @@ const provider = {
 | `console.error` is no longer unconditional | `converter.onError = () => {}` to silence |
 | A provider answering for a different base is rejected | nothing, this caught vendors truncating codes |
 
+## `errorHandler` always receives the response body
+
+1.x passed the body on a 200 but the whole response object on an HTTP failure,
+so a handler reading `data.error.code` saw `undefined` on every 4xx and 5xx and
+its `errors` table was unreachable by status. It now receives the body in both
+cases, and an HTTP status is matched against `errors` when the handler returns
+nothing.
+
+If your handler reads `data.status` to catch HTTP failures, drop that and key
+`errors` by the status instead:
+
+```js
+// 1.x
+errors: { 404: "Currency not found" },
+errorHandler: (data) => data.status
+
+// 2.0, same result
+errors: { 404: "Currency not found" },
+errorHandler: () => null
+```
+
+Leaving `data.status` in place is harmless: a body rarely carries a `status`
+field, so it returns nothing and the status match answers instead.
+
 ## Fetched rate tables carry a `__base` key
 
 `getRates` and `Convert().fetch()` add `__base` to the table, recording the
