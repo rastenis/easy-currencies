@@ -226,3 +226,22 @@ describe("createClient", () => {
     });
   });
 });
+
+describe("an over-cap body explains itself through the chain", () => {
+  it("carries a code, because the requester will not echo a message", async () => {
+    // The requester refuses to propagate a client's message verbatim, since
+    // that is where a request URL and its API key end up. A reason carried
+    // only in the message reaches the consumer as "Error (message withheld)".
+    (globalThis as any).fetch = async () =>
+      new Response(JSON.stringify({ pad: "x".repeat(4096) }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+
+    const client = createClient({ maxResponseSize: 512 });
+
+    await expect(client.get("https://x.example/rate")).rejects.toMatchObject({
+      code: "E_RESPONSE_TOO_LARGE"
+    });
+  });
+});

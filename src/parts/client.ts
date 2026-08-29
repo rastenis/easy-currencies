@@ -133,7 +133,14 @@ export function createClient(options: ClientOptions = {}): HttpClient {
           // Same shape as the transport failure above: no usable response
           // came back, so the fallback chain has to treat this provider the
           // same way it treats a dropped connection, not a parsed answer.
-          throw new Error(err.message);
+          //
+          // Carried on `code`, not in the message. The requester will not echo
+          // a client's message, because that is where a URL and its API key
+          // end up, so a message-only failure surfaces as "Error (message
+          // withheld)" and says nothing about what went wrong.
+          const tooLarge: any = new Error(err.message);
+          tooLarge.code = "E_RESPONSE_TOO_LARGE";
+          throw tooLarge;
         }
         data = undefined;
       }
