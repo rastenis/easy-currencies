@@ -53,7 +53,8 @@ describe("provider type guards", () => {
   });
 
   it("accepts a keyless provider", () => {
-    const { key, ...keyless } = provider;
+    // Destructured only to drop it; the underscore says so to the linter.
+    const { key: _key, ...keyless } = provider;
 
     expect(checkIfProvider(keyless)).toBe(true);
   });
