@@ -1,4 +1,4 @@
-import { mockClient, response } from "../helpers/mockClient";
+import { mockClient, response, httpError } from "../helpers/mockClient";
 import { Converter, RATES_BASE } from "../../src/converter";
 import { providers } from "../../src/parts/providers";
 
@@ -268,6 +268,64 @@ describe("empty and unusable responses", () => {
     await expect(converter.convert(10, "USD", "EUR", null as any)).resolves.toBeCloseTo(
       9,
       10
+    );
+  });
+});
+
+describe("a vendor error maps the same whether it arrives by status or in a body", () => {
+  /** Only the named provider, so the chain cannot mask the mapping under test. */
+  function only(name: string, key: string) {
+    const converter = new Converter(name, key);
+    while (converter.active.length > 1) {
+      converter.remove(converter.active[1]);
+    }
+    converter.onError = () => {};
+    return converter;
+  }
+
+  // apilayer returns its codes in a 200 body most of the time and by status the
+  // rest of it. Reading the response object meant data.error.code was undefined
+  // on every HTTP failure, so these three tables were unreachable by status.
+  it.each(["ExchangeRatesAPIIO", "CurrencyLayer", "Fixer"])(
+    "%s maps code 101 carried by an HTTP 401",
+    async (name) => {
+      const converter = only(name, "KEY");
+      converter.config.setClient(
+        mockClient(httpError(401, { error: { code: 101 } })).client
+      );
+
+      await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow(
+        "Invalid API key!"
+      );
+    }
+  );
+
+  it("still maps a status for the providers whose table is keyed by one", async () => {
+    const converter = only("OpenExchangeRates", "KEY");
+    converter.config.setClient(mockClient(httpError(401)).client);
+
+    await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow(
+      "Invalid API key!"
+    );
+  });
+
+  it("leaves an unenumerated status to the transport message", async () => {
+    const converter = only("Fixer", "KEY");
+    converter.config.setClient(mockClient(httpError(500)).client);
+
+    // Not a bare "500": the status is not a verdict the provider registered.
+    await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow(
+      /HTTP 500/
+    );
+  });
+
+  it("reports a 200 whose body did not parse", async () => {
+    const converter = only("Fixer", "KEY");
+    converter.config.setClient(mockClient(response(undefined)).client);
+
+    // Used to reach the handler and surface as a bare TypeError.
+    await expect(converter.convert(15, "USD", "EUR")).rejects.toThrow(
+      /no readable body/
     );
   });
 });
