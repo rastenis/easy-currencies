@@ -43,7 +43,8 @@ describe("Convert chain", () => {
   it("exposes fetched rates and reuses them without refetching", async () => {
     const chain = await Convert(10).from("USD").fetch();
 
-    expect(chain.rates).toEqual(RATES.rates);
+    // The table travels with its base so a cached copy stays checkable.
+    expect(chain.rates).toEqual({ ...RATES.rates, __base: "USD" });
     expect(get).toHaveBeenCalledTimes(1);
 
     const eur = await chain.to("EUR");

@@ -70,8 +70,16 @@ console.log(convert.rates);
 //   DKK: 6.42,
 //   HUF: 312.8,
 //   ...
+//   __base: "USD"
 // }
 ```
+
+`__base` records the currency the table was fetched for. Passing a table to
+`convert(amount, from, to, rates)` with a different `from` throws instead of
+returning a wrong number, and the key is an ordinary one so the check still
+works after the table has been through `JSON.stringify` and a cache. It is not a
+rate: skip it when iterating, or import `RATES_BASE_KEY` to name it. An
+underscore is not valid in a currency code, so it cannot collide with one.
 
 This also allows for cached conversion:
 

@@ -228,7 +228,8 @@ describe("currency validation", () => {
     });
 
     await expect(converter.getRates("USD", "", true)).resolves.toEqual({
-      EUR: 0.9
+      EUR: 0.9,
+      __base: "USD"
     });
   });
 });

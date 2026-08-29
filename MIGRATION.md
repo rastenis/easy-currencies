@@ -154,3 +154,34 @@ const provider = {
 | A transient failure no longer drops a provider | nothing, only permanent faults evict now |
 | `console.error` is no longer unconditional | `converter.onError = () => {}` to silence |
 | A provider answering for a different base is rejected | nothing, this caught vendors truncating codes |
+
+## Fetched rate tables carry a `__base` key
+
+`getRates` and `Convert().fetch()` add `__base` to the table, recording the
+currency it was fetched for. Converting that table from a different base throws
+rather than returning a wrong number, and because `__base` is an ordinary key
+the check survives a cache round trip.
+
+```js
+const rates = await converter.getRates("USD", "", true);
+// { EUR: 0.9, GBP: 0.8, __base: "USD" }
+
+await redis.set("rates", JSON.stringify(rates));
+const cached = JSON.parse(await redis.get("rates"));
+
+await converter.convert(100, "GBP", "EUR", cached); // throws, base is USD
+await converter.convert(100, "USD", "EUR", cached); // 90
+```
+
+If you iterate a fetched table, skip it. `RATES_BASE_KEY` is exported for that:
+
+```js
+import { RATES_BASE_KEY } from "easy-currencies";
+
+for (const [code, rate] of Object.entries(rates)) {
+  if (code === RATES_BASE_KEY) continue;
+  // ...
+}
+```
+
+Tables you build yourself carry no `__base` and are converted as before.
