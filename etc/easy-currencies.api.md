@@ -20,6 +20,7 @@ export interface chainableConverter {
 
 // @public (undocumented)
 export interface ClientOptions {
+    maxResponseSize?: number;
     timeout?: number;
 }
 

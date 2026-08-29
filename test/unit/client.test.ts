@@ -150,6 +150,24 @@ describe("createClient", () => {
         code: undefined
       });
     });
+
+    // Mutation testing found five OptionalChaining survivors here: nothing in
+    // the suite distinguished `err?.message` from `err.message`, so a mutant
+    // that deleted the `?.` still passed every test even though it throws a
+    // bare TypeError for a null/undefined rejection instead of an HttpError.
+    it("falls back to a generic message when the rejection is null", async () => {
+      await expect(rejectWith(null)).rejects.toMatchObject({
+        message: "fetch failed",
+        code: undefined
+      });
+    });
+
+    it("falls back to a generic message when the rejection is undefined", async () => {
+      await expect(rejectWith(undefined)).rejects.toMatchObject({
+        message: "fetch failed",
+        code: undefined
+      });
+    });
   });
 
   it("aborts a hung request once the timeout elapses", async () => {
@@ -163,5 +181,48 @@ describe("createClient", () => {
 
     expect(err.code).toBe("ETIMEDOUT");
     expect(err.response).toBeUndefined();
+  });
+
+  describe("response size cap", () => {
+    it("rejects a body over the configured cap instead of buffering it", async () => {
+      serve((_req, res) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ rates: { EUR: "x".repeat(2000) } }));
+      });
+
+      const err: any = await createClient({ maxResponseSize: 1024 })
+        .get(base)
+        .catch((e) => e);
+
+      // Same shape as a transport failure: the fallback chain in requester.ts
+      // only checks `failed && !response` to decide a provider gets retried,
+      // so a size-cap error has to carry no `.response` to be treated the same
+      // way as a dropped connection rather than a parsed (bad) answer.
+      expect(err).toBeInstanceOf(Error);
+      expect(err.response).toBeUndefined();
+    });
+
+    it("still resolves a body exactly at the cap", async () => {
+      // Pins `> limit` rather than `>= limit`: a boundary flip here would
+      // silently start rejecting well-formed rate tables sized right at the cap.
+      const body = JSON.stringify({ rates: { EUR: 0.9 } });
+      const padded = body + " ".repeat(1024 - body.length);
+      serve((_req, res) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(padded);
+      });
+
+      await expect(
+        createClient({ maxResponseSize: 1024 }).get(base)
+      ).resolves.toMatchObject({ data: { rates: { EUR: 0.9 } } });
+    });
+
+    it("still parses a normal small body under the default cap", async () => {
+      serve(json(200, { rates: { EUR: 0.9 } }));
+
+      await expect(createClient().get(base)).resolves.toMatchObject({
+        data: { rates: { EUR: 0.9 } }
+      });
+    });
   });
 });
