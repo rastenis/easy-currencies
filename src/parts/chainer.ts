@@ -9,7 +9,8 @@ export interface chainableConverter {
   from: (from: string) => chainableConverter;
   to: (to: string) => Promise<number>;
   fetch: () => Promise<chainableConverter>;
-  rates: rateObject;
+  /** Undefined until `fetch()` has resolved; `any` used to hide that. */
+  rates: rateObject | undefined;
   amount: (val: number) => chainableConverter;
 }
 
@@ -28,7 +29,7 @@ export function Chainer(amount: number | undefined = undefined) {
   let _currentAmount: number | undefined = amount;
   let _currentFrom: string | undefined = undefined;
   let _currentTo: string | undefined = undefined;
-  let _currentRates: any | undefined = undefined;
+  let _currentRates: rateObject | undefined = undefined;
   // Base currency the cached rates were fetched for.
   let _ratesBase: string | undefined = undefined;
 
