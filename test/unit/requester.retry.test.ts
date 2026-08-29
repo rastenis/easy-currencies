@@ -101,12 +101,11 @@ describe("429 handling", () => {
     expect(err.error.message).toMatch(/rate limited, giving up after 6 attempts/);
   });
 
-  it("marks exhaustion transient, so the caller falls back without dropping the provider", async () => {
+  it("marks exhaustion handled, so the caller falls back", async () => {
     const { client } = mockClient(httpError(429));
 
     expect(await failureOf(client)).toMatchObject({
-      handled: true,
-      transient: true
+      handled: true
     });
   });
 
@@ -118,8 +117,7 @@ describe("429 handling", () => {
     // Transient, not fatal: a 500 the provider does not enumerate says nothing
     // about the providers behind it, so the caller must be free to try them.
     await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
-      handled: true,
-      transient: true
+      handled: true
     });
 
     expect(get).toHaveBeenCalledTimes(1);
@@ -291,12 +289,11 @@ describe("transport failures", () => {
       config: { url: "https://api.example.com/rate?access_key=SUPERSECRET" }
     });
 
-  it("classifies a rejection without a response as transient, so callers fall back", async () => {
+  it("classifies a rejection without a response as handled, so callers fall back", async () => {
     const { client } = mockClient(networkError());
 
     await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
-      handled: true,
-      transient: true
+      handled: true
     });
   });
 
@@ -322,7 +319,7 @@ describe("transport failures", () => {
     expect(inspect(err, { depth: null })).not.toContain("SUPERSECRET");
   });
 
-  it("classifies an unrecognised HTTP failure as transient rather than crashing", async () => {
+  it("classifies an unrecognised HTTP failure as handled rather than crashing", async () => {
     // A provider that reads errors from the response body sees nothing in an
     // HTTP 500, so previously execution fell through to `result.data` on an
     // undefined result.
@@ -334,7 +331,7 @@ describe("transport failures", () => {
 
     const err = await failureOf(client, bodyErrorProvider);
 
-    expect(err).toMatchObject({ handled: true, transient: true });
+    expect(err).toMatchObject({ handled: true });
     expect(err.error.message).toBe("Request to the provider failed: HTTP 500");
   });
 });
@@ -394,8 +391,7 @@ describe("non-Error rejections", () => {
 
   it("keeps a falsy rejection a failure rather than reading data off nothing", async () => {
     await expect(fetchRates(rejectsWith(null), provider, query)).rejects.toMatchObject({
-      handled: true,
-      transient: true
+      handled: true
     });
   });
 });
@@ -410,18 +406,17 @@ describe("error classification", () => {
     });
   });
 
-  it("does not mark a mapped provider error transient: the caller may drop it", async () => {
+  it("marks a mapped provider error handled, like every other failure", async () => {
     const { client } = mockClient(response({ status: 101 }));
 
-    expect(await failureOf(client)).not.toHaveProperty("transient");
+    expect(await failureOf(client)).toMatchObject({ handled: true });
   });
 
-  it("marks errors absent from the provider's map as transient", async () => {
+  it("marks errors absent from the provider's map as handled", async () => {
     const { client } = mockClient(response({ status: 999 }));
 
     await expect(fetchRates(client, provider, query)).rejects.toMatchObject({
       handled: true,
-      transient: true,
       error: 999
     });
   });

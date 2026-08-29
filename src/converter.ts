@@ -393,8 +393,8 @@ export class Converter {
    * Rate fetch function.
    *
    * Walks a snapshot of the chain, so concurrent calls do not shrink each
-   * other's list. Only a permanent fault removes a provider from the shared
-   * list; a transient one is skipped for this call.
+   * other's list. A failure applies to the call, not the chain: no provider is
+   * removed, so one unknown currency cannot degrade a long-lived converter.
    *
    * @param {string} from - base currency
    * @param {string} to - conversion currency
@@ -429,6 +429,17 @@ export class Converter {
 
     for (let index = 0; index < chain.length; index++) {
       const provider = chain[index];
+
+      // A whole-table fetch has no target currency, so a provider whose template
+      // needs one cannot serve it: the request would go out asking for an empty
+      // symbol list. That is this provider's limitation, so move to the next.
+      if (multiple && provider.endpoint.single.includes("%TO%")) {
+        lastError = new Error(
+          "Provider cannot fetch a whole rate table; it requires a target currency."
+        );
+        this.onError(lastError);
+        continue;
+      }
 
       const [err, data] = await (<any>_to(
         fetchRates(client, provider, {
