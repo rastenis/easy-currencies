@@ -316,7 +316,7 @@ console.log(converter.config.activeProvider()); // ...provider data
 
 Upon creation of a converter, a default provider that does not require any API keys is automatically inserted into the list of active providers as a primary fallback. It always has lower priority than the providers the converter was initialized with.
 
-If a provider is well defined(all possible errors are registered properly), a conversion error will log the mapped error, and remove the provider from the active providers list. The conversion flow will attempt to resume by repeating the conversion using a different active provider.
+If a provider is well defined(all possible errors are registered properly), a conversion error is reported through `converter.onError` and the conversion flow resumes with the next active provider. A failure applies to that call only: no provider is removed, so one unknown currency cannot degrade a long-lived converter.
 
 If there are no more providers to fall back on, the converter throws the error. Moreover, if the error is not registered (unhandled error), it will be thrown as well.
 

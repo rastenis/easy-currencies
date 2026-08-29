@@ -43,13 +43,12 @@ function baseOf(rates: any): string | undefined {
 }
 
 /**
- * How `fetchRates` describes a provider failure. `transient` distinguishes a
- * blip, where the provider stays in the list, from a permanent fault such as a
- * bad key, where it is dropped. Missing means false.
+ * How `fetchRates` describes a provider failure. `handled` marks it as coming
+ * from the provider rather than from a bug, which is what makes it safe to move
+ * on to the next one.
  */
 interface ProviderFailure {
   handled: boolean;
-  transient?: boolean;
   error: unknown;
 }
 
