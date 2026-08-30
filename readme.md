@@ -13,6 +13,7 @@ Convert currencies with ease! Eight exchange rate providers to choose from, othe
   - Custom mode - choose one or more providers, use key-gated providers.
 - Add custom providers (private or public)
 - Provider fallbacks - automatic switching of active providers in the case of failure
+- Zero runtime dependencies, on the global fetch
 
 ## Install
 
@@ -20,9 +21,12 @@ Convert currencies with ease! Eight exchange rate providers to choose from, othe
 $ npm install easy-currencies
 ```
 
+Node 18 or newer, and no runtime dependencies. Upgrading from 1.x? See
+[MIGRATION.md](MIGRATION.md).
+
 ## Usage (Easy/chain mode)
 
-Easy/chain mode does not require initialization, and thus uses the default, no API key-required provider (api.exchangerate-api.com)
+Easy/chain mode does not require initialization. It uses the three providers that need no API key, starting with api.exchangerate-api.com and falling back through the others if one is down.
 
 ```js
 // CommonJS
@@ -217,6 +221,11 @@ import { createClient } from "easy-currencies";
 converter.setClient(createClient({ timeout: 30000 })); // default is 10000
 ```
 
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `timeout` | 10000 | ms before one request is aborted |
+| `maxResponseSize` | 10485760 | bytes of body read before giving up, so a broken upstream cannot be buffered whole |
+
 ## Bounding how long a conversion can take
 
 A conversion gets 20 seconds of wall clock, spent across the whole fallback
@@ -320,7 +329,7 @@ console.log(converter.config.activeProvider()); // ...provider data
 
 ### Automatic provider fallbacks
 
-Upon creation of a converter, a default provider that does not require any API keys is automatically inserted into the list of active providers as a primary fallback. It always has lower priority than the providers the converter was initialized with.
+Upon creation of a converter, the three providers that need no API key are automatically appended to the list of active providers as fallbacks. They always have lower priority than the providers the converter was initialized with, and they are ordered by currency coverage, widest first.
 
 If a provider is well defined(all possible errors are registered properly), a conversion error is reported through `converter.onError` and the conversion flow resumes with the next active provider. A failure applies to that call only: no provider is removed, so one unknown currency cannot degrade a long-lived converter.
 
